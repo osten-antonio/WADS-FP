@@ -4,8 +4,9 @@ import * as React from "react"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
 import { Keypad } from "@/components/calculator/Keypad"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Camera, ChevronLeft, Keyboard } from "lucide-react"
+import { Camera, ChevronLeft, Keyboard, Send, Loader2 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 
@@ -16,9 +17,23 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 // TODO the internals of the textbox should automatically parse to Katex/Latex, same with the scanner page
 export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: React.ReactNode, topic: string }) {
   const [expression, setExpression] = React.useState("");
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const [isFunctionsOpen, setIsFunctionsOpen] = React.useState(false);
   const [isKeypadOpen, setIsKeypadOpen] = React.useState(false);
+  const [isSolving, setIsSolving] = React.useState(false);
+  const [hasResult, setHasResult] = React.useState(false);
+
+  const handleSolve = async () => {
+    if (!expression.trim()) return;
+    setIsSolving(true);
+    setHasResult(false);
+    
+    // Simulate backend delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    setIsSolving(false);
+    setHasResult(true);
+  };
 
   const handleKeyPress = (key: string) => {
     if (!inputRef.current) return;
@@ -36,7 +51,8 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
         "trunc", "round", "factorial", 
         "random", "combinations", "permutations", 
         "derivative", "integral", "limit", 
-        "sum", "product"];
+        "sum", "product"
+      ];
 
     switch (key) {
       case "BACKSPACE":
@@ -101,28 +117,48 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
         <div className="flex-2 flex flex-col gap-4">
           <section className="flex flex-col gap-4 p-4 bg-white rounded-2xl border shadow-sm">
             <h2 className="text-xl font-bold text-slate-900 border-b pb-2">{topic}</h2>
-            <div className="group gap-2 flex flex-row">
-              <Input
-                ref={inputRef}
-                className="h-14 text-2xl pr-12 rounded-xl border-slate-200 focus:ring-slate-300 w-full"
-                placeholder="x² - 2x + 1 = 0"
-                value={expression}
-                onChange={(e) => setExpression(e.target.value)}
-                autoFocus
-                onFocus={()=> setIsKeypadOpen(true)}
-              />
+            <div className="group gap-2 flex flex-row items-end">
+              <div className="flex-1 relative">
+                <Textarea
+                  ref={inputRef}
+                  className="text-lg pr-28 rounded-xl border-slate-200 focus:ring-slate-300 w-full resize-none"
+                  placeholder="x² - 2x + 1 = 0"
+                  value={expression}
+                  onChange={(e) => {
+                    setExpression(e.target.value);
+                    if (hasResult) setHasResult(false);
+                  }}
+                  autoFocus
+                  onFocus={() => setIsKeypadOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSolve();
+                    }
+                  }}
+                />
+                <div className="absolute right-2 bottom-2 flex flex-row gap-2">
+                  <Button 
+                    variant='ghost'
+                    disabled={!expression.trim() || isSolving}
+                    className="aspect-square h-10 w-10 shrink-0 p-0 rounded-lg"
+                    onClick={handleSolve}
+                  >
+                    {isSolving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                  </Button>
+                </div>
+              </div>
               <Button 
                 variant="ghost" 
-                className="border hover:bg-slate-100 aspect-square h-14 text-slate-500 transition-colors"
+                className="hover:bg-slate-100 aspect-square border h-12 w-12 text-slate-500 transition-colors shrink-0 p-0"
                 onClick={() => {}}
               >
-                <Camera />
+                <Camera className="h-5 w-5" />
               </Button>
             </div>
 
           </section>
         
-          {/* Calendar */}
           <div className="flex gap-2 w-full h-full">
               <div className="hidden w-full xl:flex xl:flex-row gap-2">
                   <FunctionSelector onSelect={(f) => handleKeyPress(f)} />
@@ -134,10 +170,22 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
               </div>
           </div>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 border border-dashed rounded-xl text-center text-slate-400 font-medium h-full">
-          {/* TODO implement solution screen ehre */}
-          {/* <p className="text-lg">Enter a problem to be solved</p> */}
-          {SolutionScreen}
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 border border-dashed rounded-xl text-center text-slate-400 font-medium h-fit min-h-[400px]">
+          {isSolving ? (
+             <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-10 w-10 animate-spin text-zinc-300" />
+                <p className="text-zinc-400 animate-pulse">Calculating steps...</p>
+             </div>
+          ) : hasResult ? (
+            <div className="w-full text-slate-900">
+               {SolutionScreen}
+            </div>
+          ) : (
+             <div className="flex flex-col items-center gap-2">
+                <p className="text-lg">Enter a problem to be solved</p>
+                <p className="text-sm opacity-60">Click the send button or press Enter</p>
+             </div>
+          )}
         </div>
 
 
