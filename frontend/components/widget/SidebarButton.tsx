@@ -7,7 +7,7 @@ export function SidebarButton(
     & ComponentPropsWithoutRef<typeof Button>
 ){
     return(
-        <Button className={additionalClasses ?? "w-full"} {...props}>
+        <Button className={additionalClasses ?? "w-full bg-button-main hover:!bg-button-main/70 transition-opacity"} {...props}>
             {children}
         </Button>
     )

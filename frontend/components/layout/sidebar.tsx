@@ -12,7 +12,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
     const { toggleSidebar } = useSidebar()
     return (
         <SidebarCN {...props}>
-            <SidebarHeader className="flex flex-row items-center justify-between p-4">
+            <SidebarHeader className="bg-primary-main text-white flex flex-row items-center justify-between p-4">
                 <div>
                     <h1 className="font-bold block md:hidden">
                         Menu
@@ -21,25 +21,25 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         <Title />
                     </span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-                    <X className="h-4 w-4 md:hidden" />
+                <Button className="md:hidden" variant="ghost" size="icon" onClick={toggleSidebar}>
+                    <X className="h-4 w-4" />
                 </Button>
             </SidebarHeader>
-            <SidebarContent className="px-2 flex flex-col gap-1">
+            <SidebarContent className="bg-primary-dark px-2 pt-2 flex flex-col gap-1">
                 <Collapsible className="w-full group/collapsible">
                     <CollapsibleTrigger asChild>
-                        <SidebarButton route="" additionalClasses="w-full">
+                        <SidebarButton route="" additionalClasses="w-full bg-button-main hover:!bg-button-main/70 transition-opacity">
                             Statistics
                             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                         </SidebarButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                        <div className="ml-3 pl-2 border-l-2 border-borderl flex flex-col gap-1 py-1 mt-2">
-                            <SidebarButton route="" additionalClasses="text-sm">
+                        <div className="ml-3 pl-2 border-l-2 border-primary-light/30 border-borderl flex flex-col gap-1 py-1 mt-2">
+                            <SidebarButton route="" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
                                 General
                             </SidebarButton>
                             {/* TODO other stat stuff here */}
-                            <SidebarButton route="" additionalClasses="text-sm">
+                            <SidebarButton route="" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
                                 Stuff
                             </SidebarButton>
                         </div>

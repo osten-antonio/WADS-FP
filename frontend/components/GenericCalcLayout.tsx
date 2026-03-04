@@ -192,9 +192,9 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
         {/* Mobile */}
         <div className={"xl:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t p-2"}>
             <Sheet open={isKeypadOpen} onOpenChange={(open) => setIsKeypadOpen(open)}>
-                <SheetContent side="bottom" className="h-[75vh] p-0 rounded-t-3xl xl:hidden overflow-hidden shadow-2xl" onClose={() => setIsKeypadOpen(false)}>
+                <SheetContent side="bottom" className="h-[65vh] p-0 rounded-t-3xl xl:hidden overflow-hidden shadow-2xl" onClose={() => setIsKeypadOpen(false)}>
                     <SheetHeader className="p-4 border-b bg-slate-50/50">
-                        <SheetTitle className="text-center font-bold text-slate-700">Calculator</SheetTitle>
+                        <SheetTitle className="text-center font-bold text-slate-700">----</SheetTitle>
                     </SheetHeader>
                     <div className="p-4 flex flex-col gap-4 h-full overflow-y-auto pb-10">
                         <Keypad 

@@ -62,7 +62,7 @@ export function FunctionSelector({ onSelect, onClose }: FunctionSelectorProps) {
         <div className="flex flex-col gap-6 p-2">
           {filteredCategories.map((cat) => (
             <div key={cat.name} className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold text-blue-600/70 px-1 uppercase tracking-tighter">
+              <h3 className="text-xs font-semibold text-primary-main px-1 uppercase tracking-tighter">
                 {cat.name}
               </h3>
               <div className="grid grid-cols-2 gap-2">
