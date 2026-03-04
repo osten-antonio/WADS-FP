@@ -136,7 +136,8 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
         </div>
         <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 border border-dashed rounded-xl text-center text-slate-400 font-medium h-full">
           {/* TODO implement solution screen ehre */}
-          <p className="text-lg">Enter a problem to be solved</p>
+          {/* <p className="text-lg">Enter a problem to be solved</p> */}
+          {SolutionScreen}
         </div>
 
 

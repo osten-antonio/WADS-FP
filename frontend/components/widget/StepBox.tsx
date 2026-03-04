@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
 export type StepBoxProps = {
   step: number | string
   summary: string
-  expression: string
+  expression?: string
   defaultOpen?: boolean
   explainBody?: string
   explainPlaceholder?: string
@@ -86,7 +86,7 @@ export function StepBox({
       </div>
 
       <CollapsibleContent className="px-5 pb-3">
-        <p className="text-sm text-slate-700">{summary}</p>
+        <p className="text-sm text-slate-700 text-left">{summary}</p>
         <div className="mt-3 text-center text-lg font-semibold text-slate-900">
           <span className="font-mono">{expression}</span>
         </div>
