@@ -1,4 +1,5 @@
 import {Button} from "@/components/ui/button" 
+import { ComponentPropsWithoutRef } from "react"
 
 export function SidebarButton(
     { route, children, additionalClasses, ...props }: 

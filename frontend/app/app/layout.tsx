@@ -13,7 +13,7 @@ export default function RootLayout({
       <Sidebar />
       <SidebarInset>
         <Header onToggle={() => {}} onLogout={() => {}} onPFPClick={() => {}} />
-        <main className="flex-1 p-4">
+        <main className="flex-1 px-4 py-8">
           {children}
         </main>
       </SidebarInset>
