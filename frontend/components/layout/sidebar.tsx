@@ -45,7 +45,9 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-                <Separator />
+                <SidebarButton route="">
+                    General
+                </SidebarButton>
                 <SidebarButton route="">
                     Algebra
                 </SidebarButton>
