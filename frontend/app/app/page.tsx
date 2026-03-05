@@ -50,6 +50,7 @@ export default function InputFile() {
             type="file"
             onChange={handleFileChange}
             className={preview ? "hidden" : "w-full h-50 text-transparent"}
+            data-testid="picture"
           />
           {!preview && <Camera size={48} className="absolute
           bottom-30 pointer-events-none text-black"/>}
