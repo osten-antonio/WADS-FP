@@ -11,7 +11,7 @@ import { SidebarButton } from "@/components/widget/SidebarButton"
 export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
     const { toggleSidebar } = useSidebar()
     return (
-        <SidebarCN {...props}>
+        <SidebarCN className="bg-primary-dark" {...props}>
             <SidebarHeader className="bg-primary-main text-white flex flex-row items-center justify-between p-4">
                 <div>
                     <h1 className="font-bold block md:hidden">
@@ -25,7 +25,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                     <X className="h-4 w-4" />
                 </Button>
             </SidebarHeader>
-            <SidebarContent className="bg-primary-dark px-2 pt-2 flex flex-col gap-1">
+            <SidebarContent className="bg-primary-dark px-2 pt-2 flex flex-1 flex-col gap-1">
                 <Collapsible className="w-full group/collapsible">
                     <CollapsibleTrigger asChild>
                         <SidebarButton route="" additionalClasses="w-full bg-button-main hover:!bg-button-main/70 transition-opacity">
@@ -67,7 +67,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                     Pre-calculus
                 </SidebarButton>
             </SidebarContent>
-            <SidebarFooter>
+            <SidebarFooter className="bg-primary-dark">
 
             </SidebarFooter>
         </SidebarCN>
