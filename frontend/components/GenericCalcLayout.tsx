@@ -126,7 +126,6 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
                   value={expression}
                   onChange={(e) => {
                     setExpression(e.target.value);
-                    if (hasResult) setHasResult(false);
                   }}
                   autoFocus
                   onFocus={() => setIsKeypadOpen(true)}

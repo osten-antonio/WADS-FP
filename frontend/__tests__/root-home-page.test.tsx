@@ -1,11 +1,14 @@
-import { render, screen } from "@testing-library/react"
+/*
+* THis is deleted because in the future root page 
+* should be a hero page (with mini dashboard if 
+* logged in?)
+* now just redirect to the app directly 
+*/
 
-import RootHomePage from "@/app/page"
+import Home from "@/app/page"
 
-describe("Root home page", () => {
-  it("renders the step box content", () => {
-    render(<RootHomePage />)
-    expect(screen.getByText("Step 1")).toBeInTheDocument()
-    expect(screen.getByText("This is the summary of step 1.")).toBeInTheDocument()
+describe("Root page", () => {
+  it("redirects to /app", () => {
+    expect(typeof Home).toBe("function")
   })
 })
