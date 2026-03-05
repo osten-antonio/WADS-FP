@@ -40,12 +40,12 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       <section className="md:hidden">
-        <div className="rounded-3xl border border-slate-900/70 bg-[#5f8696] p-5 text-white shadow-sm">
+        <div className=" h-screen m--5 border border-slate-900/70 bg-primary-main p-5 text-white shadow-sm">
           <div className="flex flex-col items-center text-center">
             <Avatar className="size-24">
-              <AvatarFallback className="bg-[#618D9D] text-xl text-white">
+              <AvatarFallback className="bg-primary-dark text-xl text-white">
                 PP
               </AvatarFallback>
             </Avatar>
@@ -90,8 +90,7 @@ export default function AccountPage() {
               )}
             </div>
             <Button
-              size="xs"
-              className="mt-2 rounded-full bg-[#5fa2b3] px-4 text-white hover:bg-[#5597a8]"
+              className="mt-2 rounded-lg bg-primary-dark/50 px-4 text-white hover:bg-primary-dark/80"
             >
               Change Password
             </Button>
@@ -102,14 +101,12 @@ export default function AccountPage() {
 
           <div className="mt-3 flex items-center justify-between">
             <Button
-              size="xs"
-              className="rounded-full bg-[#2f2f2f] px-4 text-white hover:bg-[#252525]"
+              className="rounded-lg h-7 bg-accent-main/60 px-4 text-white hover:bg-accent-main/80"
             >
               Clear History
             </Button>
             <Button
-              size="xs"
-              className="rounded-full bg-[#2f2f2f] px-4 text-white hover:bg-[#252525]"
+              className="rounded-lg h-7 bg-accent-main/60 px-4 text-white hover:bg-accent-main/80"
             >
               Filter
             </Button>
@@ -117,14 +114,11 @@ export default function AccountPage() {
         </div>
       </section>
 
-      <section className="hidden md:block">
-        <div className="rounded-2xl bg-white py-8 pl-8 pr-30 shadow-sm">
-          <div className="flex items-center justify-end">
-            <div className="size-9 rounded-full border border-slate-200 bg-white" />
-          </div>
+      <section className="hidden md:block px-4 py-8 w-full">
+        <div className="rounded-2xl bg-white py-8 pl-8 pr-30 shadow-sm w-full">
 
-          <div className="mt-6 grid grid-cols-[1fr_1.3fr] gap-10">
-            <div className="flex flex-col items-center text-center">
+          <div className="mt-6 flex flex-row flex-wrap w-full gap-10">
+            <div className="flex flex-col items-center flex-1 text-center min-w-60">
               <Avatar className="size-28">
                 <AvatarFallback className="bg-[#618D9D] text-2xl text-white">
                   PP
@@ -178,18 +172,17 @@ export default function AccountPage() {
               </Button>
             </div>
 
-            <div>
-              <div className="h-[340px] rounded-2xl bg-[#d9d9d9]" />
+            <div className="flex-3 min-w-80 m-auto">
+              <div className="text-center text-md font-semibold">History</div>
+              <div className="h-[340px] rounded-2xl bg-[#d9d9d9] mt-3" />
               <div className="mt-4 flex items-center justify-between">
                 <Button
-                  size="xs"
-                  className="rounded-full bg-[#2f2f2f] px-4 text-white hover:bg-[#252525]"
+                  className="rounded-lg h-7 bg-button-main/60 px-4 text-white hover:bg-button-main/80"
                 >
                   Clear History
                 </Button>
                 <Button
-                  size="xs"
-                  className="rounded-full bg-[#2f2f2f] px-4 text-white hover:bg-[#252525]"
+                  className="rounded-lg h-7 bg-button-main/60 px-4 text-white hover:bg-button-main/80"
                 >
                   Filter
                 </Button>

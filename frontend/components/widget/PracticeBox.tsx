@@ -8,7 +8,7 @@ export function PracticeBox({ number, question, questionLtx }: { number: number,
     const handleRedirect = ()=> {}
 
     return (
-        <div className="flex items-center justify-between w-full border rounded-md p-2">
+        <div className="flex items-center justify-between bg-primary-light/30 border-dashed w-full border rounded-md p-2">
             <div className="text-sm">Question {number}: { question }</div>
             <InputGroupButton onClick={handleRedirect} size="icon-xs">
                 <Button variant='ghost'>

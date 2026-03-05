@@ -68,7 +68,7 @@ export function StepBox({
     <Collapsible
       defaultOpen={defaultOpen}
       className={cn(
-        "group/step rounded-2xl border border-dashed border-slate-400/70 bg-cyan-50 text-slate-950",
+        "group/step rounded-2xl border border-dashed border-slate-400/70 bg-primary-light/30 text-slate-950",
         className
       )}
     >

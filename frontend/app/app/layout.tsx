@@ -6,6 +6,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AppShell>{children}</AppShell>
+    <AppShell additionalClassName="px-4 py-8">{children}</AppShell>
    );
 }

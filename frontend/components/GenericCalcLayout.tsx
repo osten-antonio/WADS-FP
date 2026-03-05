@@ -170,14 +170,14 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
               </div>
           </div>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 border border-dashed rounded-xl text-center text-slate-400 font-medium h-fit min-h-[400px]">
+        <div className={"flex-1 flex flex-col h-full items-center justify-center p-8 border border-dashed rounded-xl text-center text-slate-400 font-medium" + (hasResult ? " bg-white" : "bg-slate-50")}>
           {isSolving ? (
              <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-10 w-10 animate-spin text-zinc-300" />
                 <p className="text-zinc-400 animate-pulse">Calculating steps...</p>
              </div>
           ) : hasResult ? (
-            <div className="w-full text-slate-900">
+            <div className="w-full text-slate-900 h-full">
                {SolutionScreen}
             </div>
           ) : (

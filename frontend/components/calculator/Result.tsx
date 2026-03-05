@@ -28,6 +28,7 @@ export function Result(){
             await new Promise(resolve => setTimeout(resolve, 1500));
             setLoadingTabs(prev => ({ ...prev, [value]: false }));
             setTabData(prev => ({ ...prev, [value]: true }));
+            console.log(activeTab);
         }
     }
 
@@ -43,7 +44,7 @@ export function Result(){
 
     const toggleHidden = () => setHidden((s) => !s)
     return (
-        <div className="w-full flex flex-col gap-4">
+        <div className="w-full flex flex-col gap-4 h-full">
             <h1 className="text-xl text-left font-bold">Solution</h1>
             <InputGroup className="w-full">
                 <InputGroupInput value={hidden ? maskedValue : resultValue} readOnly />
@@ -61,9 +62,15 @@ export function Result(){
             <Tabs className="w-full flex flex-col gap-2" value={activeTab || ""} onValueChange={handleTabChange}>
                 <TabsList className="flex flex-row gap-2">
                     {/* TODO STYLE IT */}
-                    <TabsTrigger value="steps" asChild><Button variant={activeTab === 'steps' ? 'default' : 'outline'}> Steps</Button></TabsTrigger>
-                    <TabsTrigger value="hints" asChild><Button variant={activeTab === 'hints' ? 'default' : 'outline'}>Hints</Button></TabsTrigger>
-                    <TabsTrigger value="practices" asChild><Button variant={activeTab === 'practices' ? 'default' : 'outline'}>Practices</Button></TabsTrigger>
+                    <TabsTrigger value="steps" asChild>
+                        <Button className="bg-white text-black hover:bg-button-main/20 data-[state=active]:bg-[var(--color-button-main)] data-[state=active]:text-white "> Steps</Button>
+                    </TabsTrigger>
+                    <TabsTrigger value="hints" asChild>
+                        <Button className="bg-white text-black hover:bg-button-main/20 data-[state=active]:bg-[var(--color-button-main)] data-[state=active]:text-white ">Hints</Button>
+                    </TabsTrigger>
+                    <TabsTrigger value="practices" asChild>
+                        <Button className="bg-white text-black hover:bg-button-main/20 data-[state=active]:bg-[var(--color-button-main)] data-[state=active]:text-white ">Practices</Button>
+                    </TabsTrigger>
                 </TabsList>    
                 <TabsContent className="flex gap-2 flex-col min-h-[100px] justify-center" value="steps">
                     {loadingTabs['steps'] ? (
@@ -76,22 +83,23 @@ export function Result(){
                         </>
                     )}
                 </TabsContent>
-                <TabsContent className="flex gap-2 flex-col min-h-[100px] justify-center" value="hints">
+                <TabsContent className="flex gap-2 flex-col min-h-[100px] h-full justify-center" value="hints">
                     {loadingTabs['hints'] ? (
                         <div className="flex justify-center items-center py-8"><Loader2 className="animate-spin" /></div>
                     ) : tabData['hints'] && (
-                        <Card>
-                            <CardHeader>
+                        // using card causes problem
+                        <div className="rounded-2xl drop-shadow-2xl p-1 border-dashed border">
+                            <div className="bg-primary-light/30 rounded-xl p-2">
                                 <h1 className="text-left font-bold">Hints</h1>
                                 <Separator />
                                 <p className="text-justify">The solution involves applying standard rules of calculus. Consider the following hints to help you understand the process.</p>
-                            </CardHeader>
-                            <CardContent>
+                            </div>
+                            <div className="bg-primary-light/30 rounded-xl mt-2 p-2 text-left">
                                 <HintBox number={1} hint="The derivative of x^2 is 2x." />
                                 <HintBox number={2} hint="Use the power rule: d/dx[x^n] = nx^(n-1)." />
                                 <HintBox number={3} hint="Apply the constant multiple rule if needed." />
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </div>
                     )}
                 </TabsContent>
                 <TabsContent className="flex gap-2 flex-col min-h-[100px] justify-center" value="practices">
