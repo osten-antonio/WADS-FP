@@ -26,16 +26,19 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                 </Button>
             </SidebarHeader>
             <SidebarContent className="bg-primary-dark px-2 pt-2 flex flex-1 flex-col gap-1">
+                <SidebarButton route="/app">
+                    Scan
+                </SidebarButton>
                 <Collapsible className="w-full group/collapsible">
                     <CollapsibleTrigger asChild>
-                        <SidebarButton route="" additionalClasses="w-full bg-button-main hover:!bg-button-main/70 transition-opacity">
+                        <SidebarButton route="/app/calculator" additionalClasses="w-full bg-button-main hover:!bg-button-main/70 transition-opacity">
                             Statistics
                             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                         </SidebarButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <div className="ml-3 pl-2 border-l-2 border-primary-light/30 border-borderl flex flex-col gap-1 py-1 mt-2">
-                            <SidebarButton route="" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                            <SidebarButton route="/app/calculator" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
                                 General
                             </SidebarButton>
                             {/* TODO other stat stuff here */}
@@ -45,25 +48,25 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     General
                 </SidebarButton>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     Algebra
                 </SidebarButton>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     Proofs and theorem
                 </SidebarButton>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     Linear algebra
                 </SidebarButton>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     Trigonometry
                 </SidebarButton>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     Calculus
                 </SidebarButton>
-                <SidebarButton route="">
+                <SidebarButton route="/app/calculator">
                     Pre-calculus
                 </SidebarButton>
             </SidebarContent>
