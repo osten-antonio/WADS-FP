@@ -32,7 +32,7 @@ export default function InputFile() {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <Field className="text-center relative p-4">
+      <Field className="flex text-center relative p-4 -mt-40">
         <FieldLabel className="
           w-full justify-center text-center
           text-3xl">Image Scan</FieldLabel>
