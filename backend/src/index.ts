@@ -1,9 +1,6 @@
-import type { Application, Request, Response } from 'express';
-
-
-const express = require('express');
-const swaggerJsdoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+import express, { type Application, type Request, type Response } from "express";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 const app: Application = express();
 const port = 8000;
@@ -13,11 +10,11 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'WADS-FP calculator',
+      title: 'WADS-FP Calculator',
       version: '1.0.0',
     },
   },
-  apis: ['./src/index.ts'], 
+  apis: ['./src/routes/*.ts', './src/index.ts'], 
 };
 
 const openapiSpecification = swaggerJsdoc(options);
