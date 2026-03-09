@@ -169,7 +169,7 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
               </div>
           </div>
         </div>
-        <div className={"flex-1 flex flex-col h-full items-center justify-center p-8 border border-dashed rounded-xl text-center text-slate-400 font-medium" + (hasResult ? " bg-white" : "bg-slate-50")}>
+        <div className={"flex-1 flex flex-col h-full items-center justify-center p-8 border border-dashed rounded-xl text-center text-slate-400 font-medium " + (hasResult ? " bg-white" : "bg-slate-100")}>
           {isSolving ? (
              <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-10 w-10 animate-spin text-zinc-300" />
