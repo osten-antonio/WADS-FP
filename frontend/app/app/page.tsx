@@ -31,8 +31,8 @@ export default function InputFile() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Field className="flex text-center relative p-4 -mt-40">
+    <div className="flex items-center justify-center h-full bg-scan-background">
+      <Field className="flex text-center relative p-4">
         <FieldLabel className="
           w-full justify-center text-center
           text-3xl">Image Scan</FieldLabel>
@@ -42,7 +42,7 @@ export default function InputFile() {
         <div className="
             max-w-167.5 min-h-50
             mx-auto border-2
-            border-dashed border-gray-300 rounded-md 
+            border-dashed border-gray-400 rounded-md 
             zIndex-1 bg-text-input/60 flex 
             items-center justify-center">
           <Input 

@@ -17,7 +17,7 @@ export function Header({
 }: HeaderProps){
     const username = 'aaa';
     return (
-        <header className="bg-primary-main relative z-20 flex justify-between items-center p-4 text-white w-full">
+        <header className="bg-primary-main relative z-20 flex justify-between items-center p-4 text-white w-full py-4.5">
             <SidebarTrigger className="md:hidden">
                 <Menu />
             </SidebarTrigger>

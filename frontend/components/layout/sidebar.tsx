@@ -1,5 +1,5 @@
 "use client"
-import { ChevronDown, X } from "lucide-react"
+import { ChevronDown, X, ChevronLeft } from "lucide-react"
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import { Sidebar as SidebarCN, SidebarContent, SidebarFooter, SidebarHeader, useSidebar } from "../ui/sidebar"
@@ -12,7 +12,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
     const { toggleSidebar } = useSidebar()
     return (
         <SidebarCN className="bg-primary-dark" {...props}>
-            <SidebarHeader className="bg-primary-main text-white flex flex-row items-center justify-between p-4">
+            <SidebarHeader className="bg-primary-main text-white flex flex-row items-center justify-between p-4 py-4">
                 <div>
                     <h1 className="font-bold block md:hidden">
                         Menu
@@ -21,9 +21,14 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         <Title />
                     </span>
                 </div>
-                <Button className="md:hidden" variant="ghost" size="icon" onClick={toggleSidebar}>
-                    <X className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                    <Button className="hidden md:flex" variant="ghost" size="icon" onClick={toggleSidebar}>
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button className="md:hidden" variant="ghost" size="icon" onClick={toggleSidebar}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
             </SidebarHeader>
             <SidebarContent className="bg-primary-dark px-2 pt-2 flex flex-1 flex-col gap-1">
                 <SidebarButton route="/app">

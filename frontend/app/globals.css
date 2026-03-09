@@ -47,6 +47,7 @@
   --radius-4xl: calc(var(--radius) + 16px);
 
   --color-text-input: var(--color-text-input); 
+  --color-scan-background: var(--color-scan-background);
   --color-primary-main: #618D9D;
   --color-primary-light: #B3E0D7;
   --color-primary-dark: #2F4457;
@@ -89,7 +90,8 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  --color-text-input: #D9D9D9
+  --color-text-input: #FAEAB1;
+  --color-scan-background: #FAF8F1;
 }
 
 .dark {
