@@ -14,124 +14,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum SubmissionStatus {
-  RECEIVED
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-enum SolverType {
-  MATHJS
-  LLM
-}
-
-enum UserRole {
-  GUEST
-  USER
-}
-
 enum InputType {
   TEXT
   IMAGE
 }
 
-model UserAccount {
-  id           String              @id @default(uuid()) @db.Uuid
-  email        String              @unique
+model UserAccount { // for email and stuff firebase is managing it
+  firebaseUID  String    @id
   displayName  String
-  role         UserRole
-  createdAt    DateTime            @default(now())
-  submissions  ProblemSubmission[]
-  activityLogs ActivityLog[]
+  history      History[]
 }
 
 model ProblemSubmission {
-  id            String           @id @default(uuid()) @db.Uuid
-  inputType     InputType
-  rawText       String?
-  imageUrl      String?
-  topicSelected String
-  createdAt     DateTime         @default(now())
-  status        SubmissionStatus
-
-  userId       String?      @db.Uuid
-  user         UserAccount? @relation(fields: [userId], references: [id])
-  solveResult  SolveResult?
+  id             String        @id @default(uuid())
+  inputMode      InputType
+  category       String
+  type           String
+  subtype        String? // for statistics (multiple different subtypes)
+  text           String
+  createdAt      DateTime      @default(now())
+  history        History[]
 }
 
-model ActivityLog {
-  id        String   @id @default(uuid()) @db.Uuid
-  action    String
-  ipHash    String
-  createdAt DateTime @default(now())
+model History {
+  userID        String
+  submissionID  String
+  createdAt     DateTime          @default(now())
 
-  userId String?      @db.Uuid
-  user   UserAccount? @relation(fields: [userId], references: [id])
-}
-
-model SolveResult {
-  id          String     @id @default(uuid()) @db.Uuid
-  solverUsed  SolverType
-  finalAnswer String
-  confidence  Float
-  topic       String
-  difficulty  String
-  createdAt   DateTime   @default(now())
-
-  submissionId String            @unique @db.Uuid
-  submission   ProblemSubmission @relation(fields: [submissionId], references: [id])
-
-  steps          Step[]
-  hints          Hint[]
-  recommendations RecommendationSuggestion[]
-  practiceSets   PracticeSet[]
-}
-
-model Step {
-  id          String @id @default(uuid()) @db.Uuid
-  stepNumber  Int
-  math        String
-  explanation String
-
-  solveResultId String      @db.Uuid
-  solveResult   SolveResult @relation(fields: [solveResultId], references: [id])
-}
-
-model Hint {
-  id        String @id @default(uuid()) @db.Uuid
-  hintLevel Int
-  content   String
-
-  solveResultId String      @db.Uuid
-  solveResult   SolveResult @relation(fields: [solveResultId], references: [id])
-}
-
-model RecommendationSuggestion {
-  id      String @id @default(uuid()) @db.Uuid
-  concept String
-  advice  String
-
-  solveResultId String      @db.Uuid
-  solveResult   SolveResult @relation(fields: [solveResultId], references: [id])
-}
-
-model PracticeSet {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-
-  solveResultId String      @db.Uuid
-  solveResult   SolveResult @relation(fields: [solveResultId], references: [id])
-
-  questions PracticeQuestion[]
-}
-
-model PracticeQuestion {
-  id         String @id @default(uuid()) @db.Uuid
-  question   String
-  answer     String
-  difficulty String
-
-  practiceSetId String      @db.Uuid
-  practiceSet   PracticeSet @relation(fields: [practiceSetId], references: [id])
+  user          UserAccount       @relation(fields: [userID], references: [firebaseUID])
+  submission    ProblemSubmission @relation(fields: [submissionID], references: [id])
+  @@id([userID, submissionID])
 }
