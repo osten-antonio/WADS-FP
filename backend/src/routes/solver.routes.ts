@@ -7,148 +7,7 @@ import { solve, solveAI } from "../controllers/solver.controller";
  * @openapi
  * tags:
  *   - name: Solver
- *     description: Solve math problems via deterministic or AI-based pipelines (draft).
- *
- * components:
- *   schemas:
- *     SolverType:
- *       type: string
- *       enum: [MATHJS, LLM]
- *     ProblemSubmission:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         inputType:
- *           $ref: '#/components/schemas/InputType'
- *         rawText:
- *           type: string
- *           nullable: true
- *         imageUrl:
- *           type: string
- *           nullable: true
- *         topicSelected:
- *           type: string
- *         createdAt:
- *           type: string
- *           format: date-time
- *         status:
- *           $ref: '#/components/schemas/SubmissionStatus'
- *     Step:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         stepNumber:
- *           type: integer
- *         math:
- *           type: string
- *         explanation:
- *           type: string
- *     Hint:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         hintLevel:
- *           type: integer
- *         content:
- *           type: string
- *     RecommendationSuggestion:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         concept:
- *           type: string
- *         advice:
- *           type: string
- *     PracticeQuestion:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         question:
- *           type: string
- *         answer:
- *           type: string
- *         difficulty:
- *           type: string
- *     PracticeSet:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         createdAt:
- *           type: string
- *           format: date-time
- *         questions:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/PracticeQuestion'
- *     SolveResult:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         solverUsed:
- *           $ref: '#/components/schemas/SolverType'
- *         finalAnswer:
- *           type: string
- *         confidence:
- *           type: number
- *           format: float
- *         topic:
- *           type: string
- *         difficulty:
- *           type: string
- *         createdAt:
- *           type: string
- *           format: date-time
- *         steps:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Step'
- *         hints:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Hint'
- *         recommendations:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/RecommendationSuggestion'
- *         practiceSets:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/PracticeSet'
- *     SolveRequest:
- *       type: object
- *       required: [inputType]
- *       properties:
- *         inputType:
- *           $ref: '#/components/schemas/InputType'
- *         rawText:
- *           type: string
- *           description: Provide when inputType is TEXT.
- *         imageUrl:
- *           type: string
- *           description: Provide when inputType is IMAGE.
- *         topicSelected:
- *           type: string
- *     SolveResponse:
- *       type: object
- *       properties:
- *         submission:
- *           $ref: '#/components/schemas/ProblemSubmission'
- *         result:
- *           $ref: '#/components/schemas/SolveResult'
+ *     description: Solve math problems via deterministic or AI-based pipelines.
  */
 
 const solverRouter = express.Router();
@@ -159,30 +18,33 @@ const solverRouter = express.Router();
  *   post:
  *     tags: [Solver]
  *     summary: Solve a math problem with deterministic engine
- *     description: Draft endpoint. Replace fields once the solver pipeline is finalized.
+ *     description: Solves a math problem with math.js, will fallback to AI if necessary.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SolveRequest'
+ *             $ref: '#/components/schemas/solveRequest'
  *           example:
- *             inputType: TEXT
- *             rawText: "Solve for x: 2x + 3 = 11"
- *             topicSelected: Algebra
+ *             question: "Solve for x: 2x + 3 = 11"
  *     responses:
  *       '200':
  *         description: Solved
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SolveResponse'
+ *               $ref: '#/components/schemas/solveResponse'
+ *             example:
+ *               answer: "x = 4"
+ *               id: "550e8400-e29b-41d4-a716-446655440000"
  *       '400':
  *         description: Validation error
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: "Could not solve equation"
  */
 solverRouter.post('/solve', globalRateLimit, solve);
 
@@ -192,24 +54,24 @@ solverRouter.post('/solve', globalRateLimit, solve);
  *   post:
  *     tags: [Solver]
  *     summary: Solve a math problem using AI fallback
- *     description: Draft endpoint. Replace fields once the solver pipeline is finalized.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SolveRequest'
+ *             $ref: '#/components/schemas/solveRequest'
  *           example:
- *             inputType: TEXT
- *             rawText: "Solve: integral of x^2 dx"
- *             topicSelected: Calculus
+ *             question: "Solve: integral of x^2 dx"
  *     responses:
  *       '200':
- *         description: Solved
+ *         description: Solved using AI
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/SolveResponse'
+ *               $ref: '#/components/schemas/solveResponse'
+ *             example:
+ *               answer: "x^3/3 + C"
+ *               id: "ai-550e8400-e29b-41d4-a716-446655440000"
  *       '400':
  *         description: Validation error
  *         content:
@@ -218,5 +80,6 @@ solverRouter.post('/solve', globalRateLimit, solve);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 solverRouter.post('/solve/ai', ollamaRateLimit, solveAI);
+
 
 export default solverRouter;

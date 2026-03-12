@@ -17,7 +17,11 @@ export function filterHistory(req: Request, res: Response) {
 }
 
 export function deleteHistory(req: Request, res: Response) {
+    // handle specific also
 }
 
 export function changePassword(req: Request, res: Response) {
+}
+
+export function forgotPassword(req: Request, res: Response) {
 }

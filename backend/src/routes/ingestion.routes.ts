@@ -14,7 +14,7 @@ import { ollamaRateLimit } from "../middleware/rateLimit.middleware";
  * @openapi
  * tags:
  *   - name: Ingestion
- *     description: Ingest text/image inputs and create submissions (draft).
+ *     description: Ingest text/image inputs to convert it to a latex text for submission.
  */
 
 const ingestionRouter = express.Router();
@@ -25,40 +25,29 @@ const ingestionRouter = express.Router();
  *   post:
  *     tags: [Ingestion]
  *     summary: Ingest an image input
- *     description: Draft endpoint. Update payload once image upload flow is finalized.
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             type: object
- *             required: [category]
- *             properties:
- *               category:
- *                 type: string
- *                 description: Category/topic for validation.
- *               imageUrl:
- *                 type: string
- *                 description: Public URL to the image (preferred).
- *               imageBase64:
- *                 type: string
- *                 description: Base64-encoded image (alternative to imageUrl).
- *           example:
- *             category: Algebra
- *             imageUrl: https://example.com/problem.png
+ *              $ref: '#/components/schemas/ingestionImage'
  *     responses:
  *       '201':
  *         description: Submission created
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProblemSubmission'
+ *               $ref: '#/components/schemas/ingestionResponse'
+ *             example:
+ *               question: "2x + 3 = 11"
  *       '400':
  *         description: Validation error
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: "Invalid image format"
  */
 ingestionRouter.post('/image', ollamaRateLimit,validateCategory, handleImageUpload);
 
@@ -68,30 +57,25 @@ ingestionRouter.post('/image', ollamaRateLimit,validateCategory, handleImageUplo
  *   post:
  *     tags: [Ingestion]
  *     summary: Ingest a text input
- *     description: Draft endpoint. Update payload once text ingestion flow is finalized.
+ *     description: Will also validate against the sent category, if its different, will warn user
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [category, text]
- *             properties:
- *               category:
- *                 type: string
- *                 description: Category/topic for validation.
- *               text:
- *                 type: string
+ *             $ref: '#/components/schemas/ingestionText'
  *           example:
- *             category: Algebra
- *             text: "Solve for x: 2x + 3 = 11"
+ *             category: "Algebra"
+ *             question: "Solve for x: 2x + 3 = 11"
  *     responses:
  *       '201':
  *         description: Submission created
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProblemSubmission'
+ *               $ref: '#/components/schemas/ingestionResponse'
+ *             example:
+ *               question: "Solve for x: 2x + 3 = 11"
  *       '400':
  *         description: Validation error
  *         content:
@@ -100,5 +84,6 @@ ingestionRouter.post('/image', ollamaRateLimit,validateCategory, handleImageUplo
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 ingestionRouter.post('/text', ollamaRateLimit, validateCategory, handleTextUpload);
+
 
 export default ingestionRouter;

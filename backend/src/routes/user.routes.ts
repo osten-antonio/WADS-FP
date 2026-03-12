@@ -1,13 +1,13 @@
 import express from "express";
 
 import { globalRateLimit } from "../middleware/rateLimit.middleware";
-import { register, login, profile, updateUsername, filterHistory, deleteHistory, changePassword } from "../controllers/user.controller";
+import { register, login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword } from "../controllers/user.controller";
 
 /**
  * @openapi
  * tags:
  *   - name: User
- *     description: User authentication and profile management (draft; update as implementation solidifies).
+ *     description: User profile, authentication sync, and history management via Firebase Admin SDK.
  *
  * components:
  *   securitySchemes:
@@ -15,150 +15,7 @@ import { register, login, profile, updateUsername, filterHistory, deleteHistory,
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
- *   schemas:
- *     UserRole:
- *       type: string
- *       enum: [GUEST, USER]
- *     InputType:
- *       type: string
- *       enum: [TEXT, IMAGE]
- *     SubmissionStatus:
- *       type: string
- *       enum: [RECEIVED, PROCESSING, COMPLETED, FAILED]
- *     User:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         email:
- *           type: string
- *           format: email
- *         displayName:
- *           type: string
- *         role:
- *           $ref: '#/components/schemas/UserRole'
- *         createdAt:
- *           type: string
- *           format: date-time
- *     SubmissionSummary:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         inputType:
- *           $ref: '#/components/schemas/InputType'
- *         rawText:
- *           type: string
- *           nullable: true
- *         imageUrl:
- *           type: string
- *           nullable: true
- *         topicSelected:
- *           type: string
- *         createdAt:
- *           type: string
- *           format: date-time
- *         status:
- *           $ref: '#/components/schemas/SubmissionStatus'
- *     RegisterRequest:
- *       type: object
- *       required: [email, password, displayName]
- *       properties:
- *         email:
- *           type: string
- *           format: email
- *         password:
- *           type: string
- *           minLength: 6
- *         displayName:
- *           type: string
- *     LoginRequest:
- *       type: object
- *       required: [email, password]
- *       properties:
- *         email:
- *           type: string
- *           format: email
- *         password:
- *           type: string
- *     UpdateUsernameRequest:
- *       type: object
- *       required: [displayName]
- *       properties:
- *         displayName:
- *           type: string
- *     ChangePasswordRequest:
- *       type: object
- *       required: [oldPassword, newPassword]
- *       properties:
- *         oldPassword:
- *           type: string
- *         newPassword:
- *           type: string
- *           minLength: 6
- *     HistoryFilterRequest:
- *       type: object
- *       properties:
- *         topic:
- *           type: string
- *         status:
- *           $ref: '#/components/schemas/SubmissionStatus'
- *         inputType:
- *           $ref: '#/components/schemas/InputType'
- *         from:
- *           type: string
- *           format: date-time
- *         to:
- *           type: string
- *           format: date-time
- *         limit:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *         offset:
- *           type: integer
- *           minimum: 0
- *     DeleteHistoryRequest:
- *       type: object
- *       required: [submissionIds]
- *       properties:
- *         submissionIds:
- *           type: array
- *           items:
- *             type: string
- *             format: uuid
- *     AuthResponse:
- *       type: object
- *       properties:
- *         token:
- *           type: string
- *           description: JWT access token (placeholder; update if using Firebase ID tokens).
- *         user:
- *           $ref: '#/components/schemas/User'
- *     ProfileResponse:
- *       type: object
- *       properties:
- *         user:
- *           $ref: '#/components/schemas/User'
- *     HistoryResponse:
- *       type: object
- *       properties:
- *         items:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/SubmissionSummary'
- *     DeleteHistoryResponse:
- *       type: object
- *       properties:
- *         deletedCount:
- *           type: integer
- *     ErrorResponse:
- *       type: object
- *       properties:
- *         message:
- *           type: string
+ *       description: Firebase ID Token obtained from the client-side Firebase SDK. Required for most user operations.
  */
 
 const userRouter = express.Router();
@@ -169,24 +26,28 @@ const userRouter = express.Router();
  *   post:
  *     tags: [User]
  *     summary: Register a new user
- *     description: Draft endpoint. Replace fields once auth flow is finalized.
+ *     description: Sync user account after Firebase registration. Decodes Firebase ID token to get UID.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RegisterRequest'
+ *             type: object
+ *             required: [displayName]
+ *             properties:
+ *               displayName:
+ *                 type: string
  *           example:
- *             email: user@example.com
- *             password: strongPass123
  *             displayName: Jane Doe
  *     responses:
  *       '201':
- *         description: User registered
+ *         description: User registered in local database
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               $ref: '#/components/schemas/profileResponse'
  *       '400':
  *         description: Validation error
  *         content:
@@ -201,26 +62,19 @@ userRouter.post('/register', globalRateLimit, register);
  * /users/login:
  *   post:
  *     tags: [User]
- *     summary: Login with email and password
- *     description: Draft endpoint. Replace fields once auth flow is finalized.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/LoginRequest'
- *           example:
- *             email: user@example.com
- *             password: strongPass123
+ *     summary: Login user
+ *     description: Sync session/validate Firebase ID token using Admin SDK.
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       '200':
- *         description: Authenticated
+ *         description: Authenticated and synced
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *               $ref: '#/components/schemas/profileResponse'
  *       '401':
- *         description: Invalid credentials
+ *         description: Invalid or expired Firebase token
  *         content:
  *           application/json:
  *             schema:
@@ -238,24 +92,38 @@ userRouter.post('/login', globalRateLimit, login);
  *       - bearerAuth: []
  *     responses:
  *       '200':
- *         description: Profile returned
+ *         description: Profile returned with submission history
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProfileResponse'
+ *               $ref: '#/components/schemas/profileResponse'
+ *             example:
+ *               user:
+ *                 firebaseUID: "abc123firebase"
+ *                 displayName: "John Doe"
+ *               history:
+ *                 - id: "3bdf1a46-51ab-4a6c-b9fb-9f4f3ce1b1e2"
+ *                   inputMode: "TEXT"
+ *                   category: "Calculus"
+ *                   type: "Derivatives"
+ *                   subtype: "Power Rule"
+ *                   text: "What is the derivative of x^2?"
+ *                   createdAt: "2026-03-12T10:00:00Z"
  *       '401':
  *         description: Unauthorized
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: "Unauthorized access"
  */
 userRouter.get('/profile', globalRateLimit, profile);
 
 /**
  * @openapi
  * /users/update-username:
- *   post:
+ *   patch:
  *     tags: [User]
  *     summary: Update display name
  *     security:
@@ -265,16 +133,20 @@ userRouter.get('/profile', globalRateLimit, profile);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateUsernameRequest'
+ *             $ref: '#/components/schemas/updateUsernameRequest'
  *           example:
- *             displayName: Jane D.
+ *             displayName: "Johnny Doe"
  *     responses:
  *       '200':
  *         description: Updated
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProfileResponse'
+ *               $ref: '#/components/schemas/profileResponse'
+ *             example:
+ *               user:
+ *                 firebaseUID: "abc123firebase"
+ *                 displayName: "Johnny Doe"
  *       '400':
  *         description: Validation error
  *         content:
@@ -288,37 +160,38 @@ userRouter.get('/profile', globalRateLimit, profile);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/update-username', globalRateLimit, updateUsername);
+userRouter.patch('/update-username', globalRateLimit, updateUsername);
 
 /**
  * @openapi
  * /users/filter-history:
- *   post:
+ *   get:
  *     tags: [User]
- *     summary: Filter submission history
+ *     summary: Filter submission history by category
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/HistoryFilterRequest'
- *           example:
- *             topic: Algebra
- *             status: COMPLETED
- *             inputType: TEXT
- *             from: 2025-01-01T00:00:00Z
- *             to: 2025-12-31T23:59:59Z
- *             limit: 20
- *             offset: 0
+ *     parameters:
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Category to filter submissions by.
  *     responses:
  *       '200':
  *         description: Filtered history
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/HistoryResponse'
+ *               $ref: '#/components/schemas/historyResponse'
+ *             example:
+ *               items:
+ *                 - id: "3bdf1a46-51ab-4a6c-b9fb-9f4f3ce1b1e2"
+ *                   inputMode: "TEXT"
+ *                   category: "Calculus"
+ *                   type: "Derivatives"
+ *                   subtype: "Power Rule"
+ *                   text: "What is the derivative of x^2?"
+ *                   createdAt: "2026-03-12T10:00:00Z"
  *       '401':
  *         description: Unauthorized
  *         content:
@@ -326,12 +199,12 @@ userRouter.post('/update-username', globalRateLimit, updateUsername);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/filter-history', globalRateLimit, filterHistory);
+userRouter.get('/filter-history', globalRateLimit, filterHistory);
 
 /**
  * @openapi
  * /users/delete-history:
- *   post:
+ *   delete:
  *     tags: [User]
  *     summary: Delete submission history items
  *     security:
@@ -341,18 +214,19 @@ userRouter.post('/filter-history', globalRateLimit, filterHistory);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/DeleteHistoryRequest'
+ *             $ref: '#/components/schemas/deleteHistoryRequest'
  *           example:
  *             submissionIds:
  *               - 3bdf1a46-51ab-4a6c-b9fb-9f4f3ce1b1e2
- *               - 8f1a8a52-65a2-4e1d-b29a-2e6b241d48ab
  *     responses:
  *       '200':
  *         description: Deleted
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/DeleteHistoryResponse'
+ *               $ref: '#/components/schemas/deleteHistoryResponse'
+ *             example:
+ *               deletedCount: 1
  *       '401':
  *         description: Unauthorized
  *         content:
@@ -360,14 +234,55 @@ userRouter.post('/filter-history', globalRateLimit, filterHistory);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/delete-history', globalRateLimit, deleteHistory);
+userRouter.delete('/delete-history', globalRateLimit, deleteHistory);
+
+/**
+ * @openapi
+ * /users/delete-history/{id}:
+ *   delete:
+ *     tags: [User]
+ *     summary: Delete a specific submission history item
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The unique ID of the problem submission to delete.
+ *     responses:
+ *       '200':
+ *         description: Item deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/deleteHistoryResponse'
+ *             example:
+ *               deletedCount: 1
+ *       '401':
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '404':
+ *         description: Submission not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+userRouter.delete('/delete-history/:id', globalRateLimit, deleteHistory);
 
 /**
  * @openapi
  * /users/change-password:
- *   post:
+ *   patch:
  *     tags: [User]
- *     summary: Change password
+ *     summary: Change password (Authenticated)
+ *     description: Update password for a logged-in user using Firebase Admin SDK. Requires a fresh token.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -375,19 +290,18 @@ userRouter.post('/delete-history', globalRateLimit, deleteHistory);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ChangePasswordRequest'
+ *             $ref: '#/components/schemas/changePasswordRequest'
  *           example:
- *             oldPassword: oldPass123
- *             newPassword: newPass123
+ *             newPassword: "newSecurePass123"
  *     responses:
  *       '200':
- *         description: Password changed
+ *         description: Password updated in Firebase
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProfileResponse'
+ *               $ref: '#/components/schemas/profileResponse'
  *       '400':
- *         description: Validation error
+ *         description: Validation error or token too old
  *         content:
  *           application/json:
  *             schema:
@@ -399,6 +313,43 @@ userRouter.post('/delete-history', globalRateLimit, deleteHistory);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/change-password', globalRateLimit, changePassword);
+userRouter.patch('/change-password', globalRateLimit, changePassword);
+
+/**
+ * @openapi
+ * /users/forgot-password:
+ *   post:
+ *     tags: [User]
+ *     summary: Request password reset email
+ *     description: Generates a Firebase password reset link and triggers an email to the user.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/forgotPasswordRequest'
+ *           example:
+ *             email: "user@example.com"
+ *     responses:
+ *       '200':
+ *         description: Reset email sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Reset link sent to user@example.com"
+ *       '400':
+ *         description: User not found or invalid email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+userRouter.post('/forgot-password', globalRateLimit, forgotPassword);
 
 export default userRouter;
+

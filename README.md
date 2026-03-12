@@ -21,14 +21,14 @@ Group Members (Group 6):
 
 Repository URL: [https://github.com/osten-antonio/WADS-FP](https://github.com/osten-antonio/WADS-FP)
 
-**B. Project Overview**  
-B.1. Problem Statement  
-	Students in academia often come across mathematical problems that are difficult to understand. This is because most tools today that have image detection only provide final answers only, do not provide constructive hints, and don’t adapt to the student’s level of understanding. Differently, our app would encourage conceptual understanding of the material, mimics the capability of the user, and ensures understandability through follow-up questions. We aim that this application would be widely used by high school to university STEM students, self-learners, and even tutors or teachers.
+### **B. Project Overview**  
+#### B.1. Problem Statement  
+Students in academia often come across mathematical problems that are difficult to understand. This is because most tools today that have image detection only provide final answers only, do not provide constructive hints, and don’t adapt to the student’s level of understanding. Differently, our app would encourage conceptual understanding of the material, mimics the capability of the user, and ensures understandability through follow-up questions. We aim that this application would be widely used by high school to university STEM students, self-learners, and even tutors or teachers.
 
-B.2. Solution Overview  
-	Our project strives to provide a quick math problem solver with step by step explanations, practice problem suggestions of the questioned topics, image capturing capabilities and categorization of problems from simple algebra to calculus. In addition to that, we provide hint generation options for those learning by solving. As for security measures, our model structure is created to prevent abuse and to maintain a secure line of activity tracking for multiple requests spanning some time. AI in our app will be a core functionality, not just an addition.
+#### B.2. Solution Overview  
+Our project strives to provide a quick math problem solver with step by step explanations, practice problem suggestions of the questioned topics, image capturing capabilities and categorization of problems from simple algebra to calculus. In addition to that, we provide hint generation options for those learning by solving. As for security measures, our model structure is created to prevent abuse and to maintain a secure line of activity tracking for multiple requests spanning some time. AI in our app will be a core functionality, not just an addition.
 
-**C. Tech Stack**  
+### **C. Tech Stack**  
 Frontend: Next.js  
 Backend: Node.js (Express)  
 API: RESTful API  
@@ -38,13 +38,14 @@ Deployment: Docker
 Cloud Hosting: Cloudflare  
 Version Control: GitHub
 
-**D. System Architecture**  
-D.1. Architecture Diagram  
+### **D. System Architecture**  
+#### D.1. Architecture Diagram  
 <img width="1115" height="432" alt="Architecture diagram" src="https://github.com/user-attachments/assets/d926df16-7659-4eca-b7f8-21daf8791698" />
 
-D.2. Architecture Explanation  
-	As our main functionality is to provide step-by-step answers from text/image input for mathematical problems, the flow of the app starts at the submission of a problem. The frontend validates this input, such as differentiating between image and text, field population, and allowed characters of file types, size limits, and mode selections (e.g, full explanation, hints, final answers, etc). Then, when the user has finished with matching the task to their preference, the input is sent to the RESTful API layer. Here, the backend will ensure users are authenticated, rate-limit rules are followed, and injection attacks or AI misuse are rejected. As the validation is completed, the AI takes over on solving the problem given, which will be approached with the addition of OCR if an image is detected as the input. All input regarding the math equations including the image, will go through ingestion service, which is where the majority of the security and input sanitation is enforced. When finished, the result is stored, and the finished answer is sent back to the frontend as a JSON response and to the database to store the history/cache. Finally, the frontend renders the answers, the step-by-step explanation (if requested), hints (if requested) and then follow-up practice questions (if requested).  
-	To sum up, the frontend is UI only with input access and no DB or API key access. The backend will handle routing, the business logic, AI calls, and security enforcements. As for the AI layer, it would be divided into multiple separate service wrappers for every main feature/component of the app. Then, the database will only be accessible via the backend. To ensure security, the auth process will be implemented using a JWT-based (provided by firebase) login with different authorization roles. As for the input validation, we will use Zod/Joi schema validation or similar. Lastly, the app would be protected from different types of attacks as such:
+#### D.2. Architecture Explanation  
+As our main functionality is to provide step-by-step answers from text/image input for mathematical problems, the flow of the app starts at the submission of a problem. The frontend validates this input, such as differentiating between image and text, field population, and allowed characters of file types, size limits, and mode selections (e.g, full explanation, hints, final answers, etc). Then, when the user has finished with matching the task to their preference, the input is sent to the RESTful API layer. Here, the backend will ensure users are authenticated, rate-limit rules are followed, and injection attacks or AI misuse are rejected. As the validation is completed, the AI takes over on solving the problem given, which will be approached with the addition of OCR if an image is detected as the input. All input regarding the math equations including the image, will go through ingestion service, which is where the majority of the security and input sanitation is enforced. When finished, the result is stored, and the finished answer is sent back to the frontend as a JSON response and to the database to store the history/cache. Finally, the frontend renders the answers, the step-by-step explanation (if requested), hints (if requested) and then follow-up practice questions (if requested).  
+
+To sum up, the frontend is UI only with input access and no DB or API key access. The backend will handle routing, the business logic, AI calls, and security enforcements. As for the AI layer, it would be divided into multiple separate service wrappers for every main feature/component of the app. Then, the database will only be accessible via the backend. To ensure security, the auth process will be implemented using a JWT-based (provided by firebase) login. As for the input validation, we will use Zod schema validation. Lastly, the app would be protected from different types of attacks as such:
 
 * SQL injection: Prisma parameterized queries  
 * XSS: Sanitized outputs  

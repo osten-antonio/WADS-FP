@@ -9,5 +9,5 @@ export function hint(req: Request, res: Response) {
 export function generate(req: Request, res: Response) {
 }
 
-export function askExplanation(req: Request, res: Response) {
+export function followUpExplanation(req: Request, res: Response) {
 }

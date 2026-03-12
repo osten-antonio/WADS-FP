@@ -2,6 +2,15 @@ import express, { type Application, type Request, type Response } from "express"
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
+// Zod schemas
+import * as z from 'zod';
+import { ingestionText, ingestionImage, ingestionResponse } from "./schemas/ingestion.schema";
+import { solveRequest, solveResponse } from "./schemas/solve.schema";
+import { stepsRequest, stepsResponse, hintResponse, explanationRequest, explanationResponse, followUpRequest } from "./schemas/explanation.schema";
+import { practiceRequest, practiceResponse, practiceRefresh } from "./schemas/practice.schema";
+import { userAccountSchema, updateUsernameRequest, forgotPasswordRequest, changePasswordRequest, historyFilterRequest, deleteHistoryRequest, problemSubmissionSchema, historyResponse, deleteHistoryResponse, profileResponse } from "./schemas/user.schema";
+import { ErrorResponse } from "./schemas/error.schema";
+
 const app: Application = express();
 const port = 8000;
 
@@ -13,9 +22,50 @@ const options = {
       title: 'WADS-FP Calculator',
       version: '1.0.0',
     },
+    components: {
+      schemas: {
+        // Ingestion
+        ingestionImage: z.toJSONSchema(ingestionImage),
+        ingestionText: z.toJSONSchema(ingestionText),
+        ingestionResponse: z.toJSONSchema(ingestionResponse),
+
+        // Solver
+        solveRequest: z.toJSONSchema(solveRequest),
+        solveResponse: z.toJSONSchema(solveResponse),
+
+        // Explanation
+        stepsRequest: z.toJSONSchema(stepsRequest),
+        stepsResponse: z.toJSONSchema(stepsResponse),
+        hintResponse: z.toJSONSchema(hintResponse),
+        explanationRequest: z.toJSONSchema(explanationRequest),
+        explanationResponse: z.toJSONSchema(explanationResponse),
+        followUpRequest: z.toJSONSchema(followUpRequest),
+
+        // Practice
+        practiceRequest: z.toJSONSchema(practiceRequest),
+        practiceResponse: z.toJSONSchema(practiceResponse),
+        practiceRefresh: z.toJSONSchema(practiceRefresh),
+
+        // User
+        userAccountSchema: z.toJSONSchema(userAccountSchema),
+        updateUsernameRequest: z.toJSONSchema(updateUsernameRequest),
+        forgotPasswordRequest: z.toJSONSchema(forgotPasswordRequest),
+        changePasswordRequest: z.toJSONSchema(changePasswordRequest),
+        historyFilterRequest: z.toJSONSchema(historyFilterRequest),
+        deleteHistoryRequest: z.toJSONSchema(deleteHistoryRequest),
+        problemSubmissionSchema: z.toJSONSchema(problemSubmissionSchema),
+        historyResponse: z.toJSONSchema(historyResponse),
+        deleteHistoryResponse: z.toJSONSchema(deleteHistoryResponse),
+        profileResponse: z.toJSONSchema(profileResponse),
+
+        // Error
+        ErrorResponse: z.toJSONSchema(ErrorResponse),
+      }
+    }
   },
   apis: ['./src/routes/*.ts', './src/index.ts'], 
 };
+
 
 const openapiSpecification = swaggerJsdoc(options);
 
