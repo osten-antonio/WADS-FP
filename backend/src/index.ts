@@ -1,6 +1,7 @@
 import express, { type Application, type Request, type Response } from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import "dotenv/config";
 
 // Zod schemas
 import * as z from 'zod';
@@ -10,10 +11,23 @@ import { stepsRequest, stepsResponse, hintResponse, explanationRequest, explanat
 import { practiceRequest, practiceResponse, practiceRefresh } from "./schemas/practice.schema";
 import { userAccountSchema, updateUsernameRequest, forgotPasswordRequest, changePasswordRequest, historyFilterRequest, deleteHistoryRequest, problemSubmissionSchema, historyResponse, deleteHistoryResponse, profileResponse } from "./schemas/user.schema";
 import { ErrorResponse } from "./schemas/error.schema";
+import userRouter from "./routes/user.routes";
 
 const app: Application = express();
 const port = 8000;
 
+app.use(express.json());
+app.use((req, res, next) => {
+  const allowedOrigin = process.env.FRONTEND_ORIGIN ?? "*";
+  res.header("Access-Control-Allow-Origin", allowedOrigin);
+  res.header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, x-user-id");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
 
 const options = {
   definition: {
@@ -71,6 +85,7 @@ const openapiSpecification = swaggerJsdoc(options);
 
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+app.use('/users', userRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');

@@ -1,6 +1,7 @@
 import express from "express";
 
 import { globalRateLimit } from "../middleware/rateLimit.middleware";
+import { authenticateUser } from "../middleware/auth.middleware";
 import { register, login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword } from "../controllers/user.controller";
 
 /**
@@ -55,7 +56,7 @@ const userRouter = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/register', globalRateLimit, register);
+userRouter.post('/register', globalRateLimit, authenticateUser, register);
 
 /**
  * @openapi
@@ -80,7 +81,7 @@ userRouter.post('/register', globalRateLimit, register);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/login', globalRateLimit, login);
+userRouter.post('/login', globalRateLimit, authenticateUser, login);
 
 /**
  * @openapi
@@ -118,7 +119,7 @@ userRouter.post('/login', globalRateLimit, login);
  *             example:
  *               message: "Unauthorized access"
  */
-userRouter.get('/profile', globalRateLimit, profile);
+userRouter.get('/profile', globalRateLimit, authenticateUser, profile);
 
 /**
  * @openapi
@@ -160,7 +161,7 @@ userRouter.get('/profile', globalRateLimit, profile);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.patch('/update-username', globalRateLimit, updateUsername);
+userRouter.patch('/update-username', globalRateLimit, authenticateUser, updateUsername);
 
 /**
  * @openapi
@@ -199,7 +200,7 @@ userRouter.patch('/update-username', globalRateLimit, updateUsername);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.get('/filter-history', globalRateLimit, filterHistory);
+userRouter.get('/filter-history', globalRateLimit, authenticateUser, filterHistory);
 
 /**
  * @openapi
@@ -234,7 +235,7 @@ userRouter.get('/filter-history', globalRateLimit, filterHistory);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.delete('/delete-history', globalRateLimit, deleteHistory);
+userRouter.delete('/delete-history', globalRateLimit, authenticateUser, deleteHistory);
 
 /**
  * @openapi
@@ -274,7 +275,7 @@ userRouter.delete('/delete-history', globalRateLimit, deleteHistory);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.delete('/delete-history/:id', globalRateLimit, deleteHistory);
+userRouter.delete('/delete-history/:id', globalRateLimit, authenticateUser, deleteHistory);
 
 /**
  * @openapi
@@ -313,7 +314,7 @@ userRouter.delete('/delete-history/:id', globalRateLimit, deleteHistory);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.patch('/change-password', globalRateLimit, changePassword);
+userRouter.patch('/change-password', globalRateLimit, authenticateUser, changePassword);
 
 /**
  * @openapi
@@ -352,4 +353,3 @@ userRouter.patch('/change-password', globalRateLimit, changePassword);
 userRouter.post('/forgot-password', globalRateLimit, forgotPassword);
 
 export default userRouter;
-
