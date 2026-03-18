@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express, { type Application, type Request, type Response } from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
@@ -6,7 +7,9 @@ import solverRouter from "./routes/solver.routes";
 import explanationRouter from "./routes/explanation.routes";
 import practiceRouter from "./routes/practice.routes";
 import userRouter from "./routes/user.routes";
-import 'dotenv/config'
+
+import { setDefaultResultOrder } from 'dns';
+setDefaultResultOrder('ipv4first');
 
 // Zod schemas
 import * as z from 'zod';

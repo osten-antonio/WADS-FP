@@ -23,7 +23,7 @@ export async function call_ollama(prompt: string, schema: ZodObject<any>): Promi
             throw new Error('Ollama returned an empty response.');
         }
 
-        return schema.parse(response.message.content);
+        return schema.parse(JSON.parse(response.message.content));
 
     } catch (error: any) {
         if (error.status >= 500 && error.status < 600) {
