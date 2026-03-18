@@ -7,7 +7,7 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "~/components/ui/input-group"
+} from "@/components/ui/input-group"
 
 const Example = () => {
   const [copied, setCopied] = useState(false)

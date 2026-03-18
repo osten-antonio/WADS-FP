@@ -36,19 +36,27 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                 </SidebarButton>
                 <Collapsible className="w-full group/collapsible">
                     <CollapsibleTrigger asChild>
-                        <SidebarButton route="/app/calculator" additionalClasses="w-full bg-button-main hover:!bg-button-main/70 transition-opacity">
+                        <SidebarButton route="" additionalClasses="w-full bg-button-main hover:!bg-button-main/70 transition-opacity">
                             Statistics
                             <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                         </SidebarButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <div className="ml-3 pl-2 border-l-2 border-primary-light/30 border-borderl flex flex-col gap-1 py-1 mt-2">
-                            <SidebarButton route="/app/calculator" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
-                                General
+                            <SidebarButton route="/app/calculator/statistics/probability" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                                Probability
                             </SidebarButton>
-                            {/* TODO other stat stuff here */}
-                            <SidebarButton route="" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
-                                Stuff
+                            <SidebarButton route="/app/calculator/statistics/counting" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                                Counting
+                            </SidebarButton>
+                            <SidebarButton route="/app/calculator/statistics/inference" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                                Inference
+                            </SidebarButton>
+                            <SidebarButton route="/app/calculator/statistics/data" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                                Data
+                            </SidebarButton>
+                            <SidebarButton route="/app/calculator/statistics/reference" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                                Reference
                             </SidebarButton>
                         </div>
                     </CollapsibleContent>
