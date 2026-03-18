@@ -1,6 +1,12 @@
 import express, { type Application, type Request, type Response } from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import ingestionRouter from "./routes/ingestion.routes";
+import solverRouter from "./routes/solver.routes";
+import explanationRouter from "./routes/explanation.routes";
+import practiceRouter from "./routes/practice.routes";
+import userRouter from "./routes/user.routes";
+import 'dotenv/config'
 
 // Zod schemas
 import * as z from 'zod';
@@ -13,6 +19,10 @@ import { ErrorResponse } from "./schemas/error.schema";
 
 const app: Application = express();
 const port = 8000;
+
+// middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 const options = {
@@ -71,6 +81,13 @@ const openapiSpecification = swaggerJsdoc(options);
 
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+
+// Register API routes
+app.use('/ingestion', ingestionRouter);
+app.use('/solver', solverRouter);
+app.use('/explanation', explanationRouter);
+app.use('/practice', practiceRouter);
+app.use('/users', userRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');

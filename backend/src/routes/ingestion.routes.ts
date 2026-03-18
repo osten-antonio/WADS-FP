@@ -4,7 +4,7 @@ import {
     handleImageUpload,
     handleTextUpload
 } from "../controllers/ingestion.controller";
-
+import { upload } from "../middleware/multer.middleware"
 import {
     validateCategory
 } from "../middleware/validate.middleware";
@@ -49,7 +49,7 @@ const ingestionRouter = express.Router();
  *             example:
  *               message: "Invalid image format"
  */
-ingestionRouter.post('/image', ollamaRateLimit,validateCategory, handleImageUpload);
+ingestionRouter.post('/image', upload.single('image'), handleImageUpload);
 
 /**
  * @openapi
