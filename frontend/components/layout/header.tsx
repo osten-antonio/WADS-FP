@@ -3,17 +3,30 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Menu } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Title } from "../widget/TitleText"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
+import {
+    UserIcon,
+    UserPen,
+} from "lucide-react"
 
 interface HeaderProps {
     onToggle: () => void;
     onLogout: () => void;
     onPFPClick: () => void;
+    onSignup: () => void;
 }
 
 export function Header({
     onToggle, 
     onLogout, 
-    onPFPClick
+    onPFPClick,
+    onSignup
 }: HeaderProps){
     const username = 'aaa';
     return (
@@ -25,6 +38,23 @@ export function Header({
                 <Title />
             </span>
             <div className="flex items-center gap-4">
+                <div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild className="text-black">
+                            <Button variant="outline">Account</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={onLogout}>
+                            <UserIcon />
+                            Login
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={onSignup}>
+                            <UserPen />
+                            Sign Up
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
                 <Button className="hidden" onClick={onLogout}>Logout</Button>
                 <Avatar onClick={onPFPClick} className="cursor-pointer">
                     <AvatarImage src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg" />
