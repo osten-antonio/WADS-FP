@@ -124,6 +124,9 @@ export async function generatePracticeQuestions(
   category: string,
   count = DEFAULT_QUESTION_COUNT,
 ): Promise<string[]> {
+  if (question.length === 0) {
+    throw new Error("No question was submitted.");
+  }
   const prompt = buildGeneratePrompt(question, category, count);
   const generated = await call_ollama(prompt, ollamaRawObjectSchema);
   const normalizedQuestions = normalizeOllamaQuestions(generated);
@@ -141,6 +144,12 @@ export async function refreshPracticeQuestions(
   generatedQuestions: string[],
   count = generatedQuestions.length > 0 ? generatedQuestions.length : DEFAULT_QUESTION_COUNT,
 ): Promise<string[]> {
+  if (question.length === 0) {
+    throw new Error("No question was submitted.");
+  }
+  if (generatedQuestions.length === 0) {
+    throw new Error("No generated questions were provided.");
+  }
   const prompt = buildRefreshPrompt(question, category, generatedQuestions, count);
   const generated = await call_ollama(prompt, ollamaRawObjectSchema);
   const normalizedQuestions = normalizeOllamaQuestions(generated);

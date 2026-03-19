@@ -17,7 +17,7 @@ export async function handleImageUpload(req: Request, res: Response) {
 		ingestionImage.parse({ image: [file] });
 
 		const result = await processImageUpload(file);
-
+		
 		const out = ingestionResponse.parse({ question: result.question });
 		return res.status(201).json(out);
 	} catch (err: any) {
@@ -43,8 +43,13 @@ export async function handleTextUpload(req: Request, res: Response) {
 			const prompt = `
 			Solve the following math question and 
 			return ONLY valid JSON matching the schema {\n  "answer": "<string>",\n  "id": "<string>"\n}
+			If it is a math question but unsolvable, respond with exactly "None"
+			If it is not a math question, respond with "Not a math question" 
 			Question: ${result.question}`;
 			const aiResp: any = await call_ollama(prompt, solveResponse);
+			if (JSON.stringify(aiResp).includes("Not a math question")) {
+				throw Error('Not a math question');
+			}
 			return res.json(aiResp);
 	
 		} catch (err: any) {

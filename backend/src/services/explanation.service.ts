@@ -15,14 +15,21 @@ export async function generateSteps(data: z.infer<typeof stepsRequest>) {
         You are a helpful mathematical assistant specializing in ${data.category}. 
         Given the question: "${data.question}" and the final answer: "${data.answer}", 
         generate a clear, step-by-step breakdown of how to reach that answer.
-        
+        If it is not a math question, respond with an empty step
+
         CRITICAL RULES:
         1. Only use knowledge and techniques relevant to the category: ${data.category}.
         2. If the question starts to stray outside of ${data.category}, inform the user but try to solve it using ${data.category} methods if possible.
         
         Each step should include a step number and a clear explanation.
     `;
-    return await call_ollama(prompt, stepsResponse);
+    const aiResp = await call_ollama(prompt, stepsResponse);
+    console.log(aiResp);
+    console.log()
+    if(!aiResp.steps || aiResp.steps.length === 0){
+        throw Error('Invalid input');
+    }
+    return aiResp;
 }
 
 export async function generateHints(data: z.infer<typeof stepsRequest>) {
@@ -30,27 +37,41 @@ export async function generateHints(data: z.infer<typeof stepsRequest>) {
         You are a helpful mathematical assistant specializing in ${data.category}.
         Given the question: "${data.question}" and the final answer: "${data.answer}",
         provide a general hint and a list of specific hints to help the user solve the problem themselves.
-        
+
+
         CRITICAL RULES:
         1. Only provide hints based on ${data.category} principles.
-        3. Do not give away the full solution immediately.
+        2. Do not give away the full solution immediately.
     `;
-    return await call_ollama(prompt, hintResponse);
+    if (!data.question || !data.answer) {
+        throw Error("Invalid input");
+    }
+    const aiResp = await call_ollama(prompt, hintResponse);
+    return aiResp;
 }
 
 export async function generateStepExplanation(data: z.infer<typeof explanationRequest>) {
     const prompt = `
         You are an expert tutor. 
-        Provide an in-depth, educational explanation for the following solution step:
+        Provide an in-depth, educational explanation for the following solution step
+        for the following quesiton and answer:
+        Question: ${data.question}
+        Answer: ${data.answer}
+
         Step ${data.step.step}: "${data.step.explanation}"
         
         The explanation should be detailed, explaining the "why" behind the operation.
         Use Markdown formatting (e.g., bolding, LaTeX for math if necessary).
         Treat the response to be a note for the user.
         Return the response in a JSON object with a single field "explanation".
-
+        If it is not a math question, respond with "Not a math question" 
     `;
-    return await call_ollama(prompt, explanationResponse);
+    const aiResp = await call_ollama(prompt, explanationResponse);
+
+    if (JSON.stringify(aiResp).includes("Not a math question")) {
+        throw Error('Not a math question');
+    }
+    return aiResp;
 }
 
 export async function generateFollowUp(data: z.infer<typeof followUpRequest>) {
@@ -61,6 +82,7 @@ export async function generateFollowUp(data: z.infer<typeof followUpRequest>) {
         With final answer: "${data.answer}"
         And the previous explanation provided was: "${data.explanation}"
         
+        If the question is not related, just respond with "Not related"
         
         Provide a helpful, clear response to the user's question in Markdown format.
         Explain concepts clearly and use LaTeX for math where appropriate.
@@ -81,5 +103,10 @@ export async function generateFollowUp(data: z.infer<typeof followUpRequest>) {
         with words like Certainly! You are absolutely correct!, etc. Go straight to the point
         without repeating what is provided in the original explanation, e.g saying step 1 again.
     `;
-    return await call_ollama(prompt, explanationResponse);
+    const aiResp = await call_ollama(prompt, explanationResponse);
+
+    if (JSON.stringify(aiResp).includes("Not related")) {
+        throw Error('Not related');
+    }
+    return aiResp;
 }
