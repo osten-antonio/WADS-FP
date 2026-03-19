@@ -16,7 +16,9 @@ export function AppShell({ children, additionalClassName }: { children: React.Re
         onToggle={() => {}} 
         onLogout={() => {}} 
         onPFPClick={() => router.push('/account')}
-        onSignup={() => router.push('/signUp')} />
+        onSignup={() => router.push('/signUp')} 
+        onLogin={() => router.push('/login')}
+        />
         <main className={`flex-1 ${additionalClassName || ''}`}>{children}</main>
       </SidebarInset>
     </SidebarProvider>

@@ -20,13 +20,15 @@ interface HeaderProps {
     onLogout: () => void;
     onPFPClick: () => void;
     onSignup: () => void;
+    onLogin: () => void;
 }
 
 export function Header({
     onToggle, 
     onLogout, 
     onPFPClick,
-    onSignup
+    onSignup,
+    onLogin
 }: HeaderProps){
     const username = 'aaa';
     return (
@@ -44,7 +46,7 @@ export function Header({
                             <Button variant="outline">Account</Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem onClick={onLogout}>
+                            <DropdownMenuItem onClick={onLogin}>
                             <UserIcon />
                             Login
                             </DropdownMenuItem>
