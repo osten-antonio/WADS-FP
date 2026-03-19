@@ -5,8 +5,8 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 
 export const ingestionText = z.object({
     question: z.string(),
-    category: z.string(),
-    force: z.boolean()
+    category: z.string().default("General"),
+    force: z.boolean().default(false)
 });
 
 export const ingestionImage = z.object({
