@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/layout/AppShell"
 import { Toaster } from "@/components/ui/sonner"
 import { redirect } from "next/navigation";
-import { getSession } from "@backend/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export default async function loginLayout({
   children,
@@ -11,7 +11,7 @@ export default async function loginLayout({
   const session = await getSession();
   if (session) redirect("/account");
   return (
-    <AppShell>
+    <AppShell isAuthenticated={false}>
       {children}
       <Toaster 
         position="top-right" 
