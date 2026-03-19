@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/signup"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"something@gmail.com\",\r
+
+    \  \"password\": \"12345678\"\r
+
+    }"
+order: 1773931655167
