@@ -29,6 +29,8 @@ export async function solveAI(req: Request, res: Response) {
     try {
         const prompt = `Solve the following math question and return ONLY valid JSON matching the schema {\n  "answer": "<string>",\n  "id": "<string>"\n}\nQuestion: ${question}`;
         const aiResp: any = await call_ollama(prompt, solveResponse);
+        const id = randomUUID();
+        aiResp.id = id;
         return res.json(aiResp);
     } catch (err: any) {
         return res.status(500).json({ message: err?.message ?? 'Internal error' });

@@ -2,7 +2,17 @@ import * as z from 'zod';
 
 export const stepsRequest = z.object({
     question: z.string(),
-    answer: z.string()
+    answer: z.string(),
+    category: z.enum([
+        "General", 
+        "Statistics", 
+        "Algebra", 
+        "Proofs and theorem", 
+        "Linear algebra", 
+        "Trigonometry", 
+        "Calculus", 
+        "Pre-calculus"
+    ])
 })
 
 const stepsBase = z.object({
@@ -25,6 +35,8 @@ export const hintResponse = z.object({
 });
 
 export const explanationRequest = z.object({
+    question: z.string(),
+    answer: z.string(),
     step: stepsBase,
 })
 
