@@ -1,10 +1,15 @@
+import e from 'express';
 import { Ollama } from 'ollama';
 import { ZodObject, toJSONSchema } from 'zod';
 
+
 const host = process.env.OLLAMA_URL;
 
+
+
+console.log(host);
 if (!host) {
-    throw new Error('Environment variable OLLAMA_HOST must be set');
+    throw new Error('Environment variable OLLAMA_URL must be set');
 }
 
 const ollama = new Ollama({
@@ -23,7 +28,7 @@ export async function call_ollama(prompt: string, schema: ZodObject<any>): Promi
             throw new Error('Ollama returned an empty response.');
         }
 
-        return schema.parse(response.message.content);
+        return schema.parse(JSON.parse(response.message.content));
 
     } catch (error: any) {
         if (error.status >= 500 && error.status < 600) {
@@ -43,7 +48,8 @@ export async function call_ollama(prompt: string, schema: ZodObject<any>): Promi
             console.error("Schema validation failed:", error.errors);
             throw new Error("Generated content does not match the required schema.");
         }
-
+        console.log('Unexpected error occurred:');
+        console.log(error)
         throw error;
     }
 }
