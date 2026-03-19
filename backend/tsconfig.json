@@ -9,6 +9,9 @@
     // See also https://aka.ms/tsconfig/module
     "module": "esnext",
     "target": "esnext",
+    "paths": {
+      "@/*": ["./*"]
+    },
     // For nodejs:
     // "lib": ["esnext"],
     "types": ["node", "express", "multer", "vite/client"],
