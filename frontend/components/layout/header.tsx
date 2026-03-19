@@ -1,4 +1,3 @@
-import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Menu } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -13,20 +12,21 @@ import {
 import {
     UserIcon,
     UserPen,
+    LogOut,
 } from "lucide-react"
 
 interface HeaderProps {
-    onToggle: () => void;
+    isAuthenticated: boolean;
     onLogout: () => void;
-    onPFPClick: () => void;
+    onProfile: () => void;
     onSignup: () => void;
     onLogin: () => void;
 }
 
 export function Header({
-    onToggle, 
+    isAuthenticated,
     onLogout, 
-    onPFPClick,
+    onProfile,
     onSignup,
     onLogin
 }: HeaderProps){
@@ -40,28 +40,46 @@ export function Header({
                 <Title />
             </span>
             <div className="flex items-center gap-4">
-                <div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild className="text-black">
-                            <Button variant="outline">Account</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="rounded-full"
+                          aria-label="Open account menu"
+                        >
+                          <Avatar className="cursor-pointer">
+                              <AvatarImage src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg" />
+                              <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {isAuthenticated ? (
+                          <>
+                            <DropdownMenuItem onClick={onProfile}>
+                              <UserIcon />
+                              Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={onLogout}>
+                              <LogOut />
+                              Logout
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          <>
                             <DropdownMenuItem onClick={onLogin}>
-                            <UserIcon />
-                            Login
+                              <UserIcon />
+                              Login
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onSignup}>
-                            <UserPen />
-                            Sign Up
+                              <UserPen />
+                              Sign Up
                             </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                <Button className="hidden" onClick={onLogout}>Logout</Button>
-                <Avatar onClick={onPFPClick} className="cursor-pointer">
-                    <AvatarImage src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg" />
-                    <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                          </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </header>
     );

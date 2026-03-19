@@ -2,25 +2,139 @@
 
 import * as React from "react"
 import { Check, Pencil, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+type UserProfileResponse = {
+  user: {
+    firebaseUID: string;
+    displayName: string;
+  };
+  history: Array<{
+    id: string;
+    inputMode: "TEXT" | "IMAGE";
+    category: string;
+    type: string;
+    subtype: string | null;
+    text: string;
+    createdAt: string;
+  }>;
+};
+
 export default function AccountPage() {
-  const [name, setName] = React.useState("Pedro Paskal")
+  const router = useRouter()
+  const [name, setName] = React.useState("")
   const [draftName, setDraftName] = React.useState(name)
   const [isEditingName, setIsEditingName] = React.useState(false)
+  const [loadingProfile, setLoadingProfile] = React.useState(true)
+  const [savingName, setSavingName] = React.useState(false)
+
+  React.useEffect(() => {
+    let alive = true
+    const controller = new AbortController()
+
+    const loadProfile = async () => {
+      try {
+        setLoadingProfile(true)
+        const res = await fetch("/user/profile", {
+          cache: "no-store",
+          credentials: "include",
+          signal: controller.signal,
+        })
+
+        if (res.status === 401) {
+          router.push("/login")
+          router.refresh()
+          return
+        }
+
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => null)) as { message?: string } | null
+          throw new Error(payload?.message || "Failed to load profile")
+        }
+
+        const payload = (await res.json()) as UserProfileResponse
+        const displayName = payload.user.displayName?.trim() || "User"
+        if (!alive) return
+        setName(displayName)
+        setDraftName(displayName)
+      } catch (error) {
+        if (!alive) return
+        console.error(error)
+        const message = error instanceof Error ? error.message : "Failed to load profile"
+        toast.error(message)
+      } finally {
+        if (alive) {
+          setLoadingProfile(false)
+        }
+      }
+    }
+
+    void loadProfile()
+
+    return () => {
+      alive = false
+      controller.abort()
+    }
+  }, [router])
 
   const startEditing = () => {
+    if (loadingProfile || savingName) return
     setDraftName(name)
     setIsEditingName(true)
   }
 
-  const commitName = () => {
+  const commitName = async () => {
     const next = draftName.trim()
-    if (next) setName(next)
-    setIsEditingName(false)
+    if (!next) {
+      toast.error("Name cannot be empty")
+      return
+    }
+
+    if (next === name) {
+      setIsEditingName(false)
+      return
+    }
+
+    try {
+      setSavingName(true)
+
+      const res = await fetch("/user/update-username", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ displayName: next }),
+      })
+
+      if (res.status === 401) {
+        router.push("/login")
+        router.refresh()
+        return
+      }
+
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null
+        throw new Error(payload?.message || "Failed to update name")
+      }
+
+      const payload = (await res.json()) as UserProfileResponse
+      const updatedDisplayName = payload.user.displayName?.trim() || next
+      setName(updatedDisplayName)
+      setDraftName(updatedDisplayName)
+      setIsEditingName(false)
+      toast.success("Name updated")
+    } catch (error) {
+      console.error(error)
+      const message = error instanceof Error ? error.message : "Failed to update name"
+      toast.error(message)
+    } finally {
+      setSavingName(false)
+    }
   }
 
   const cancelEditing = () => {
@@ -31,13 +145,15 @@ export default function AccountPage() {
   const handleNameKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault()
-      commitName()
+      void commitName()
     }
     if (event.key === "Escape") {
       event.preventDefault()
       cancelEditing()
     }
   }
+
+  const shownName = loadingProfile ? "Loading..." : (name || "User")
 
   return (
     <div className="w-full h-full">
@@ -56,11 +172,15 @@ export default function AccountPage() {
                     value={draftName}
                     onChange={(event) => setDraftName(event.target.value)}
                     onKeyDown={handleNameKeyDown}
+                    disabled={savingName}
                     className="h-8 w-40 bg-white text-slate-900"
                   />
                   <button
                     type="button"
-                    onClick={commitName}
+                    onClick={() => {
+                      void commitName()
+                    }}
+                    disabled={savingName}
                     className="rounded-full p-1 text-white/80 hover:text-white"
                     aria-label="Save name"
                   >
@@ -77,10 +197,11 @@ export default function AccountPage() {
                 </>
               ) : (
                 <>
-                  <span>{name}</span>
+                  <span>{shownName}</span>
                   <button
                     type="button"
                     onClick={startEditing}
+                    disabled={loadingProfile}
                     className="rounded-full p-1 text-white/80 hover:text-white"
                     aria-label="Edit name"
                   >
@@ -131,11 +252,15 @@ export default function AccountPage() {
                       value={draftName}
                       onChange={(event) => setDraftName(event.target.value)}
                       onKeyDown={handleNameKeyDown}
+                      disabled={savingName}
                       className="h-9 w-52 bg-white text-slate-900"
                     />
                     <button
                       type="button"
-                      onClick={commitName}
+                      onClick={() => {
+                        void commitName()
+                      }}
+                      disabled={savingName}
                       className="rounded-full p-1 text-slate-500 hover:text-slate-700"
                       aria-label="Save name"
                     >
@@ -152,10 +277,11 @@ export default function AccountPage() {
                   </>
                 ) : (
                   <>
-                    <span>{name}</span>
+                    <span>{shownName}</span>
                     <button
                       type="button"
                       onClick={startEditing}
+                      disabled={loadingProfile}
                       className="rounded-full p-1 text-slate-500 hover:text-slate-700"
                       aria-label="Edit name"
                     >
