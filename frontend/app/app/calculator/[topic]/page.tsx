@@ -1,24 +1,10 @@
 import { GenericCalcPage } from "@/components/GenericCalcLayout";
+import { CALCULATOR_TOPIC_LABELS, CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics";
 
 export default async function Page({ params }: { params: Promise<{ topic: string }> }) {
     const { topic } = await params;
-    const availableTopics = [
-        "general", "algebra", "calculus", 
-        "trigonometry", "statistics",
-        "proofs", "linalg", 
-        "precalc"
-    ];
-    const topicIdLabel: Record<string, string> = {
-        "general": "General Math",
-        "algebra": "Algebra",
-        "calculus": "Calculus",
-        "trigonometry": "Trigonometry",
-        "statistics": "Statistics",
-        "proofs": "Proofs and Theorems",
-        "linalg": "Linear Algebra",
-        "precalc": "Pre-Calculus"
-    };
-    if(!topic || !availableTopics.includes(topic)) {
+    const availableTopics = CALCULATOR_TOPIC_OPTIONS.map((item) => item.slug);
+    if(!topic || !availableTopics.includes(topic as (typeof availableTopics)[number])) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <p className="text-2xl">Invalid topic: {topic}</p>
@@ -29,7 +15,7 @@ export default async function Page({ params }: { params: Promise<{ topic: string
 
     return(
         <>
-            <GenericCalcPage topic={topicIdLabel[topic]} SolutionScreen={undefined}/>
+            <GenericCalcPage topic={CALCULATOR_TOPIC_LABELS[topic as keyof typeof CALCULATOR_TOPIC_LABELS]} SolutionScreen={undefined}/>
         </>
     )
 }
