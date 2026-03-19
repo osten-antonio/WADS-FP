@@ -16,7 +16,6 @@ export async function generate(req: Request, res: Response) {
     res.status(400).json({ message: "Invalid request parameters" });
     return;
   }
-
   try {
     const questions = await generatePracticeQuestions(parsed.data.question, parsed.data.category);
     res.status(200).json({ questions });

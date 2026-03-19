@@ -12,7 +12,7 @@ export async function steps(req: Request, res: Response) {
             return res.status(400).json({ message: "Invalid request parameters", errors: error.errors });
         }
         console.error("Error in steps controller:", error);
-        return res.status(500).json({ message: "An unexpected error occurred." });
+        return res.status(500).json({ message: error.message });
     }
 }
 
@@ -27,7 +27,7 @@ export async function hint(req: Request, res: Response) {
             return res.status(400).json({ message: "Invalid request parameters", errors: error.errors });
         }
         console.error("Error in hint controller:", error.message);
-        return res.status(500).json({ message: "An unexpected error occurred." });
+        return res.status(500).json({ message: error.message });
     }
 }
 
