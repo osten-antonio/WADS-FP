@@ -1,10 +1,33 @@
 import { evaluate, derivative, matrix, det, inv, simplify, parse } from 'mathjs';
+import MathExpression from 'math-expressions';
 import { normalizeQuestion, parseNumber } from '../lib/utils';
 
 export type MathSolveResult = {
     answer: string;
     solved: boolean;
 };
+
+/**
+ * Converts LaTeX strings to MathJS compatible expressions.
+ */
+function cleanLatex(latex: string): string {
+    if (!latex.includes('\\')) return latex;
+    
+    try {
+        // math-expressions can parse LaTeX and output mathjs-compatible strings
+        const expr = MathExpression.fromLatex(latex);
+        return expr.toString();
+    } catch (e) {
+        // Fallback: simple replacements for common patterns if library fails
+        return latex
+            .replace(/\\frac\{(.+?)\}\{(.+?)\}/g, '($1)/($2)')
+            .replace(/\\sqrt\{(.+?)\}/g, 'sqrt($1)')
+            .replace(/\\left\(|\\right\)/g, '')
+            .replace(/\\cdot/g, '*')
+            .replace(/\{(.+?)\}/g, '($1)')
+            .replace(/\\/g, '');
+    }
+}
 
 function parseSide(side: string, variable: string) {
     let coeff = 0;
@@ -34,7 +57,7 @@ function parseSide(side: string, variable: string) {
 }
 
 export async function tryMathSolve(question: string): Promise<MathSolveResult> {
-    const q = normalizeQuestion(question);
+    const q = cleanLatex(normalizeQuestion(question));
 
     // Derivative
     if (/\b(derive|derivative|differentiate|d\/dx)\b/i.test(q)) {
