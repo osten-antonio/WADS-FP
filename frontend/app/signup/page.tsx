@@ -25,7 +25,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
 
   const createSession = async (idToken: string) => {
-    const res = await fetch("/session", {
+    const res = await fetch("/api/session", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${idToken}`,

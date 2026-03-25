@@ -28,7 +28,7 @@ export function AppShell({
     }
 
     try {
-      await fetch("/logout", { method: "POST" });
+      await fetch("/api/logout", { method: "POST" });
     } catch (error) {
       console.error(error);
       toast.error("Failed to clear session");

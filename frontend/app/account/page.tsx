@@ -76,7 +76,7 @@ export default function AccountPage() {
         setLoadingProfile(true)
         setHistoryError(null)
 
-        const res = await fetch("/user/profile", {
+        const res = await fetch("/api/user/profile", {
           cache: "no-store",
           credentials: "include",
           signal: controller.signal,
@@ -141,7 +141,7 @@ export default function AccountPage() {
     try {
       setSavingName(true)
 
-      const res = await fetch("/user/update-username", {
+      const res = await fetch("/api/user/update-username", {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -202,7 +202,7 @@ export default function AccountPage() {
       setIsClearingHistory(true)
       setHistoryError(null)
 
-      const response = await fetch("/user/delete-history", {
+      const response = await fetch("/api/user/delete-history", {
         method: "DELETE",
         credentials: "include",
         headers: {
