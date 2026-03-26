@@ -1,4 +1,5 @@
 import { call_ollama } from "./ollama.service";
+import * as cacheService from "./cache.service";
 import { 
     stepsResponse, 
     hintResponse, 
@@ -11,6 +12,12 @@ import * as z from 'zod';
 
 
 export async function generateSteps(data: z.infer<typeof stepsRequest>) {
+    // Check cache for steps first
+    const cached = await cacheService.getStepsForQuestion(data.question);
+    if (cached && cached.length > 0) {
+        return { steps: cached };
+    }
+
     const prompt = `
         You are a helpful mathematical assistant specializing in ${data.category}. 
         Given the question: "${data.question}" and the final answer: "${data.answer}", 
@@ -24,11 +31,17 @@ export async function generateSteps(data: z.infer<typeof stepsRequest>) {
         Each step should include a step number and a clear explanation.
     `;
     const aiResp = await call_ollama(prompt, stepsResponse);
-    console.log(aiResp);
-    console.log()
     if(!aiResp.steps || aiResp.steps.length === 0){
         throw Error('Invalid input');
     }
+
+    // Store steps in cache (only steps per requirement)
+    try {
+        await cacheService.setStepsForQuestion(data.question, aiResp.steps);
+    } catch (e) {
+        console.error('Failed to cache steps', e);
+    }
+
     return aiResp;
 }
 

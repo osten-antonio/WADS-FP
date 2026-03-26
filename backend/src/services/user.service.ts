@@ -154,6 +154,63 @@ export async function updateUserDisplayName(firebaseUID: string, displayName: st
   });
 }
 
+export async function recordSubmission(
+  userId: string | undefined | null,
+  submission: {
+    id: string;
+    inputMode: "TEXT" | "IMAGE";
+    category?: string | null;
+    type?: string | null;
+    subtype?: string | null;
+    text: string;
+  },
+  displayName?: string,
+) {
+  const category = normalizeCategory(submission.category ?? undefined) ?? "General";
+
+  return prisma.$transaction(async (tx) => {
+    // If a userId is provided, upsert the user account
+    if (userId) {
+      const displayNameTrimmed = displayName?.trim();
+      const upsertData: any = {
+        where: { firebaseUID: userId },
+        create: {
+          firebaseUID: userId,
+          displayName: displayNameTrimmed && displayNameTrimmed.length > 0 ? displayNameTrimmed : userId,
+        },
+        update: {},
+      };
+      if (displayNameTrimmed && displayNameTrimmed.length > 0) {
+        upsertData.update.displayName = displayNameTrimmed;
+      }
+
+      await tx.userAccount.upsert(upsertData);
+    }
+
+    const createData: any = {
+      id: submission.id,
+      inputMode: submission.inputMode,
+      category,
+      text: submission.text,
+    };
+    if (submission.type) createData.type = submission.type;
+    if (typeof submission.subtype !== "undefined" && submission.subtype !== null) createData.subtype = submission.subtype;
+
+    // Avoid create conflicts by returning existing if present
+    let ps = await tx.problemSubmission.findUnique({ where: { id: submission.id } });
+    if (!ps) {
+      ps = await tx.problemSubmission.create({ data: createData });
+    }
+
+    // If a userId was provided, link to history (skip duplicates)
+    if (userId) {
+      await tx.history.createMany({ data: [{ userID: userId, submissionID: ps.id }], skipDuplicates: true });
+    }
+
+    return ps;
+  });
+}
+
 export async function deleteUserHistory(userId: string, submissionIds?: string[]): Promise<number> {
   const ids = submissionIds?.map((id) => id.trim()).filter((id) => id.length > 0);
 

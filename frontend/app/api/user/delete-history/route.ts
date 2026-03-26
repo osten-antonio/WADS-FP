@@ -16,7 +16,7 @@ export async function DELETE(req: NextRequest) {
     : []
 
   try {
-    const backendResponse = await backendApi.delete(`/users/delete-history`, {
+    const backendResponse = await backendApi.delete(`/user/delete-history`, {
       headers: {
         Authorization: `Bearer ${sessionToken}`,
       },

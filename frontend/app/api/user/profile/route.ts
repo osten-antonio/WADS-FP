@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    const backendResponse = await backendApi.get(`/users/profile`, {
+    const backendResponse = await backendApi.get(`/user/profile`, {
       headers: {
         Authorization: `Bearer ${sessionToken}`,
       },

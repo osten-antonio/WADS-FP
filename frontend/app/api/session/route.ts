@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const backendResponse = await backendApi.post(`/users/login`, {}, {
+    const backendResponse = await backendApi.post(`/user/login`, {}, {
       headers: {
         Authorization: authorization,
       },
@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error) {
+    console.log(error)
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

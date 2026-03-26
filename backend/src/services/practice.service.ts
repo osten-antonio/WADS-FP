@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { call_ollama } from "./ollama.service";
+import * as cacheService from "./cache.service";
 
 const DEFAULT_QUESTION_COUNT = 5;
 const ollamaRawObjectSchema = z.object({}).passthrough();
@@ -127,15 +128,20 @@ export async function generatePracticeQuestions(
   if (question.length === 0) {
     throw new Error("No question was submitted.");
   }
-  const prompt = buildGeneratePrompt(question, category, count);
-  const generated = await call_ollama(prompt, ollamaRawObjectSchema);
-  const normalizedQuestions = normalizeOllamaQuestions(generated);
+  // Try to satisfy from cache first, otherwise generate only what's needed.
+  const generator = async (q: string, c: string, n: number) => {
+    const prompt = buildGeneratePrompt(q, c, n);
+    const generated = await call_ollama(prompt, ollamaRawObjectSchema);
+    const normalizedQuestions = normalizeOllamaQuestions(generated);
+    return normalizedQuestions.slice(0, n);
+  };
 
-  if (normalizedQuestions.length === 0) {
+  const items = await cacheService.ensurePracticeItems(question, category, count, generator);
+  if (!items || items.length === 0) {
     throw new Error("No valid practice questions were generated.");
   }
 
-  return normalizedQuestions.slice(0, count);
+  return items.slice(0, count);
 }
 
 export async function refreshPracticeQuestions(
@@ -160,6 +166,12 @@ export async function refreshPracticeQuestions(
     .slice(0, count);
 
   if (refreshedQuestions.length > 0) {
+    // persist refreshed items to cache for future use
+    try {
+      await cacheService.appendPracticeListForQuestion(question, refreshedQuestions);
+    } catch (e) {
+      console.error("Failed to append refreshed practice questions to cache", e);
+    }
     return refreshedQuestions;
   }
 

@@ -15,7 +15,7 @@ export async function getSession(): Promise<SessionPayload | null> {
   try {
     // We call a fast verify-session endpoint on our backend 
     // to keep all Firebase Admin interactions purely in the backend.
-    const res = await backendApi.get("/users/verify-session", {
+    const res = await backendApi.get("/user/verify-session", {
       headers: {
         Authorization: `Bearer ${session}`,
       },

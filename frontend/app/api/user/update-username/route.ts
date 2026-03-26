@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const backendResponse = await backendApi.patch(`/users/update-username`, {
+    const backendResponse = await backendApi.patch(`/user/update-username`, {
       displayName: body.displayName,
     }, {
       headers: {
