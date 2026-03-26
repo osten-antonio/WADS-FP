@@ -9,6 +9,7 @@ export default async function loginLayout({
   children: React.ReactNode
 }) {
   const session = await getSession();
+  console.log(session);
   if (session) redirect("/account");
   return (
     <AppShell isAuthenticated={false}>

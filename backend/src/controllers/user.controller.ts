@@ -104,30 +104,25 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function profile(req: Request, res: Response) {
-  const token = readBearerToken(req);
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+export async function verifySession(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(res);
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized access" });
   }
 
-  let decoded: DecodedIdToken;
-  try {
-    decoded = await decodeFirebaseToken(token);
-  } catch {
+  // The authenticateUser middleware already verified the token/cookie cryptographically!
+  // We just return a success payload so the frontend knows the session is valid.
+  return res.status(200).json({ uid: userId });
+}
+
+export async function profile(req: Request, res: Response) {
+  const userId = getAuthenticatedUserId(res);
+  if (!userId) {
     return res.status(401).json({ message: "Unauthorized access" });
   }
 
   try {
-    const fallbackDisplayName = getFallbackDisplayName(decoded);
-    const existingUser = await getUserById(decoded.uid);
-    if (!existingUser) {
-      await syncUserAccount({
-        firebaseUID: decoded.uid,
-        displayName: fallbackDisplayName,
-      });
-    }
-
-    const profilePayload = await getUserProfile(decoded.uid);
+    const profilePayload = await getUserProfile(userId);
     if (!profilePayload) {
       return res.status(404).json({ message: "User profile not found" });
     }
@@ -139,9 +134,9 @@ export async function profile(req: Request, res: Response) {
 }
 
 export async function updateUsername(req: Request, res: Response) {
-  const token = readBearerToken(req);
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+  const userId = getAuthenticatedUserId(res);
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized access" });
   }
 
   const parsed = updateUsernameRequest.safeParse(req.body);
@@ -157,21 +152,14 @@ export async function updateUsername(req: Request, res: Response) {
     return res.status(400).json({ message: "displayName cannot be empty" });
   }
 
-  let decoded: DecodedIdToken;
   try {
-    decoded = await decodeFirebaseToken(token);
-  } catch {
-    return res.status(401).json({ message: "Unauthorized access" });
-  }
-
-  try {
-    await adminAuth.updateUser(decoded.uid, {
+    await adminAuth.updateUser(userId, {
       displayName: nextDisplayName,
     });
 
-    await updateUserDisplayName(decoded.uid, nextDisplayName);
+    await updateUserDisplayName(userId, nextDisplayName);
 
-    const profilePayload = await getUserProfile(decoded.uid);
+    const profilePayload = await getUserProfile(userId);
     if (!profilePayload) {
       return res.status(404).json({ message: "User profile not found" });
     }

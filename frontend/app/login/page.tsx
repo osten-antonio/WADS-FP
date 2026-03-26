@@ -25,6 +25,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
 
     const createSession = async (idToken: string) => {
+      console.log(idToken);
     const res = await fetch("/api/session", {
       method: "POST",
       headers: {

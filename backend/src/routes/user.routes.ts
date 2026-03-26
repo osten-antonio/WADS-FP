@@ -2,7 +2,7 @@ import express from "express";
 
 import { globalRateLimit } from "../middleware/rateLimit.middleware";
 import { authenticateUser } from "../middleware/auth.middleware";
-import { register, login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword } from "../controllers/user.controller";
+import { register, login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword, verifySession } from "../controllers/user.controller";
 
 /**
  * @openapi
@@ -120,6 +120,23 @@ userRouter.post('/login', globalRateLimit, authenticateUser, login);
  *               message: "Unauthorized access"
  */
 userRouter.get('/profile', globalRateLimit, authenticateUser, profile);
+
+/**
+ * @openapi
+ * /users/verify-session:
+ *   get:
+ *     tags: [User]
+ *     summary: Fast session verification
+ *     description: Verify if the session cookie/token is still valid. Useful for frontend server components.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Valid session
+ *       '401':
+ *         description: Invalid session
+ */
+userRouter.get('/verify-session', globalRateLimit, authenticateUser, verifySession);
 
 /**
  * @openapi
