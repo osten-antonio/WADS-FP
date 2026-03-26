@@ -29,8 +29,7 @@ model ProblemSubmission {
   id             String        @id @default(uuid())
   inputMode      InputType
   category       String
-  type           String
-  subtype        String? // for statistics (multiple different subtypes)
+  type           String? // for statistics (multiple different subtypes)
   text           String
   createdAt      DateTime      @default(now())
   history        History[]

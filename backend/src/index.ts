@@ -100,7 +100,7 @@ app.use('/ingestion', ingestionRouter);
 app.use('/solver', solverRouter);
 app.use('/explanation', explanationRouter);
 app.use('/practice', practiceRouter);
-app.use('/users', userRouter);
+app.use('/user', userRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');

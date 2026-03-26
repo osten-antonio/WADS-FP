@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import axios from "axios"
+import { backendApi } from "@/lib/axios"
 
 export async function DELETE(req: NextRequest) {
-  const sessionToken = (await cookies()).get("session")?.value
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get("session")?.value;
   if (!sessionToken) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   }
@@ -12,36 +15,24 @@ export async function DELETE(req: NextRequest) {
     ? body.submissionIds.filter((id): id is string => typeof id === "string")
     : []
 
-  const backendBaseUrl = process.env.BACKEND_URL ?? "http://localhost:8000"
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 10000)
-  let backendResponse: Response
-
   try {
-    backendResponse = await fetch(`${backendBaseUrl}/users/delete-history`, {
-      method: "DELETE",
+    const backendResponse = await backendApi.delete(`/users/delete-history`, {
       headers: {
         Authorization: `Bearer ${sessionToken}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ submissionIds }),
-      signal: controller.signal,
+      data: { submissionIds },
     })
+
+    return NextResponse.json(backendResponse.data, { status: backendResponse.status })
   } catch (error) {
-    const isAbortError = error instanceof Error && error.name === "AbortError"
-    return NextResponse.json(
-      {
-        message: isAbortError ? "Delete history request timed out" : "Failed to connect to backend",
-      },
-      { status: isAbortError ? 504 : 502 },
-    )
-  } finally {
-    clearTimeout(timeoutId)
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        return NextResponse.json({ message: "Delete history request timed out" }, { status: 504 });
+      }
+      if (error.response) {
+        return NextResponse.json(error.response.data, { status: error.response.status });
+      }
+    }
+    return NextResponse.json({ message: "Failed to connect to backend", }, { status: 502 });
   }
-
-  const payload = await backendResponse.json().catch(() => ({
-    message: "Invalid backend response",
-  }))
-
-  return NextResponse.json(payload, { status: backendResponse.status })
 }
