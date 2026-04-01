@@ -3,13 +3,19 @@ import { fireEvent, render, screen } from "@testing-library/react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 
+const mockRouter = {
+  push: jest.fn(),
+}
+
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-  }),
+  useRouter: () => mockRouter,
 }))
 
 describe("Sidebar", () => {
+  beforeEach(() => {
+    mockRouter.push.mockReset()
+  })
+
   it("renders the navigation items", () => {
     render(
       <SidebarProvider>

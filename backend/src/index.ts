@@ -1,6 +1,15 @@
+import 'dotenv/config'
 import express, { type Application, type Request, type Response } from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import ingestionRouter from "./routes/ingestion.routes";
+import solverRouter from "./routes/solver.routes";
+import explanationRouter from "./routes/explanation.routes";
+import practiceRouter from "./routes/practice.routes";
+import userRouter from "./routes/user.routes";
+
+import { setDefaultResultOrder } from 'dns';
+setDefaultResultOrder('ipv4first');
 
 // Zod schemas
 import * as z from 'zod';
@@ -14,6 +23,20 @@ import { ErrorResponse } from "./schemas/error.schema";
 const app: Application = express();
 const port = 8000;
 
+// middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  const allowedOrigin = process.env.FRONTEND_ORIGIN ?? "*";
+  res.header("Access-Control-Allow-Origin", allowedOrigin);
+  res.header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, x-user-id");
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
 
 const options = {
   definition: {
@@ -71,6 +94,13 @@ const openapiSpecification = swaggerJsdoc(options);
 
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+
+// Register API routes
+app.use('/ingestion', ingestionRouter);
+app.use('/solver', solverRouter);
+app.use('/explanation', explanationRouter);
+app.use('/practice', practiceRouter);
+app.use('/user', userRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
