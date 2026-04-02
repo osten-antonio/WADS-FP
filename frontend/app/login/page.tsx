@@ -25,17 +25,18 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
 
     const createSession = async (idToken: string) => {
-    const res = await fetch("/api/session", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    });
-    console.log('a')
-    console.log(res);
-    if (!res.ok) {
-      throw new Error("Failed to create session");
-    }
+      console.log(idToken);
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      console.log('a')
+      console.log(res);
+      if (!res.ok) {
+        throw new Error("Failed to create session");
+      }
   };
 
   const handleGoogleLogin = async () => {

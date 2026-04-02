@@ -80,17 +80,7 @@ export async function handleTextUpload(req: Request, res: Response) {
 			if (cached) {
 				let submissionId = cached.submissionId ?? null;
 				if (!submissionId) {
-					// create a ProblemSubmission record so we have a canonical short id
-					const newId = randomUUID();
-					const ps = await recordSubmission(undefined, {
-						id: newId,
-						inputMode: "TEXT",
-						category: parsed.category ?? "General",
-						type: "CACHE",
-						subtype: null,
-						text: result.question,
-					});
-					submissionId = ps.id;
+					submissionId = randomUUID();
 					try {
 						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, cached.answer, submissionId!);
 					} catch (e) {
@@ -128,10 +118,6 @@ export async function handleTextUpload(req: Request, res: Response) {
 				const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
 				if (recordedId) {
 					id = recordedId as any;
-				} else {
-					// create a ProblemSubmission record for anonymous user
-					const ps = await recordSubmission(undefined, submissionObj);
-					id = ps.id as any;
 				}
 
 				// cache the answer for future requests (map submission id -> long hash)
@@ -170,9 +156,6 @@ export async function handleTextUpload(req: Request, res: Response) {
 					const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
 					if (recordedId) {
 						id = recordedId as any;
-					} else {
-						const ps = await recordSubmission(undefined, submissionObj);
-						id = ps.id as any;
 					}
 
 					try {
