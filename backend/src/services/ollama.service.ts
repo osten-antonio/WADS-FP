@@ -1,4 +1,3 @@
-import e from 'express';
 import { Ollama } from 'ollama';
 import { ZodObject, toJSONSchema } from 'zod';
 

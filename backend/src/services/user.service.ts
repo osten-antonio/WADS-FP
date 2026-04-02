@@ -29,20 +29,20 @@ function normalizeCategory(category?: string): string | null {
 function toHistoryItem(item: {
   submission: {
     id: string;
-    inputMode: "TEXT" | "IMAGE";
+    inputMode: any;
     category: string;
-    type: string;
-    subtype: string | null;
+    type: string | null;
+    subtype?: string | null;
     text: string;
     createdAt: Date;
   };
 }): HistoryItem {
   return {
     id: item.submission.id,
-    inputMode: item.submission.inputMode,
+    inputMode: item.submission.inputMode as "TEXT" | "IMAGE",
     category: item.submission.category,
-    type: item.submission.type,
-    subtype: item.submission.subtype,
+    type: item.submission.type ?? "",
+    subtype: item.submission.subtype ?? null,
     text: item.submission.text,
     createdAt: item.submission.createdAt.toISOString(),
   };
@@ -168,7 +168,7 @@ export async function recordSubmission(
 ) {
   const category = normalizeCategory(submission.category ?? undefined) ?? "General";
 
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx: any) => {
     // If a userId is provided, upsert the user account
     if (userId) {
       const displayNameTrimmed = displayName?.trim();

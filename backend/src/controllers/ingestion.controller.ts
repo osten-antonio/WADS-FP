@@ -92,7 +92,7 @@ export async function handleTextUpload(req: Request, res: Response) {
 					});
 					submissionId = ps.id;
 					try {
-						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, cached.answer, submissionId);
+						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, cached.answer, submissionId!);
 					} catch (e) {
 						console.error('Failed to set cache mapping for existing answer', e);
 					}
@@ -100,7 +100,7 @@ export async function handleTextUpload(req: Request, res: Response) {
 
 				// record history if authenticated (links user to existing submission)
 				await tryRecordSubmissionFromRequest(req, {
-					id: submissionId,
+					id: submissionId!,
 					inputMode: "TEXT",
 					category: parsed.category ?? "General",
 					type: "CACHE",
