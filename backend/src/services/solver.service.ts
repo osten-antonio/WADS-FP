@@ -1,7 +1,6 @@
 import { evaluate, derivative, matrix, det, inv, simplify, parse } from 'mathjs';
 import { normalizeQuestion, parseNumber } from '../lib/utils';
-
-var MathExpression = require('math-expressions');
+import MathExpression from 'math-expressions';
 
 export type MathSolveResult = {
     answer: string;
