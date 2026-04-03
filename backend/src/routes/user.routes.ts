@@ -2,7 +2,7 @@ import express from "express";
 
 import { globalRateLimit } from "../middleware/rateLimit.middleware";
 import { authenticateUser } from "../middleware/auth.middleware";
-import { register, login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword, verifySession } from "../controllers/user.controller";
+import { login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword, verifySession } from "../controllers/user.controller";
 
 /**
  * @openapi
@@ -23,43 +23,6 @@ const userRouter = express.Router();
 
 /**
  * @openapi
- * /users/register:
- *   post:
- *     tags: [User]
- *     summary: Register a new user
- *     description: Sync user account after Firebase registration. Decodes Firebase ID token to get UID.
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [displayName]
- *             properties:
- *               displayName:
- *                 type: string
- *           example:
- *             displayName: Jane Doe
- *     responses:
- *       '201':
- *         description: User registered in local database
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/profileResponse'
- *       '400':
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-userRouter.post('/register', globalRateLimit, authenticateUser, register);
-
-/**
- * @openapi
  * /users/login:
  *   post:
  *     tags: [User]
@@ -73,7 +36,20 @@ userRouter.post('/register', globalRateLimit, authenticateUser, register);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/profileResponse'
+ *               type: object
+ *               properties:
+ *                 sessionToken:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     uid:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                       nullable: true
+ *                     name:
+ *                       type: string
  *       '401':
  *         description: Invalid or expired Firebase token
  *         content:
@@ -118,6 +94,18 @@ userRouter.post('/login', globalRateLimit, authenticateUser, login);
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
  *               message: "Unauthorized access"
+ *       '404':
+ *         description: User profile not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to fetch profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 userRouter.get('/profile', globalRateLimit, authenticateUser, profile);
 
@@ -177,6 +165,18 @@ userRouter.get('/verify-session', globalRateLimit, authenticateUser, verifySessi
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '404':
+ *         description: User profile not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to update username
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 userRouter.patch('/update-username', globalRateLimit, authenticateUser, updateUsername);
 
@@ -216,6 +216,12 @@ userRouter.patch('/update-username', globalRateLimit, authenticateUser, updateUs
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to filter history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 userRouter.get('/filter-history', globalRateLimit, authenticateUser, filterHistory);
 
@@ -245,8 +251,20 @@ userRouter.get('/filter-history', globalRateLimit, authenticateUser, filterHisto
  *               $ref: '#/components/schemas/deleteHistoryResponse'
  *             example:
  *               deletedCount: 1
+ *       '400':
+ *         description: Invalid body for delete request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       '401':
  *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to delete history
  *         content:
  *           application/json:
  *             schema:
@@ -291,6 +309,12 @@ userRouter.delete('/delete-history', globalRateLimit, authenticateUser, deleteHi
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to delete history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 userRouter.delete('/delete-history/:id', globalRateLimit, authenticateUser, deleteHistory);
 
@@ -330,6 +354,18 @@ userRouter.delete('/delete-history/:id', globalRateLimit, authenticateUser, dele
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '501':
+ *         description: Not implemented
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 userRouter.patch('/change-password', globalRateLimit, authenticateUser, changePassword);
 
@@ -362,6 +398,18 @@ userRouter.patch('/change-password', globalRateLimit, authenticateUser, changePa
  *                 message: "Reset link sent to user@example.com"
  *       '400':
  *         description: User not found or invalid email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '501':
+ *         description: Not implemented
  *         content:
  *           application/json:
  *             schema:

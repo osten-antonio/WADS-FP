@@ -63,12 +63,6 @@ function readCategory(req: Request): string | undefined {
   return undefined;
 }
 
-export async function register(req: Request, res: Response) {
-  res.status(501).json({
-    message: "Register endpoint is not implemented yet.",
-  });
-}
-
 export async function login(req: Request, res: Response) {
   const idToken = readBearerToken(req);
   if (!idToken) {
