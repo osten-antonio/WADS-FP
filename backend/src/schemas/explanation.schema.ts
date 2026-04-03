@@ -1,18 +1,11 @@
 import * as z from 'zod';
+import { categories } from '../lib/categories';
 
 export const stepsRequest = z.object({
     question: z.string(),
     answer: z.string(),
-    category: z.enum([
-        "General", 
-        "Statistics", 
-        "Algebra", 
-        "Proofs and theorem", 
-        "Linear algebra", 
-        "Trigonometry", 
-        "Calculus", 
-        "Pre-calculus"
-    ])
+    category: z.enum(categories).default('General'),
+    forced: z.boolean().default(false)
 })
 
 const stepsBase = z.object({

@@ -2,6 +2,7 @@ import express from "express";
 
 import { ollamaRateLimit } from "../middleware/rateLimit.middleware";
 import { steps, hint, generate, followUpExplanation } from "../controllers/explanation.controller";
+import { validateCategory } from "../middleware/validate.middleware";
 
 /**
  * @openapi
@@ -27,6 +28,7 @@ const explanationRouter = express.Router();
  *           example:
  *             question: "2x + 3 = 11"
  *             answer: "x = 4"
+ *             category: "Algebra"
  *     responses:
  *       '200':
  *         description: Steps generated
@@ -49,7 +51,7 @@ const explanationRouter = express.Router();
  *             example:
  *               message: "Invalid request parameters"
  */
-explanationRouter.post('/steps/', ollamaRateLimit, steps);
+explanationRouter.post('/steps/', ollamaRateLimit, validateCategory, steps);
 
 /**
  * @openapi
@@ -66,6 +68,7 @@ explanationRouter.post('/steps/', ollamaRateLimit, steps);
  *           example:
  *             question: "2x + 3 = 11"
  *             answer: "x = 4"
+ *             category: "Algebra"
  *     responses:
  *       '200':
  *         description: Hints generated
@@ -85,7 +88,7 @@ explanationRouter.post('/steps/', ollamaRateLimit, steps);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-explanationRouter.post('/hint/', ollamaRateLimit, hint);
+explanationRouter.post('/hint/', ollamaRateLimit, validateCategory, hint);
 
 /**
  * @openapi

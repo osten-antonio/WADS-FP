@@ -1,12 +1,13 @@
 import * as z from "zod";
+import { categories } from "../lib/categories";
 
 const MAX_FILE_SIZE = 100000000;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 export const ingestionText = z.object({
     question: z.string(),
-    category: z.string().default("General"),
-    force: z.boolean().default(false)
+    category: z.enum(categories).default('General'),
+    forced: z.boolean().default(false)
 });
 
 export const ingestionImage = z.object({
