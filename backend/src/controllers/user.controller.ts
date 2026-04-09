@@ -11,6 +11,7 @@ import {
   updateUserDisplayName,
 } from "../services/user.service";
 import type { DecodedIdToken } from "firebase-admin/auth";
+import { sendErrorResponse } from "../lib/error-response";
 
 const SESSION_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 5; // 5 days
 
@@ -66,7 +67,7 @@ function readCategory(req: Request): string | undefined {
 export async function login(req: Request, res: Response) {
   const idToken = readBearerToken(req);
   if (!idToken) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return sendErrorResponse(res, 401, "Unauthorized");
   }
 
   try {
@@ -94,14 +95,14 @@ export async function login(req: Request, res: Response) {
       },
     });
   } catch {
-    return res.status(401).json({ message: "Invalid or expired token" });
+    return sendErrorResponse(res, 401, "Invalid or expired token");
   }
 }
 
 export async function verifySession(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(res);
   if (!userId) {
-    return res.status(401).json({ message: "Unauthorized access" });
+    return sendErrorResponse(res, 401, "Unauthorized access");
   }
 
   // The authenticateUser middleware already verified the token/cookie cryptographically!
@@ -112,38 +113,35 @@ export async function verifySession(req: Request, res: Response) {
 export async function profile(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(res);
   if (!userId) {
-    return res.status(401).json({ message: "Unauthorized access" });
+    return sendErrorResponse(res, 401, "Unauthorized access");
   }
 
   try {
     const profilePayload = await getUserProfile(userId);
     if (!profilePayload) {
-      return res.status(404).json({ message: "User profile not found" });
+      return sendErrorResponse(res, 404, "User profile not found");
     }
 
     return res.status(200).json(profilePayload);
   } catch {
-    return res.status(500).json({ message: "Failed to fetch profile" });
+    return sendErrorResponse(res, 500, "Failed to fetch profile");
   }
 }
 
 export async function updateUsername(req: Request, res: Response) {
   const userId = getAuthenticatedUserId(res);
   if (!userId) {
-    return res.status(401).json({ message: "Unauthorized access" });
+    return sendErrorResponse(res, 401, "Unauthorized access");
   }
 
   const parsed = updateUsernameRequest.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({
-      message: "Validation error",
-      errors: parsed.error.flatten(),
-    });
+    return sendErrorResponse(res, 400, "Validation error", 'VALIDATION_ERROR', { errors: parsed.error.flatten() });
   }
 
   const nextDisplayName = parsed.data.displayName.trim();
   if (!nextDisplayName) {
-    return res.status(400).json({ message: "displayName cannot be empty" });
+    return sendErrorResponse(res, 400, "displayName cannot be empty", 'INVALID_DISPLAY_NAME');
   }
 
   try {
@@ -155,12 +153,12 @@ export async function updateUsername(req: Request, res: Response) {
 
     const profilePayload = await getUserProfile(userId);
     if (!profilePayload) {
-      return res.status(404).json({ message: "User profile not found" });
+      return sendErrorResponse(res, 404, "User profile not found");
     }
 
     return res.status(200).json(profilePayload);
   } catch {
-    return res.status(500).json({ message: "Failed to update username" });
+    return sendErrorResponse(res, 500, "Failed to update username");
   }
 }
 
@@ -168,7 +166,7 @@ export async function filterHistory(req: Request, res: Response) {
   try {
     const userId = getAuthenticatedUserId(res);
     if (!userId) {
-      res.status(401).json({ message: "Unauthorized access" });
+      sendErrorResponse(res, 401, "Unauthorized access");
       return;
     }
 
@@ -177,7 +175,7 @@ export async function filterHistory(req: Request, res: Response) {
     res.status(200).json({ items });
   } catch (error) {
     const message = toErrorMessage(error, "Failed to filter history.");
-    res.status(500).json({ message });
+    sendErrorResponse(res, 500, message);
   }
 }
 
@@ -185,7 +183,7 @@ export async function deleteHistory(req: Request, res: Response) {
   try {
     const userId = getAuthenticatedUserId(res);
     if (!userId) {
-      res.status(401).json({ message: "Unauthorized access" });
+      sendErrorResponse(res, 401, "Unauthorized access");
       return;
     }
 
@@ -198,9 +196,7 @@ export async function deleteHistory(req: Request, res: Response) {
     } else {
       const parsed = deleteHistoryRequest.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
-          message: "Invalid body for delete history request. Use { submissionIds: string[] } or /delete-history/:id",
-        });
+        sendErrorResponse(res, 400, "Invalid body for delete history request. Use { submissionIds: string[] } or /delete-history/:id");
         return;
       }
       submissionIds = parsed.data.submissionIds;
@@ -210,18 +206,14 @@ export async function deleteHistory(req: Request, res: Response) {
     res.status(200).json({ deletedCount });
   } catch (error) {
     const message = toErrorMessage(error, "Failed to delete history.");
-    res.status(500).json({ message });
+    sendErrorResponse(res, 500, message);
   }
 }
 
 export function changePassword(req: Request, res: Response) {
-  res.status(501).json({
-    message: "Change password endpoint is not implemented yet.",
-  });
+  sendErrorResponse(res, 501, "Change password endpoint is not implemented yet.", 'NOT_IMPLEMENTED');
 }
 
 export function forgotPassword(req: Request, res: Response) {
-  res.status(501).json({
-    message: "Forgot password endpoint is not implemented yet.",
-  });
+  sendErrorResponse(res, 501, "Forgot password endpoint is not implemented yet.", 'NOT_IMPLEMENTED');
 }

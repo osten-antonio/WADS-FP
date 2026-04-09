@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { sendErrorResponse } from "../lib/error-response";
 
 const CONTROL_CHARS_REGEX = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 const BASE64_CANDIDATE_REGEX = /\b[A-Za-z0-9+/]{24,}={0,2}\b/g;
@@ -157,7 +158,8 @@ function fail(
   status = 400,
   details?: string,
 ): Response {
-  return res.status(status).json({ message, code, details });
+  const extras = details ? { details } : undefined;
+  return sendErrorResponse(res, status, message, code, extras);
 }
 
 type SanitizedStringOptions = {

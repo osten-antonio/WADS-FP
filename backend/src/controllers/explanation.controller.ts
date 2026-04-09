@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { generateSteps, generateHints, generateStepExplanation, generateFollowUp } from "../services/explanation.service";
 import { stepsRequest, explanationRequest, followUpRequest } from "../schemas/explanation.schema";
+import { sendErrorResponse } from "../lib/error-response";
 
 export async function steps(req: Request, res: Response) {
     try {
@@ -9,10 +10,10 @@ export async function steps(req: Request, res: Response) {
         return res.status(200).json(result);
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: "Invalid request parameters", errors: error.errors });
+            return sendErrorResponse(res, 400, "Invalid request parameters", 'INVALID_REQUEST', { errors: error.errors });
         }
         console.error("Error in steps controller:", error);
-        return res.status(500).json({ message: error.message });
+        return sendErrorResponse(res, 500, error?.message ?? 'Internal error');
     }
 }
 
@@ -24,10 +25,10 @@ export async function hint(req: Request, res: Response) {
         return res.status(200).json(result);
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: "Invalid request parameters", errors: error.errors });
+            return sendErrorResponse(res, 400, "Invalid request parameters", 'INVALID_REQUEST', { errors: error.errors });
         }
         console.error("Error in hint controller:", error.message);
-        return res.status(500).json({ message: error.message });
+        return sendErrorResponse(res, 500, error?.message ?? 'Internal error');
     }
 }
 
@@ -40,10 +41,10 @@ export async function generate(req: Request, res: Response) {
     } catch (error: any) {
         console.log(error);
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: "Invalid request parameters", errors: error.errors });
+            return sendErrorResponse(res, 400, "Invalid request parameters", 'INVALID_REQUEST', { errors: error.errors });
         }
         console.error("Error in generate controller:", error.message);
-        return res.status(500).json({ message: "An unexpected error occurred." });
+        return sendErrorResponse(res, 500, "An unexpected error occurred.");
     }
 }
 
@@ -54,9 +55,9 @@ export async function followUpExplanation(req: Request, res: Response) {
         return res.status(200).json(result);
     } catch (error: any) {
         if (error.name === 'ZodError') {
-            return res.status(400).json({ message: "Invalid request parameters", errors: error.errors });
+            return sendErrorResponse(res, 400, "Invalid request parameters", 'INVALID_REQUEST', { errors: error.errors });
         }
         console.error("Error in follow-up controller:", error.message);
-        return res.status(500).json({ message: "An unexpected error occurred." });
+        return sendErrorResponse(res, 500, "An unexpected error occurred.");
     }
 }

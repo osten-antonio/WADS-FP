@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { solveRequest, solveResponse } from "../schemas/solve.schema";
 import solverService from "../services/solver.service";
 import { call_ollama } from "../services/ollama.service";
+import { sendErrorResponse } from "../lib/error-response";
 
 export async function solve(req: Request, res: Response) {
     const { question } = solveRequest.parse(req.body);
@@ -29,7 +30,11 @@ export async function solve(req: Request, res: Response) {
         return res.json(aiResp);
 
     } catch (err: any) {
-        return res.status(500).json({ message: err?.message ?? 'Internal error' });
+        const msg = err?.message ?? 'Internal error';
+        if (msg === 'Not a math question') {
+            return sendErrorResponse(res, 400, msg, 'NOT_A_MATH_QUESTION');
+        }
+        return sendErrorResponse(res, 500, msg);
     }
 }
 
@@ -52,6 +57,10 @@ export async function solveAI(req: Request, res: Response) {
         aiResp.id = id;
         return res.json(aiResp);
     } catch (err: any) {
-        return res.status(500).json({ message: err?.message ?? 'Internal error' });
+        const msg = err?.message ?? 'Internal error';
+        if (msg === 'Not a math question') {
+            return sendErrorResponse(res, 400, msg, 'NOT_A_MATH_QUESTION');
+        }
+        return sendErrorResponse(res, 500, msg);
     }
 }

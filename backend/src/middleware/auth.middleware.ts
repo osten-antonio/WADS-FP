@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { adminAuth } from "../lib/firebase-admin";
+import { sendErrorResponse } from "../lib/error-response";
 
 export type AuthUserContext = {
   userId: string;
@@ -56,10 +57,8 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
       }
     }
 
-    res.status(401).json({
-      message: "Unauthorized. Provide a valid Bearer token.",
-    });
+    sendErrorResponse(res, 401, "Unauthorized. Provide a valid Bearer token.", 'UNAUTHORIZED');
   } catch (error) {
-    res.status(500).json({ message: "Internal server error during authentication" });
+    sendErrorResponse(res, 500, "Internal server error during authentication", 'AUTH_INTERNAL_ERROR');
   }
 }

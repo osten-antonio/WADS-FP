@@ -1,7 +1,8 @@
-import { response, type NextFunction, type Request, type Response } from "express";
+import { type NextFunction, type Request, type Response } from "express";
 import { call_ollama } from "../services/ollama.service";
 import { categories } from "../lib/categories";
 import * as z from "zod";
+import { sendErrorResponse } from "../lib/error-response";
 
 export async function validateCategory(req: Request, res: Response, next: NextFunction) {
     const { category, question, force } = req.query;
@@ -12,7 +13,7 @@ export async function validateCategory(req: Request, res: Response, next: NextFu
     }
 
     if(category && !categories.includes(category as string)) {
-        return res.status(400).json({ error: "Invalid category" });
+        return sendErrorResponse(res, 400, "Invalid category", "INVALID_CATEGORY");
     }
     
     if(force &&
@@ -44,10 +45,7 @@ export async function validateCategory(req: Request, res: Response, next: NextFu
     const resp = await call_ollama(prompt, response_schema);
     
     if(category !== resp.category) { 
-        return response.status(422).json({ 
-            error: "Invalid category", 
-            suggested: resp.category 
-        });
+        return sendErrorResponse(res, 422, "Invalid category", "CATEGORY_NOT_MATCHING", { suggested: resp.category });
     }
     
     next();

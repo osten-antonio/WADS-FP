@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "node:path";
 import type { NextFunction, Request, Response } from "express";
+import { sendErrorResponse } from "../lib/error-response";
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
@@ -37,16 +38,16 @@ export function uploadSingleImage(req: Request, res: Response, next: NextFunctio
 
     if (error instanceof multer.MulterError) {
       if (error.code === "LIMIT_FILE_SIZE") {
-        res.status(413).json({ message: "Image file is too large. Maximum size is 5MB." });
+        sendErrorResponse(res, 413, "Image file is too large. Maximum size is 5MB.");
         return;
       }
 
-      res.status(400).json({ message: error.message });
+      sendErrorResponse(res, 400, error.message);
       return;
     }
 
     const message = error instanceof Error ? error.message : "Invalid image upload";
-    res.status(400).json({ message });
+    sendErrorResponse(res, 400, message);
   });
 }
 

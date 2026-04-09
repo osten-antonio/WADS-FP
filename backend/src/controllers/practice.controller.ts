@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { practiceRefresh, practiceRequest } from "../schemas/practice.schema";
 import { generatePracticeQuestions, refreshPracticeQuestions } from "../services/practice.service";
+import { sendErrorResponse } from "../lib/error-response";
 
 function toErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error) {
@@ -13,7 +14,7 @@ function toErrorMessage(error: unknown, fallback: string): string {
 export async function generate(req: Request, res: Response) {
   const parsed = practiceRequest.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ message: "Invalid request parameters" });
+    sendErrorResponse(res, 400, "Invalid request parameters", 'INVALID_REQUEST');
     return;
   }
   try {
@@ -21,14 +22,14 @@ export async function generate(req: Request, res: Response) {
     res.status(200).json({ questions });
   } catch (error) {
     const message = toErrorMessage(error, "Failed to generate practice questions.");
-    res.status(500).json({ message });
+    sendErrorResponse(res, 500, message);
   }
 }
 
 export async function refresh(req: Request, res: Response) {
   const parsed = practiceRefresh.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ message: "Invalid request parameters" });
+    sendErrorResponse(res, 400, "Invalid request parameters", 'INVALID_REQUEST');
     return;
   }
 
@@ -41,6 +42,6 @@ export async function refresh(req: Request, res: Response) {
     res.status(200).json({ questions });
   } catch (error) {
     const message = toErrorMessage(error, "Failed to refresh practice questions.");
-    res.status(500).json({ message });
+    sendErrorResponse(res, 500, message);
   }
 }

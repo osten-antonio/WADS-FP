@@ -8,6 +8,7 @@ import { call_ollama } from "../services/ollama.service";
 import { recordSubmission } from "../services/user.service";
 import * as cacheService from "../services/cache.service";
 import { adminAuth } from "../lib/firebase-admin";
+import { sendErrorResponse } from "../lib/error-response";
 
 async function tryRecordSubmissionFromRequest(
 	req: Request,
@@ -53,7 +54,7 @@ export async function handleImageUpload(req: Request, res: Response) {
 	try {
 		// multer puts the file on req.file
 		const file = req.file as Express.Multer.File | undefined;
-		if (!file) return res.status(400).json({ message: "No image uploaded" });
+		if (!file) return sendErrorResponse(res, 400, "No image uploaded");
 
 		// validate using zod schema shape
 		ingestionImage.parse({ image: [file] });
@@ -63,7 +64,7 @@ export async function handleImageUpload(req: Request, res: Response) {
 		const out = ingestionResponse.parse({ question: result.question });
 		return res.status(201).json(out);
 	} catch (err: any) {
-		return res.status(400).json({ message: err?.message ?? String(err) });
+		return sendErrorResponse(res, 400, err?.message ?? String(err));
 	}
 }
 
@@ -172,9 +173,9 @@ export async function handleTextUpload(req: Request, res: Response) {
 	
 		} catch (err: any) {
 			console.log(err);
-			return res.status(500).json({ message: err?.message ?? 'Internal error' });
+			return sendErrorResponse(res, 500, err?.message ?? 'Internal error');
 		}
 	} catch (err: any) {
-		return res.status(400).json({ message: err?.message ?? String(err) });
+		return sendErrorResponse(res, 400, err?.message ?? String(err));
 	}
 }
