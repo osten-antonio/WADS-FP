@@ -3,6 +3,7 @@ import express from "express";
 import { globalRateLimit } from "../middleware/rateLimit.middleware";
 import { authenticateUser } from "../middleware/auth.middleware";
 import { login, profile, updateUsername, filterHistory, deleteHistory, changePassword, forgotPassword, verifySession } from "../controllers/user.controller";
+import { apiSecurityHeaders, validateUpdateUsernameSecurity } from "../middleware/security.middleware";
 
 /**
  * @openapi
@@ -178,7 +179,7 @@ userRouter.get('/verify-session', globalRateLimit, authenticateUser, verifySessi
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.patch('/update-username', globalRateLimit, authenticateUser, updateUsername);
+userRouter.patch('/update-username', globalRateLimit, apiSecurityHeaders, validateUpdateUsernameSecurity, authenticateUser, updateUsername);
 
 /**
  * @openapi

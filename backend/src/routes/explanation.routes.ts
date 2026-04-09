@@ -3,6 +3,11 @@ import express from "express";
 import { ollamaRateLimit } from "../middleware/rateLimit.middleware";
 import { steps, hint, generate, followUpExplanation } from "../controllers/explanation.controller";
 import { validateCategory } from "../middleware/validate.middleware";
+import {
+    apiSecurityHeaders,
+    validateFollowUpSecurity,
+    validateGenerateExplanationSecurity
+} from "../middleware/security.middleware";
 
 /**
  * @openapi
@@ -122,7 +127,7 @@ explanationRouter.post('/hint/', ollamaRateLimit, validateCategory, hint);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-explanationRouter.post('/generate/', ollamaRateLimit, generate);
+explanationRouter.post('/generate/', apiSecurityHeaders, validateGenerateExplanationSecurity, ollamaRateLimit, generate);
 
 /**
  * @openapi
@@ -157,7 +162,7 @@ explanationRouter.post('/generate/', ollamaRateLimit, generate);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-explanationRouter.post('/follow-up/', ollamaRateLimit, followUpExplanation);
+explanationRouter.post('/follow-up/', apiSecurityHeaders, validateFollowUpSecurity, ollamaRateLimit, followUpExplanation);
 
 
 export default explanationRouter;

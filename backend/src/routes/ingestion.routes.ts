@@ -4,11 +4,16 @@ import {
     handleImageUpload,
     handleTextUpload
 } from "../controllers/ingestion.controller";
-import { upload } from "../middleware/multer.middleware"
+import { uploadSingleImage } from "../middleware/multer.middleware"
 import {
     validateCategory
 } from "../middleware/validate.middleware";
 import { ollamaRateLimit } from "../middleware/rateLimit.middleware";
+import {
+    apiSecurityHeaders,
+    validateImageUploadSecurity,
+    validateIngestionTextSecurity
+} from "../middleware/security.middleware";
 
 /**
  * @openapi
@@ -49,7 +54,7 @@ const ingestionRouter = express.Router();
  *             example:
  *               message: "Invalid image format"
  */
-ingestionRouter.post('/image', upload.single('image'), handleImageUpload);
+ingestionRouter.post('/image', apiSecurityHeaders, uploadSingleImage, validateImageUploadSecurity, handleImageUpload);
 
 /**
  * @openapi
@@ -83,7 +88,7 @@ ingestionRouter.post('/image', upload.single('image'), handleImageUpload);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-ingestionRouter.post('/text', ollamaRateLimit, validateCategory, handleTextUpload);
+ingestionRouter.post('/text', apiSecurityHeaders, validateIngestionTextSecurity, ollamaRateLimit, validateCategory, handleTextUpload);
 
 
 export default ingestionRouter;

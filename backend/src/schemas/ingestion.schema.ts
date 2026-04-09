@@ -1,7 +1,7 @@
 import * as z from "zod";
 import { categories } from "../lib/categories";
 
-const MAX_FILE_SIZE = 100000000;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 export const ingestionText = z.object({

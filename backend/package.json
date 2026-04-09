@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:security",
+    "test:security": "node --import tsx --test src/middleware/security.middleware.test.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts"
