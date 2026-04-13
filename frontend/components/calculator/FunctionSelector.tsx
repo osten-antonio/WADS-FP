@@ -37,7 +37,7 @@ export function FunctionSelector({ onSelect, onClose }: FunctionSelectorProps) {
   })).filter((cat) => cat.items.length > 0)
 
   return (
-    <div className="flex w-full flex-col h-full bg-background rounded-xl border shadow-xl overflow-hidden min-h-[400px]">
+    <div className="flex w-full flex-col h-full bg-background rounded-xl border shadow-xl overflow-hidden min-h-100">
       <div className="p-4 border-b flex flex-col gap-3 sticky top-0 bg-background z-10">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Functions</h2>
