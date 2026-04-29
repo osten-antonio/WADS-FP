@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace -- JSX intrinsic-element augmentation requires namespace syntax */
 import type { DetailedHTMLProps, HTMLAttributes } from "react"
 
 type MathFieldProps = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & {

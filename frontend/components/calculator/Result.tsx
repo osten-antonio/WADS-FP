@@ -1,11 +1,10 @@
 'use client'
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group";
 import { CheckIcon, CopyIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { StepBox } from "../widget/StepBox";
-import { Card, CardContent, CardHeader } from "../ui/card";
 import { Separator } from "../ui/separator";
 import { HintBox } from "../widget/HintBox";
 import { PracticeBox } from "../widget/PracticeBox";
@@ -37,7 +36,7 @@ export function Result(){
             await navigator.clipboard.writeText(resultValue);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
+        } catch {
             // Optionally handle error (e.g., show a message)
         }
     }

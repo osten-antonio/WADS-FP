@@ -1,6 +1,5 @@
 import { evaluate, derivative, matrix, det, inv, simplify, parse } from 'mathjs';
 import { normalizeQuestion, parseNumber } from '../lib/utils';
-import MathExpression from 'math-expressions';
 
 export type MathSolveResult = {
     answer: string;
@@ -8,25 +7,18 @@ export type MathSolveResult = {
 };
 
 /**
- * Converts LaTeX strings to MathJS compatible expressions.
+ * Best-effort conversion of common LaTeX syntax to mathjs-compatible syntax.
  */
 function cleanLatex(latex: string): string {
     if (!latex.includes('\\')) return latex;
-    
-    try {
-        // math-expressions can parse LaTeX and output mathjs-compatible strings
-        const expr = MathExpression.fromLatex(latex);
-        return expr.toString();
-    } catch (e) {
-        // Fallback: simple replacements for common patterns if library fails
-        return latex
-            .replace(/\\frac\{(.+?)\}\{(.+?)\}/g, '($1)/($2)')
-            .replace(/\\sqrt\{(.+?)\}/g, 'sqrt($1)')
-            .replace(/\\left\(|\\right\)/g, '')
-            .replace(/\\cdot/g, '*')
-            .replace(/\{(.+?)\}/g, '($1)')
-            .replace(/\\/g, '');
-    }
+
+    return latex
+        .replace(/\\frac\{(.+?)\}\{(.+?)\}/g, '($1)/($2)')
+        .replace(/\\sqrt\{(.+?)\}/g, 'sqrt($1)')
+        .replace(/\\left\(|\\right\)/g, '')
+        .replace(/\\cdot|\\times/g, '*')
+        .replace(/\{(.+?)\}/g, '($1)')
+        .replace(/\\/g, '');
 }
 
 function parseSide(side: string, variable: string) {
