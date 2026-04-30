@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "lint": "eslint src",
     "test": "npm run test:security",
     "test:security": "node --import tsx --test src/middleware/security.middleware.test.ts",
     "build": "tsc",
@@ -49,6 +50,9 @@
     "@types/supertest": "^7.2.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^10.2.1",
     "jest": "^30.2.0",
     "prisma": "^7.6.0",
     "supertest": "^7.2.2",

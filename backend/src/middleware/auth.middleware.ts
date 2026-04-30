@@ -58,7 +58,7 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
     }
 
     sendErrorResponse(res, 401, "Unauthorized. Provide a valid Bearer token.", 'UNAUTHORIZED');
-  } catch (error) {
+  } catch {
     sendErrorResponse(res, 500, "Internal server error during authentication", 'AUTH_INTERNAL_ERROR');
   }
 }

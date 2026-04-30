@@ -29,7 +29,7 @@ function normalizeCategory(category?: string): string | null {
 function toHistoryItem(item: {
   submission: {
     id: string;
-    inputMode: any;
+    inputMode: "TEXT" | "IMAGE";
     category: string;
     type: string | null;
     subtype?: string | null;
@@ -168,10 +168,12 @@ export async function recordSubmission(
 ) {
   const category = normalizeCategory(submission.category ?? undefined) ?? "General";
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma TransactionClient type requires generated client
   return prisma.$transaction(async (tx: any) => {
     // If a userId is provided, upsert the user account
     if (userId) {
       const displayNameTrimmed = displayName?.trim();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma upsert args type requires generated client
       const upsertData: any = {
         where: { firebaseUID: userId },
         create: {
@@ -187,6 +189,7 @@ export async function recordSubmission(
       await tx.userAccount.upsert(upsertData);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma create args type requires generated client
     const createData: any = {
       id: submission.id,
       inputMode: submission.inputMode,

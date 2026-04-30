@@ -100,7 +100,7 @@ export async function processImageUpload(file: Express.Multer.File): Promise<Ing
 	try{
 		ingestionImage.parse({ image: [file] });
 
-		const buffer = (file as any).buffer as Buffer;
+		const buffer = file.buffer;
 		if (!buffer) throw new Error("Uploaded file missing buffer");
 
 		const ocrText = await performOCR(buffer);
@@ -116,7 +116,7 @@ export async function processImageUpload(file: Express.Multer.File): Promise<Ing
 }
 
 // TODO security stuff here
-export async function processTextUpload(text: string, candidateCategory?: string): Promise<IngestionResult> {
+export async function processTextUpload(text: string, _candidateCategory?: string): Promise<IngestionResult> {
 
 	const validated = ingestionText.parse({ question: text });
 	return { question: validated.question };
