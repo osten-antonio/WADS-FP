@@ -1,5 +1,5 @@
 import { Ollama } from 'ollama';
-import { type ZodObject, type ZodRawShape, toJSONSchema, ZodError } from 'zod';
+import { type ZodObject, type ZodRawShape, type z, toJSONSchema, ZodError } from 'zod';
 
 
 const host = process.env.OLLAMA_URL;
@@ -15,7 +15,7 @@ const ollama = new Ollama({
     host: host
 });
 
-export async function call_ollama<T extends ZodRawShape>(prompt: string, schema: ZodObject<T>): Promise<Record<string, unknown>> {
+export async function call_ollama<T extends ZodRawShape>(prompt: string, schema: ZodObject<T>): Promise<z.infer<ZodObject<T>>> {
     try {
         const response = await ollama.chat({
             model: 'qwen2.5:7b-instruct',
