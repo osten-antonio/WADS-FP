@@ -1,9 +1,9 @@
-import { buildMathPrompt, validateMathResponse } from '../src/services/ai-jest.service';
+import { buildMathPrompt, validateMathResponse } from '../src/lib/ai-jest';
 import { call_ollama } from '../src/services/ollama.service';
 import { solveResponse } from '../src/schemas/solve.schema';
+import { describe, expect, it, jest } from '@jest/globals';
 
 describe('Ollama AI Math Solver', () => {
-  // LLM calls can take a few seconds, so we increase the default Jest timeout
   jest.setTimeout(30000);
 
   it('should correctly solve "2 + 2" and match the strict validation rules', async () => {
@@ -26,7 +26,7 @@ describe('Ollama AI Math Solver', () => {
     const question = "What is x if x + y = 10?";
     const prompt = buildMathPrompt(question);
 
-    // how strict your Zod schema is set up. You might need a try/catch block if testing fallbacks!
+    // how strict your Zod schema is set up
     try {
        const response = await call_ollama(prompt, solveResponse);
        const validation = validateMathResponse(JSON.stringify(response));
