@@ -11,7 +11,7 @@ type Placement = "page-bottom" | "page-top" | "inline"
 type Alignment = "left" | "center" | "right"
 
 const KEYBOARD_OPTIONS = {
-    placement: "page-bottom" as Placement,
+    placement: "inline" as Placement,
     alignment: "center" as Alignment,
     edgeOffsetPx: 12,
     sizing: {
@@ -21,14 +21,14 @@ const KEYBOARD_OPTIONS = {
         keycapGapPx: 8
     },
     colors: {
-        keyboardBackground: "#dbe4ec",
-        keyboardAccent: "#1b84e7",
-        keyBackground: "#f5f7fa",
-        keyText: "#1a1f2b",
+        keyboardBackground: "#2F4457",
+        keyboardAccent: "#FFFFFF",
+        keyBackground: "#4C9DB3",
+        keyText: "#FFFFFF",
         keyBorderBottom: "#9da7b4",
-        numberKeys: "#d5f4e6",
+        numberKeys: "#1088AA",
         operatorKeys: "#ffe6cc",
-        actionKeys: "#cfe2ff"
+        actionKeys: "#10AAA2"
     },
     perKeyColors: [
         { keyValue: "(", color: "#fce7f3" },
@@ -124,7 +124,8 @@ export default function GeneralCalculatorPage() {
 
         return () => {
             isCancelled = true
-            cleanup?.()
+            window.mathVirtualKeyboard?.hide()
+            mf.current?.removeEventListener("focusin", handleFocusIn)
         }
     }, [])
 
@@ -137,8 +138,11 @@ export default function GeneralCalculatorPage() {
                     ref={mf}
                     className="w-full rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-lg"
                     placeholder="Me Thinks..."
+                    math-mode-space="\,"
                 />
+            </section>
 
+            <section className="mx-auto w-full max-w-5xl space-y-5 rounded-xl border border-primary-light/40 bg-white p-4 md:p-6 mt-4">
                 {KEYBOARD_OPTIONS.placement === "inline" ? (
                     <div ref={inlineKeyboardHostRef} className="math-vk-inline-host" style={keyboardVars} />
                 ) : null}
@@ -171,7 +175,10 @@ export default function GeneralCalculatorPage() {
                     ? `.math-vk-inline-host {
                     position: relative;
                     width: 100%;
-                    min-height: 260px;
+                    height: 40vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                 }
 
                 .math-vk-inline-host .MLK__backdrop {

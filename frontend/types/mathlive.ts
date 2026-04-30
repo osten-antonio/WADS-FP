@@ -2,6 +2,7 @@ import type { DetailedHTMLProps, HTMLAttributes } from "react"
 
 type MathFieldProps = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & {
     placeholder?: string
+    "math-mode-space"?: string
 }
 
 declare module "react" {
