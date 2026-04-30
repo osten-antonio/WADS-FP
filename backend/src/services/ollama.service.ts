@@ -1,5 +1,5 @@
 import { Ollama } from 'ollama';
-import { ZodObject, toJSONSchema } from 'zod';
+import { type ZodObject, type ZodRawShape, toJSONSchema, ZodError } from 'zod';
 
 
 const host = process.env.OLLAMA_URL;
@@ -15,7 +15,7 @@ const ollama = new Ollama({
     host: host
 });
 
-export async function call_ollama(prompt: string, schema: ZodObject<any>): Promise<Record<string, any>> {
+export async function call_ollama<T extends ZodRawShape>(prompt: string, schema: ZodObject<T>): Promise<Record<string, unknown>> {
     try {
         const response = await ollama.chat({
             model: 'qwen2.5:7b-instruct',
@@ -29,26 +29,30 @@ export async function call_ollama(prompt: string, schema: ZodObject<any>): Promi
 
         return schema.parse(JSON.parse(response.message.content));
 
-    } catch (error: any) {
-        if (error.status >= 500 && error.status < 600) {
-            throw new Error(`Ollama Server is down (${error.status}): ${error.message}`);
+    } catch (error: unknown) {
+        if (typeof error === 'object' && error !== null && 'status' in error) {
+            const status = (error as { status: number }).status;
+            const msg = error instanceof Error ? error.message : String(error);
+            if (status >= 500 && status < 600) {
+                throw new Error(`Ollama Server is down (${status}): ${msg}`);
+            }
+            if (status >= 400 && status < 500) {
+                console.error("Ollama Error Details:", msg);
+                throw new Error(`Ollama Client Error (${status}): ${msg}`);
+            }
         }
-        if (error.status >= 400 && error.status < 500) {
-            console.error("Ollama Error Details:", error.message);
-            throw new Error(`Ollama Client Error (${error.status}): ${error.message}`);
-        }
-        
+
         if (error instanceof SyntaxError) {
             console.error("Model returned invalid JSON:", error.message);
             throw new Error("Model failed to generate valid JSON.");
         }
 
-        if (error.name === 'ZodError') {
-            console.error("Schema validation failed:", error.errors);
+        if (error instanceof ZodError) {
+            console.error("Schema validation failed:", error.issues);
             throw new Error("Generated content does not match the required schema.");
         }
         console.log('Unexpected error occurred:');
-        console.log(error)
+        console.log(error);
         throw error;
     }
 }

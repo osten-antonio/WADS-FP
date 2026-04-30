@@ -50,7 +50,7 @@ export async function getStepsForQuestion(question: string): Promise<StepItem[] 
   if (!v) return null;
   try {
     return JSON.parse(v) as StepItem[];
-  } catch (e) {
+  } catch {
     return null;
   }
 }
