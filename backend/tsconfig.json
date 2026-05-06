@@ -14,7 +14,7 @@
     },
     // For nodejs:
     // "lib": ["esnext"],
-    "types": ["node", "express", "multer"],
+    "types": ["node", "express", "multer", "jest"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
     // and npm install -D @types/node
 
