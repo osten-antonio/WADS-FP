@@ -24,13 +24,6 @@ function readBearerToken(req: Request): string | null {
   return authorization.split("Bearer ")[1] ?? null;
 }
 
-async function decodeFirebaseToken(token: string): Promise<DecodedIdToken> {
-  try {
-    return await adminAuth.verifyIdToken(token, true);
-  } catch {
-    return await adminAuth.verifySessionCookie(token, true);
-  }
-}
 
 function getFallbackDisplayName(decoded: DecodedIdToken): string {
   return decoded.name?.trim() || decoded.email?.split("@")[0] || decoded.uid;

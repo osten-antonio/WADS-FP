@@ -74,7 +74,7 @@ export async function tryMathSolve(question: string): Promise<MathSolveResult> {
             const simplified = simplify(resultNode);
             
             return { answer: `Derivative: ${simplified.toString()}`, solved: true };
-        } catch (err) {
+        } catch {
             return { answer: '', solved: false };
         }
     }
@@ -84,17 +84,17 @@ export async function tryMathSolve(question: string): Promise<MathSolveResult> {
     if (matrixMatch && /determinant|det|inverse|inv/i.test(q)) {
         try {
             const mat = matrix(JSON.parse(matrixMatch[0]));
-            
+
             if (/determinant|det/i.test(q)) {
                 const dval = det(mat);
                 return { answer: `determinant = ${dval}`, solved: true };
             }
-            
+
             if (/inverse|inv/i.test(q)) {
                 const invmat = inv(mat);
                 return { answer: `inverse = ${JSON.stringify(invmat.toArray ? invmat.toArray() : invmat)}`, solved: true };
             }
-        } catch (err) {
+        } catch {
             return { answer: '', solved: false };
         }
     }
@@ -102,7 +102,7 @@ export async function tryMathSolve(question: string): Promise<MathSolveResult> {
     if (!/=/.test(q)) {
         try {
             // Strip command verbs
-            let expr = q.replace(/\b(evaluate|calculate|compute|simplify|what is|solve)\b/gi, '').trim();
+            const expr = q.replace(/\b(evaluate|calculate|compute|simplify|what is|solve)\b/gi, '').trim();
             
             // Handles non variable expression, 2+2, etc
             const val = evaluate(expr);
@@ -114,8 +114,8 @@ export async function tryMathSolve(question: string): Promise<MathSolveResult> {
                 }
                 return { answer: String(val), solved: true };
             }
-        } catch (err) {
-
+        } catch {
+            // expression evaluation failed; fall through to equation solver
         }
     }
 
@@ -195,7 +195,7 @@ export async function tryMathSolve(question: string): Promise<MathSolveResult> {
                     return { answer: `${variable} = ${solution}`, solved: true };
                 }
             }
-        } catch (err) {
+        } catch {
             return { answer: '', solved: false };
         }
     }

@@ -23,14 +23,14 @@ export async function solve(req: Request, res: Response) {
 			If it is not a math question, respond with "Not a math question" 
 			Question: ${question}
         `;
-        const aiResp: any = await call_ollama(prompt, solveResponse);
+        const aiResp = await call_ollama(prompt, solveResponse);
         if (JSON.stringify(aiResp).includes("Not a math question")) {
             throw Error('Not a math question');
         }        
         return res.json(aiResp);
 
-    } catch (err: any) {
-        const msg = err?.message ?? 'Internal error';
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Internal error';
         if (msg === 'Not a math question') {
             return sendErrorResponse(res, 400, msg, 'NOT_A_MATH_QUESTION');
         }
@@ -49,15 +49,15 @@ export async function solveAI(req: Request, res: Response) {
 			If it is not a math question, respond with "Not a math question" 
 			Question: ${question}
         `;
-        const aiResp: any = await call_ollama(prompt, solveResponse);
+        const aiResp = await call_ollama(prompt, solveResponse);
         if (JSON.stringify(aiResp).includes("Not a math question")) {
             throw Error('Not a math question');
         }        
         const id = randomUUID();
         aiResp.id = id;
         return res.json(aiResp);
-    } catch (err: any) {
-        const msg = err?.message ?? 'Internal error';
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Internal error';
         if (msg === 'Not a math question') {
             return sendErrorResponse(res, 400, msg, 'NOT_A_MATH_QUESTION');
         }

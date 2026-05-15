@@ -8,6 +8,7 @@ import { call_ollama } from "../services/ollama.service";
 import { recordSubmission } from "../services/user.service";
 import * as cacheService from "../services/cache.service";
 import { adminAuth } from "../lib/firebase-admin";
+import type { DecodedIdToken } from "firebase-admin/auth";
 import { sendErrorResponse } from "../lib/error-response";
 
 async function tryRecordSubmissionFromRequest(
@@ -25,7 +26,7 @@ async function tryRecordSubmissionFromRequest(
 		const authorization = req.header("authorization")?.trim();
 		if (!authorization?.toLowerCase().startsWith("bearer ")) return null;
 		const token = authorization.slice(7).trim();
-		let decoded: any;
+		let decoded: DecodedIdToken | undefined;
 		try {
 			decoded = await adminAuth.verifyIdToken(token, true);
 		} catch {
@@ -63,8 +64,8 @@ export async function handleImageUpload(req: Request, res: Response) {
 		
 		const out = ingestionResponse.parse({ question: result.question });
 		return res.status(201).json(out);
-	} catch (err: any) {
-		return sendErrorResponse(res, 400, err?.message ?? String(err));
+	} catch (err: unknown) {
+		return sendErrorResponse(res, 400, err instanceof Error ? err.message : String(err));
 	}
 }
 
@@ -105,7 +106,7 @@ export async function handleTextUpload(req: Request, res: Response) {
 			const result_answer = await solverService.tryMathSolve(result.question);
 
 			if (result_answer.solved) {
-				let id = randomUUID();
+				let id: string = randomUUID();
 				const submissionObj = {
 					id,
 					inputMode: "TEXT" as const,
@@ -118,7 +119,7 @@ export async function handleTextUpload(req: Request, res: Response) {
 				// Try to record for authenticated user (will create user + history)
 				const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
 				if (recordedId) {
-					id = recordedId as any;
+					id = recordedId;
 				}
 
 				// cache the answer for future requests (map submission id -> long hash)
@@ -137,14 +138,14 @@ export async function handleTextUpload(req: Request, res: Response) {
 			If it is a math question but unsolvable, respond with exactly "None"
 			If it is not a math question, respond with "Not a math question" 
 			Question: ${result.question}`;
-			const aiResp: any = await call_ollama(prompt, solveResponse);
+			const aiResp = await call_ollama(prompt, solveResponse);
 			if (JSON.stringify(aiResp).includes("Not a math question")) {
 				throw Error('Not a math question');
 			}
 
 				if (aiResp?.id) {
 					// We will create our own submission id and persist it
-					let id = randomUUID();
+					let id: string = randomUUID();
 					const submissionObj = {
 						id,
 						inputMode: "TEXT" as const,
@@ -156,11 +157,11 @@ export async function handleTextUpload(req: Request, res: Response) {
 
 					const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
 					if (recordedId) {
-						id = recordedId as any;
+						id = recordedId;
 					}
 
 					try {
-						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, aiResp.answer, id);
+						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, aiResp.answer as string, id);
 					} catch (e) {
 						console.error('Failed to cache AI answer', e);
 					}
@@ -171,11 +172,11 @@ export async function handleTextUpload(req: Request, res: Response) {
 
 			return res.json(aiResp);
 	
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.log(err);
-			return sendErrorResponse(res, 500, err?.message ?? 'Internal error');
+			return sendErrorResponse(res, 500, err instanceof Error ? err.message : 'Internal error');
 		}
-	} catch (err: any) {
-		return sendErrorResponse(res, 400, err?.message ?? String(err));
+	} catch (err: unknown) {
+		return sendErrorResponse(res, 400, err instanceof Error ? err.message : String(err));
 	}
 }
