@@ -3,6 +3,13 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { StatisticsGroupPage } from "@/components/statistics/StatisticsGroupPage";
 import StatisticsGroupRoutePage from "@/app/app/calculator/statistics/[group]/page";
 
+// Calculations now run on the backend; mock the API client so the component
+// can be tested without a live server.
+jest.mock("@/lib/statistics/api", () => ({
+  ...jest.requireActual("@/lib/statistics/api"),
+  runCalculation: jest.fn().mockResolvedValue(0.5),
+}));
+
 describe("StatisticsGroupPage", () => {
   it("renders probability sections", () => {
     render(<StatisticsGroupPage groupSlug="probability" />);
@@ -24,10 +31,10 @@ describe("StatisticsGroupPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("calculates binomial probability from inputs", () => {
+  it("calculates binomial probability from inputs", async () => {
     render(<StatisticsGroupPage groupSlug="probability" />);
 
     fireEvent.click(screen.getAllByText("Calculate")[0]);
-    expect(screen.getByText("Binomial Probability")).toBeInTheDocument();
+    expect(await screen.findByText("Binomial Probability")).toBeInTheDocument();
   });
 });

@@ -7,6 +7,7 @@ import solverRouter from "./routes/solver.routes";
 import explanationRouter from "./routes/explanation.routes";
 import practiceRouter from "./routes/practice.routes";
 import userRouter from "./routes/user.routes";
+import statisticsRouter from "./routes/statistics.routes";
 
 import { setDefaultResultOrder } from 'dns';
 setDefaultResultOrder('ipv4first');
@@ -19,6 +20,7 @@ import { stepsRequest, stepsResponse, hintResponse, explanationRequest, explanat
 import { practiceRequest, practiceResponse, practiceRefresh } from "./schemas/practice.schema";
 import { userAccountSchema, updateUsernameRequest, forgotPasswordRequest, changePasswordRequest, historyFilterRequest, deleteHistoryRequest, problemSubmissionSchema, historyResponse, deleteHistoryResponse, profileResponse } from "./schemas/user.schema";
 import { ErrorResponse } from "./schemas/error.schema";
+import * as statisticsSchema from "./schemas/statistics.schema";
 
 const app: Application = express();
 const port = parseInt(process.env.BACKEND_PORT ?? '8000', 10);
@@ -93,6 +95,25 @@ const options = {
         deleteHistoryResponse: z.toJSONSchema(deleteHistoryResponse),
         profileResponse: z.toJSONSchema(profileResponse),
 
+        // Statistics
+        statisticsResponse: z.toJSONSchema(statisticsSchema.statisticsResponse),
+        binomialRangeRequest: z.toJSONSchema(statisticsSchema.binomialRangeRequest),
+        poissonRangeRequest: z.toJSONSchema(statisticsSchema.poissonRangeRequest),
+        hypergeometricRequest: z.toJSONSchema(statisticsSchema.hypergeometricRequest),
+        countingRequest: z.toJSONSchema(statisticsSchema.countingRequest),
+        oneSampleTTestRequest: z.toJSONSchema(statisticsSchema.oneSampleTTestRequest),
+        pairedTTestRequest: z.toJSONSchema(statisticsSchema.pairedTTestRequest),
+        independentTTestDataRequest: z.toJSONSchema(statisticsSchema.independentTTestDataRequest),
+        independentTTestStatsRequest: z.toJSONSchema(statisticsSchema.independentTTestStatsRequest),
+        goodnessOfFitRequest: z.toJSONSchema(statisticsSchema.goodnessOfFitRequest),
+        chiSquareIndependenceRequest: z.toJSONSchema(statisticsSchema.chiSquareIndependenceRequest),
+        oneWayAnovaRequest: z.toJSONSchema(statisticsSchema.oneWayAnovaRequest),
+        twoWayAnovaRequest: z.toJSONSchema(statisticsSchema.twoWayAnovaRequest),
+        descriptiveStatsRequest: z.toJSONSchema(statisticsSchema.descriptiveStatsRequest),
+        linearRegressionRequest: z.toJSONSchema(statisticsSchema.linearRegressionRequest),
+        boxPlotRequest: z.toJSONSchema(statisticsSchema.boxPlotRequest),
+        specialMeansRequest: z.toJSONSchema(statisticsSchema.specialMeansRequest),
+
         // Error
         ErrorResponse: z.toJSONSchema(ErrorResponse),
       }
@@ -113,6 +134,7 @@ app.use('/solver', solverRouter);
 app.use('/explanation', explanationRouter);
 app.use('/practice', practiceRouter);
 app.use('/user', userRouter);
+app.use('/statistics', statisticsRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
