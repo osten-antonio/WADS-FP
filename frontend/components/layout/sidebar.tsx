@@ -1,7 +1,6 @@
 "use client"
-import { ChevronDown, X, ChevronLeft } from "lucide-react"
+import { ChevronDown, X } from "lucide-react"
 import { Button } from "../ui/button"
-import { Separator } from "../ui/separator"
 import { Sidebar as SidebarCN, SidebarContent, SidebarFooter, SidebarHeader, useSidebar } from "../ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
 import React from "react"

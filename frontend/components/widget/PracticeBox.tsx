@@ -1,9 +1,8 @@
 import { SquareArrowRightExit } from "lucide-react";
 import { InputGroupButton } from "../ui/input-group";
-import { useState } from "react";
 import { Button } from "../ui/button";
 
-export function PracticeBox({ number, question, questionLtx }: { number: number, question: string, questionLtx: string }){
+export function PracticeBox({ number, question }: { number: number, question: string, questionLtx: string }){
     
     const handleRedirect = ()=> {}
 

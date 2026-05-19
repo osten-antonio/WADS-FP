@@ -3,12 +3,10 @@
 import * as React from "react"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
 import { Keypad } from "@/components/calculator/Keypad"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Camera, ChevronLeft, Keyboard, Send, Loader2 } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Camera, Send, Loader2 } from "lucide-react"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
 
 // TODO FOR LATER, make it like symbolab where it highlights empty stuff like (_), 

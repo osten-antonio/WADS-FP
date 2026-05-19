@@ -1,6 +1,6 @@
 'use client'
 
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
@@ -55,12 +55,13 @@ export default function InputFile() {
           {!preview && <Camera size={48} className="absolute
           bottom-30 pointer-events-none text-black"/>}
           {preview && (
+          // eslint-disable-next-line @next/next/no-img-element -- preview is a blob: URL with unknown dimensions; next/image requires explicit width/height
           <img
             src={preview}
             alt="preview"
             onClick={handleImageClick}
-            className="mt-4 mx-auto max-w-full 
-            h-auto rounded-md  zIndex-0 cursor-pointer 
+            className="mt-4 mx-auto max-w-full
+            h-auto rounded-md  zIndex-0 cursor-pointer
             hover:opacity-90 transition-opacity"
           />
           )}

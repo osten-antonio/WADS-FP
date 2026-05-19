@@ -335,8 +335,6 @@ export function linearRegression(
   const r = rDen === 0 ? 0 : rNum / rDen;
   const rSquared = r * r;
 
-  const yMean = sumY / n;
-  const sst = yValues.reduce((s, y) => s + (y - yMean) ** 2, 0);
   const sse = yValues.reduce((s, y, i) => {
     const yHat = intercept + slope * xValues[i];
     return s + (y - yHat) ** 2;
