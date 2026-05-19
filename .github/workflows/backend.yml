@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, staging]
     paths:
       - "backend/**"
       - ".github/workflows/backend.yml"
   pull_request:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - "backend/**"
       - ".github/workflows/backend.yml"
@@ -77,14 +77,51 @@ jobs:
       - name: Run unit tests
         shell: bash
         run: |
-          UNIT_TEST_FILES=$(find src -type f -name "*.test.ts" ! -name "*.integration.test.ts")
+          UNIT_TEST_FILES=$(find src __tests__ -type f \( -name "*.test.ts" -o -name "*.test.tsx" \) ! -name "*.integration.test.ts" ! -name "ai-jest.test.tsx")
           if [ -z "$UNIT_TEST_FILES" ]; then
             echo "No backend unit tests found; skipping."
             exit 0
           fi
           echo "Running unit tests:"
           echo "$UNIT_TEST_FILES"
-          node --import tsx --test $UNIT_TEST_FILES
+          npx jest $UNIT_TEST_FILES
+
+  ai_tests:
+    name: AI Tests (Approval Required)
+    runs-on: ubuntu-latest
+    needs: lint_typecheck
+    environment:
+      name: ai-tests
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run AI tests when present
+        shell: bash
+        run: |
+          AI_TEST_FILES=$(find __tests__ -type f -name "ai-jest.test.tsx")
+          if [ -z "$AI_TEST_FILES" ]; then
+            echo "No backend AI tests found; skipping."
+            exit 0
+          fi
+          echo "Running AI tests:"
+          echo "$AI_TEST_FILES"
+          npx jest $AI_TEST_FILES
 
   migration_check:
     name: Migration Check
