@@ -1,9 +1,14 @@
+// Statistics calculation engine.
+// Migrated from the frontend so all computation and validation happens
+// server-side. Input parsing (strings -> numbers) stays on the client; these
+// functions receive already-numeric inputs and throw on invalid values.
+
 import {
   lookupChiSquare,
   lookupFValue,
   lookupTValue,
   normalCdf as standardNormalCdf,
-} from "@/lib/statistics/tables";
+} from "./tables";
 
 export function factorial(n: number): number {
   if (!Number.isInteger(n) || n < 0) {
@@ -49,10 +54,6 @@ export function permutations(n: number, r: number): number {
     throw new Error("n is too large for exact permutations (max 170).");
   }
   return factorial(n) / factorial(n - r);
-}
-
-export function normalCdf(x: number, mean = 0, stdDev = 1): number {
-  return standardNormalCdf((x - mean) / stdDev);
 }
 
 export function binomialPmf(n: number, k: number, p: number): number {
@@ -167,67 +168,6 @@ export function hypergeometricProbability(
   return numerator / denominator;
 }
 
-export function parseNumberList(input: string): number[] {
-  return input
-    .split(/[\s,]+/)
-    .map((v) => Number(v.trim()))
-    .filter((v) => Number.isFinite(v));
-}
-
-export function parseMatrixRows(input: string): number[][] {
-  return input
-    .split("\n")
-    .map((line) =>
-      line
-        .split(/[\s,]+/)
-        .map((v) => Number(v.trim()))
-        .filter((v) => Number.isFinite(v)),
-    )
-    .filter((row) => row.length > 0);
-}
-
-export function parseTwoWayAnovaGrid(input: string): number[][][] {
-  const rows = input
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (rows.length < 2) {
-    throw new Error("Need at least 2 row lines.");
-  }
-
-  const parsed = rows.map((row) =>
-    row
-      .split("|")
-      .map((cell) => parseNumberList(cell))
-      .filter((cell) => cell.length > 0),
-  );
-
-  const colCount = parsed[0].length;
-  if (colCount < 2) {
-    throw new Error("Need at least 2 columns.");
-  }
-  for (const row of parsed) {
-    if (row.length !== colCount) {
-      throw new Error("All rows must have the same number of columns.");
-    }
-  }
-
-  const reps = parsed[0][0].length;
-  if (reps < 2) {
-    throw new Error("Each cell must have at least 2 replications.");
-  }
-  for (const row of parsed) {
-    for (const cell of row) {
-      if (cell.length !== reps) {
-        throw new Error("All cells must have the same replication count.");
-      }
-    }
-  }
-
-  return parsed;
-}
-
 export interface DescriptiveStatsResult {
   n: number;
   mean: number;
@@ -250,8 +190,8 @@ function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const n = sorted.length;
   const mid = Math.floor(n / 2);
-  if (n % 2 === 0) return (sorted[mid - 1] + sorted[mid]) / 2;
-  return sorted[mid];
+  if (n % 2 === 0) return (sorted[mid - 1]! + sorted[mid]!) / 2;
+  return sorted[mid]!;
 }
 
 function sampleVariance(values: number[]): number {
@@ -286,9 +226,9 @@ export function descriptiveStats(values: number[]): DescriptiveStatsResult {
     mean: mean(values),
     median: median(values),
     mode,
-    min: sorted[0],
-    max: sorted[sorted.length - 1],
-    range: sorted[sorted.length - 1] - sorted[0],
+    min: sorted[0]!,
+    max: sorted[sorted.length - 1]!,
+    range: sorted[sorted.length - 1]! - sorted[0]!,
     sampleVariance: sVar,
     populationVariance: pVar,
     sampleStdDev: Math.sqrt(sVar),
@@ -321,7 +261,7 @@ export function linearRegression(
   const n = xValues.length;
   const sumX = xValues.reduce((s, v) => s + v, 0);
   const sumY = yValues.reduce((s, v) => s + v, 0);
-  const sumXY = xValues.reduce((s, x, i) => s + x * yValues[i], 0);
+  const sumXY = xValues.reduce((s, x, i) => s + x * yValues[i]!, 0);
   const sumX2 = xValues.reduce((s, x) => s + x * x, 0);
   const sumY2 = yValues.reduce((s, y) => s + y * y, 0);
 
@@ -336,7 +276,7 @@ export function linearRegression(
   const rSquared = r * r;
 
   const sse = yValues.reduce((s, y, i) => {
-    const yHat = intercept + slope * xValues[i];
+    const yHat = intercept + slope * xValues[i]!;
     return s + (y - yHat) ** 2;
   }, 0);
 
@@ -393,11 +333,11 @@ export function boxPlotSummary(values: number[]): BoxPlotSummaryResult {
   const upperFence = q3 + 1.5 * iqr;
   const outliers = sorted.filter((v) => v < lowerFence || v > upperFence);
   return {
-    min: sorted[0],
+    min: sorted[0]!,
     q1,
     median: med,
     q3,
-    max: sorted[sorted.length - 1],
+    max: sorted[sorted.length - 1]!,
     iqr,
     lowerFence,
     upperFence,
@@ -483,7 +423,7 @@ export function pairedTTest(
   if (before.length !== after.length || before.length < 2) {
     throw new Error("Need paired before/after values with at least 2 pairs.");
   }
-  const diffs = before.map((b, i) => after[i] - b);
+  const diffs = before.map((b, i) => after[i]! - b);
   const m = mean(diffs);
   const sd = Math.sqrt(sampleVariance(diffs));
   const se = sd / Math.sqrt(diffs.length);
@@ -593,7 +533,7 @@ export function goodnessOfFit(
     throw new Error("Observed and expected must have same length (>=2).");
   }
   if (expected.some((v) => v <= 0)) throw new Error("Expected values must be > 0.");
-  const chiSquare = observed.reduce((sum, o, i) => sum + ((o - expected[i]) ** 2) / expected[i], 0);
+  const chiSquare = observed.reduce((sum, o, i) => sum + ((o - expected[i]!) ** 2) / expected[i]!, 0);
   const df = observed.length - 1;
   const chiCritical = lookupChiSquare(df, alpha);
   const reject = chiCritical !== null && chiSquare > chiCritical;
@@ -615,15 +555,16 @@ export function chiSquareIndependence(table: number[][], alpha = 0.05): Independ
 
   const rowTotals = table.map((row) => row.reduce((s, v) => s + v, 0));
   const colTotals = Array.from({ length: cols }, (_, c) =>
-    table.reduce((s, row) => s + row[c], 0),
+    table.reduce((s, row) => s + row[c]!, 0),
   );
   const grandTotal = rowTotals.reduce((s, v) => s + v, 0);
 
   let chiSquare = 0;
   for (let r = 0; r < rows; r += 1) {
+    const tableRow = table[r]!;
     for (let c = 0; c < cols; c += 1) {
-      const expected = (rowTotals[r] * colTotals[c]) / grandTotal;
-      chiSquare += ((table[r][c] - expected) ** 2) / expected;
+      const expected = (rowTotals[r]! * colTotals[c]!) / grandTotal;
+      chiSquare += ((tableRow[c]! - expected) ** 2) / expected;
     }
   }
 
@@ -679,27 +620,30 @@ export interface TwoWayAnovaResult {
 export function twoWayAnova(data: number[][][]): TwoWayAnovaResult {
   const R = data.length;
   if (R < 2) throw new Error("Need at least 2 rows.");
-  const C = data[0].length;
+  const C = data[0]!.length;
   if (C < 2) throw new Error("Need at least 2 columns.");
-  const n = data[0][0].length;
+  const n = data[0]![0]!.length;
   if (n < 2) throw new Error("Need at least 2 replications per cell.");
 
   let grandSum = 0;
   let N = 0;
-  const rowSums = new Array(R).fill(0);
-  const colSums = new Array(C).fill(0);
-  const cellSums = Array.from({ length: R }, () => new Array(C).fill(0));
+  const rowSums: number[] = new Array(R).fill(0);
+  const colSums: number[] = new Array(C).fill(0);
+  const cellSums: number[][] = Array.from({ length: R }, () => new Array(C).fill(0));
 
   for (let i = 0; i < R; i += 1) {
-    if (data[i].length !== C) throw new Error("Unbalanced columns.");
+    const rowData = data[i]!;
+    if (rowData.length !== C) throw new Error("Unbalanced columns.");
+    const cellRow = cellSums[i]!;
     for (let j = 0; j < C; j += 1) {
-      if (data[i][j].length !== n) throw new Error("Unbalanced replications.");
+      const cell = rowData[j]!;
+      if (cell.length !== n) throw new Error("Unbalanced replications.");
       for (let k = 0; k < n; k += 1) {
-        const value = data[i][j][k];
+        const value = cell[k]!;
         grandSum += value;
-        rowSums[i] += value;
-        colSums[j] += value;
-        cellSums[i][j] += value;
+        rowSums[i] = (rowSums[i] ?? 0) + value;
+        colSums[j] = (colSums[j] ?? 0) + value;
+        cellRow[j] = (cellRow[j] ?? 0) + value;
         N += 1;
       }
     }
@@ -712,29 +656,34 @@ export function twoWayAnova(data: number[][][]): TwoWayAnovaResult {
 
   let ssTotal = 0;
   for (let i = 0; i < R; i += 1) {
+    const rowData = data[i]!;
     for (let j = 0; j < C; j += 1) {
+      const cell = rowData[j]!;
       for (let k = 0; k < n; k += 1) {
-        ssTotal += (data[i][j][k] - grandMean) ** 2;
+        ssTotal += (cell[k]! - grandMean) ** 2;
       }
     }
   }
 
   let ssRow = 0;
   for (let i = 0; i < R; i += 1) {
-    ssRow += C * n * (rowMeans[i] - grandMean) ** 2;
+    ssRow += C * n * (rowMeans[i]! - grandMean) ** 2;
   }
 
   let ssCol = 0;
   for (let j = 0; j < C; j += 1) {
-    ssCol += R * n * (colMeans[j] - grandMean) ** 2;
+    ssCol += R * n * (colMeans[j]! - grandMean) ** 2;
   }
 
   let ssError = 0;
   for (let i = 0; i < R; i += 1) {
+    const rowData = data[i]!;
+    const meanRow = cellMeans[i]!;
     for (let j = 0; j < C; j += 1) {
-      const cellMean = cellMeans[i][j];
+      const cell = rowData[j]!;
+      const cellMean = meanRow[j]!;
       for (let k = 0; k < n; k += 1) {
-        ssError += (data[i][j][k] - cellMean) ** 2;
+        ssError += (cell[k]! - cellMean) ** 2;
       }
     }
   }
