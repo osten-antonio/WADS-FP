@@ -2,6 +2,9 @@ import express from "express";
 
 import { globalRateLimit, ollamaRateLimit } from "../middleware/rateLimit.middleware";
 import { solve, solveAI } from "../controllers/solver.controller";
+import * as statsService from "../services/statistics.service";
+import { sendErrorResponse } from "../lib/error-response";
+import { statisticsOperations } from "../controllers/statistics.controller";
 
 /**
  * @openapi
@@ -80,6 +83,28 @@ solverRouter.post('/solve', globalRateLimit, solve);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 solverRouter.post('/solve/ai', ollamaRateLimit, solveAI);
+
+// Statistics under solver namespace: POST /solver/statistics/:operation
+solverRouter.post('/statistics/:operation', globalRateLimit, (req, res) => {
+	// Normalize operation param to a single string for type-safety
+	const rawOp = req.params.operation;
+	const operation = Array.isArray(rawOp) ? rawOp[0] : rawOp ?? "";
+	if (!operation) return sendErrorResponse(res, 400, "Missing operation parameter", "VALIDATION_ERROR");
+
+	try {
+		// Try the new service dispatcher first
+		const result = statsService.runOperation(operation, req.body);
+		return res.json({ result });
+	} catch (err) {
+		// If not implemented in service, fallback to existing statistics controller handlers
+		const opHandler = (statisticsOperations as any)[operation];
+		if (opHandler) {
+			return opHandler(req, res);
+		}
+		const message = err instanceof Error ? err.message : "Calculation error";
+		return sendErrorResponse(res, 400, message, "CALCULATION_ERROR");
+	}
+});
 
 
 export default solverRouter;

@@ -15,7 +15,7 @@ import {
   poissonRangeProbability,
   specialMeans,
   twoWayAnova,
-} from "../math";
+} from "../src/lib/statistics/math";
 
 describe("counting", () => {
   test("factorial / combinations / permutations", () => {
