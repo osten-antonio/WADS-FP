@@ -63,7 +63,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/WADS-fp-backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-backend:latest
 
       - name: Build DB migration image (local target)
         run: |
@@ -120,7 +120,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/WADS-fp-frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-frontend:latest
 
       - name: Deploy to server
         run: |
