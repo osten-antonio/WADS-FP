@@ -6,9 +6,6 @@ export type MathSolveResult = {
     solved: boolean;
 };
 
-/**
- * Best-effort conversion of common LaTeX syntax to mathjs-compatible syntax.
- */
 function cleanLatex(latex: string): string {
     if (!latex.includes('\\')) return latex;
 
@@ -29,9 +26,7 @@ function parseSide(side: string, variable: string) {
     let mVar: RegExpExecArray | null;
     while ((mVar = varRegex.exec(side)) !== null) {
         const numStr = mVar[1] ?? '';
-        let n = numStr.replace(/\s+/g, '');
-        if (n === '' || n === '+' || n === '-') n += '1';
-        coeff += parseFloat(n);
+        coeff += parseNumber(numStr);
     }
 
     const withoutVars = side.replace(varRegex, ' ');
@@ -41,7 +36,7 @@ function parseSide(side: string, variable: string) {
     while ((mNum = numRegex.exec(withoutVars)) !== null) {
         const group = mNum[1];
         if (!group) continue;
-        const n = parseFloat(group.replace(/\s+/g, ''));
+        const n = parseNumber(group);
         if (!Number.isNaN(n)) constSum += n;
     }
 

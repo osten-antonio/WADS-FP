@@ -48,7 +48,7 @@ export function validateMathResponse(output: string): { pass: boolean; reason?: 
     // If it's not "None", not "Not a math...", and fails to parse as JSON
     return { 
       pass: false, 
-      reason: `Output failed all conditions. It is not valid JSON, nor an accepted fallback string. Raw output: ${output}`
+      reason: `${error} Output failed all conditions. It is not valid JSON, nor an accepted fallback string. Raw output: ${output}`
     };
   }
 }
