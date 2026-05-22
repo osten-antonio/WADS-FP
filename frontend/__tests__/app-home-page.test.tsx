@@ -28,17 +28,17 @@ describe("InputFile component", () => {
     const fileInput = screen.getByTestId("picture")
     const file = new File(["dummy content"], "example.png", { type: "image/png" })
     fireEvent.change(fileInput, { target: { files: [file] } })
-    const img = screen.getByAltText("preview")
+    const img = screen.getByAltText("preview") as HTMLImageElement
     expect(img).toBeInTheDocument()
     expect(img.src).toBe("http://localhost/mocked-url")
   })
 
   it("clears text value when send button is clicked", () => {
     render(<InputFile />)
-    const textarea = screen.getByPlaceholderText("Enter text")
+    const textarea = screen.getByPlaceholderText("Enter text") as HTMLTextAreaElement
     const sendButton = screen.getByRole("button")
     fireEvent.change(textarea, { target: { value: "test text" } })
-    expect(textarea.value).toBe("test text")
+    expect(textarea.value).toBe("test text") 
     fireEvent.click(sendButton)
     expect(textarea.value).toBe("")
   })

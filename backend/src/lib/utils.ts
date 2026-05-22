@@ -3,9 +3,9 @@ export function normalizeQuestion(q: string) {
 }
 
 export function parseNumber(str: string) {
-    if (!str) return 0;
-    const s = str.replace(/\s+/g, '');
+    const s = (str ?? '').replace(/\s+/g, '');
     if (s === '+' || s === '') return 1;
     if (s === '-') return -1;
-    return parseFloat(s);
+    const n = parseFloat(s);
+    return Number.isNaN(n) ? 0 : n;
 }
