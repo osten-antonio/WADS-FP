@@ -95,7 +95,8 @@ jobs:
       name: ai-tests
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
-
+      OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+      NOUGAT_URL: ${{ secrets.NOUGAT_URL }}
     steps:
       - uses: actions/checkout@v4
 
