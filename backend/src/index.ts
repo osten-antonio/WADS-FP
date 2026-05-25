@@ -21,13 +21,22 @@ import { userAccountSchema, updateUsernameRequest, forgotPasswordRequest, change
 import { ErrorResponse } from "./schemas/error.schema";
 
 const app: Application = express();
-const port = 8000;
+const port = parseInt(process.env.BACKEND_PORT ?? '8000', 10);
+
+// Configure hostnames and origins (can be provided via env)
+const frontendProtocol = process.env.FRONTEND_PROTOCOL ?? 'http';
+const frontendHostname = process.env.FRONTEND_HOSTNAME ?? 'localhost';
+const frontendPort = process.env.FRONTEND_PORT ?? '3000';
+const allowedOrigin = `${frontendProtocol}://${frontendHostname}${frontendPort ? `:${frontendPort}` : ''}`;
+
+const backendProtocol = process.env.BACKEND_PROTOCOL ?? 'http';
+const backendHostname = process.env.BACKEND_HOSTNAME ?? 'localhost';
+const backendPort = process.env.BACKEND_PORT ?? '8000';
 
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  const allowedOrigin = process.env.FRONTEND_ORIGIN ?? "*";
   res.header("Access-Control-Allow-Origin", allowedOrigin);
   res.header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, x-user-id");
@@ -45,6 +54,9 @@ const options = {
       title: 'WADS-FP Calculator',
       version: '1.0.0',
     },
+    servers: [
+      { url: `${backendProtocol}://${backendHostname}:${backendPort}` }
+    ],
     components: {
       schemas: {
         // Ingestion

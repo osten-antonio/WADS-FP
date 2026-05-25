@@ -49,6 +49,12 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           FIREBASE_PROJECT_ID=${{ secrets.BACKEND_FIREBASE_PROJECT_ID }}
           FIREBASE_CLIENT_EMAIL=${{ secrets.BACKEND_FIREBASE_CLIENT_EMAIL }}
           FIREBASE_PRIVATE_KEY=${{ secrets.BACKEND_FIREBASE_PRIVATE_KEY }}
+          BACKEND_PORT=${{ secrets.BACKEND_PORT }}
+          FRONTEND_HOSTNAME=${{ secrets.FRONTEND_HOSTNAME }}
+          FRONTEND_PROTOCOL=${{ secrets.FRONTEND_PROTOCOL }}
+          FRONTEND_PORT=${{ secrets.FRONTEND_PORT }}
+          BACKEND_HOSTNAME=${{ secrets.BACKEND_HOSTNAME }}
+          BACKEND_PROTOCOL=${{ secrets.BACKEND_PROTOCOL }}
           EOF
 
       - name: Log in to Docker registry
@@ -64,6 +70,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-backend:latest
+          no-cache: true
 
       - name: Build DB migration image (local target)
         run: |
@@ -79,7 +86,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
         run: |
           cd backend
           docker compose pull backend
-          docker compose up -d --no-deps backend
+          docker compose up -d --no-deps --force-recreate backend
 
       - name: Cleanup dangling images
         run: docker image prune -f
@@ -96,13 +103,16 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
       - name: Reconstruct frontend .env
         run: |
           cat <<EOF > frontend/.env
+          BACKEND_PROTOCOL=${{ secrets.BACKEND_PROTOCOL }}
+          BACKEND_HOSTNAME=${{ secrets.BACKEND_HOSTNAME }}
+          BACKEND_PORT=${{ secrets.BACKEND_PORT }}
+          FRONTEND_PORT=${{ secrets.FRONTEND_PORT }}
           NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          BACKEND_URL=${{ secrets.BACKEND_URL }}
           EOF
 
       - name: Log in to Docker registry
@@ -121,12 +131,21 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-frontend:latest
+          no-cache: true
+          build-args: |
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+            FRONTEND_PORT=${{ secrets.FRONTEND_PORT }}
 
       - name: Deploy to server
         run: |
           cd frontend
           docker compose pull frontend
-          docker compose up -d --no-deps frontend
+          docker compose up -d --no-deps --force-recreate --build frontend 
 
       - name: Cleanup dangling images
         run: docker image prune -f

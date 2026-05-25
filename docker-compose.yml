@@ -13,13 +13,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_PORT:-8000}"
     env_file:
       - ./backend/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - FRONTEND_ORIGIN=http://localhost:3000
+      - FRONTEND_HOSTNAME=${FRONTEND_HOSTNAME:-localhost}
       - ALLOW_DEV_USER_ID_HEADER=true
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
     depends_on:
       - redis
 
@@ -30,13 +31,15 @@ services:
       secrets:
         - frontend_env
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_PORT:-3000}"
     env_file:
       - ./frontend/.env
     environment:
       - NODE_ENV=production
-      - BACKEND_URL=http://backend:8000
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+      - BACKEND_PROTOCOL=${BACKEND_PROTOCOL:-http}
+      - BACKEND_HOSTNAME=${BACKEND_HOSTNAME:-backend}
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
+      - FRONTEND_PORT=${FRONTEND_PORT:-3000}
     depends_on:
       - backend
 
