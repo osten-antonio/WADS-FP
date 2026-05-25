@@ -6,12 +6,17 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:${BACKEND_PORT:-8000}"
     env_file:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379
-      - FRONTEND_ORIGIN="${FRONTEND_ORIGIN:-http://localhost:3000}"
+      - FRONTEND_HOSTNAME=${FRONTEND_HOSTNAME:-localhost}
+      - FRONTEND_PROTOCOL=${FRONTEND_PROTOCOL:-http}
+      - FRONTEND_PORT=${FRONTEND_PORT:-3000}
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
+      - BACKEND_HOSTNAME=${BACKEND_HOSTNAME:-localhost}
+      - BACKEND_PROTOCOL=${BACKEND_PROTOCOL:-http}
     depends_on:
       - redis
 
