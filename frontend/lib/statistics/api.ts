@@ -145,14 +145,19 @@ export interface TwoWayAnovaResult {
   fCriticalInter: number | null;
 }
 
-/**
- * Sends a calculation request to the backend and returns the typed result.
- * Throws an Error carrying the backend's message on any failure.
- */
-export async function runCalculation<T>(
+// One step of a worked solution; shape mirrors StepBox so steps render through it.
+// Supplied by the backend for inference/data ops; `expression` is a LaTeX string.
+export interface SolutionStep {
+  step: number | string;
+  summary: string;
+  expression?: string;
+}
+
+// Posts to the backend and returns the `{ result, steps? }` envelope.
+async function postCalculation<T>(
   operation: StatisticsOperation,
   payload: Record<string, unknown>,
-): Promise<T> {
+): Promise<{ result: T; steps: SolutionStep[] }> {
   let res: Response;
   try {
     res = await fetch(`/api/statistics/${operation}`, {
@@ -165,7 +170,7 @@ export async function runCalculation<T>(
   }
 
   const data = (await res.json().catch(() => null)) as
-    | { result?: T; message?: string }
+    | { result?: T; steps?: SolutionStep[]; message?: string }
     | null;
 
   if (!res.ok) {
@@ -174,5 +179,21 @@ export async function runCalculation<T>(
   if (!data || !("result" in data)) {
     throw new Error("Calculation service returned an unexpected response.");
   }
-  return data.result as T;
+  return { result: data.result as T, steps: data.steps ?? [] };
+}
+
+// Returns just the typed result (used by probability/counting/reference tools).
+export async function runCalculation<T>(
+  operation: StatisticsOperation,
+  payload: Record<string, unknown>,
+): Promise<T> {
+  return (await postCalculation<T>(operation, payload)).result;
+}
+
+// Returns the result plus worked-solution steps (used by inference/data tools).
+export async function runCalculationWithSteps<T>(
+  operation: StatisticsOperation,
+  payload: Record<string, unknown>,
+): Promise<{ result: T; steps: SolutionStep[] }> {
+  return postCalculation<T>(operation, payload);
 }

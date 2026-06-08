@@ -5,7 +5,10 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { StepBox } from "@/components/widget/StepBox";
+import { Katex } from "@/components/widget/Katex";
 import {
   DataTableInput,
   type DataTableValue,
@@ -38,6 +41,8 @@ import {
 import { parseNumberList, parseTwoWayAnovaGrid } from "@/lib/statistics/parse";
 import {
   runCalculation,
+  runCalculationWithSteps,
+  type SolutionStep,
   type BoxPlotSummaryResult,
   type DescriptiveStatsResult,
   type GoodnessOfFitResult,
@@ -207,6 +212,23 @@ function ResultBanner({
           </p>
         ))}
       </div>
+    </div>
+  );
+}
+
+function StatisticsSteps({ steps }: { steps: SolutionStep[] }) {
+  if (!steps.length) return null;
+  return (
+    <div className="mt-4 space-y-2">
+      <p className="text-sm font-semibold text-primary-dark">Solution steps</p>
+      {steps.map((s) => (
+        <StepBox
+          key={s.step}
+          step={s.step}
+          summary={s.summary}
+          expressionNode={s.expression ? <Katex expression={s.expression} /> : undefined}
+        />
+      ))}
     </div>
   );
 }
@@ -621,19 +643,22 @@ function TTestsTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
+      setSteps([]);
       const alphaVal = parseFloatSafe(alpha);
       if (mode === "one-sample") {
         const values = parseNumericColumn(oneSampleTable, 0);
-        const output = await runCalculation<OneSampleTResult>("one-sample-t-test", {
+        const { result: output, steps } = await runCalculationWithSteps<OneSampleTResult>("one-sample-t-test", {
           values,
           mu0: parseFloatSafe(mu0),
           alpha: alphaVal,
         });
+        setSteps(steps);
         setResult([
           { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
           { label: "df", value: String(Math.round(output.df)) },
@@ -644,11 +669,12 @@ function TTestsTool() {
       }
       if (mode === "paired") {
         const { left: before, right: after } = parsePairedColumns(pairedTable, 0, 1);
-        const output = await runCalculation<PairedTResult>("paired-t-test", {
+        const { result: output, steps } = await runCalculationWithSteps<PairedTResult>("paired-t-test", {
           before,
           after,
           alpha: alphaVal,
         });
+        setSteps(steps);
         setResult([
           { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
           { label: "df", value: String(Math.round(output.df)) },
@@ -659,17 +685,17 @@ function TTestsTool() {
         return;
       }
 
-      let output: IndependentTResult;
+      let response: { result: IndependentTResult; steps: SolutionStep[] };
       if (inputMode === "data") {
         const { left, right } = parsePairedColumns(independentTable, 0, 1);
-        output = await runCalculation<IndependentTResult>("independent-t-test-data", {
+        response = await runCalculationWithSteps<IndependentTResult>("independent-t-test-data", {
           sample1: left,
           sample2: right,
           alpha: alphaVal,
           tails,
         });
       } else {
-        output = await runCalculation<IndependentTResult>("independent-t-test-stats", {
+        response = await runCalculationWithSteps<IndependentTResult>("independent-t-test-stats", {
           group1: {
             n: parseFloatSafe(stats1.n),
             mean: parseFloatSafe(stats1.mean),
@@ -684,6 +710,8 @@ function TTestsTool() {
           tails,
         });
       }
+      const output = response.result;
+      setSteps(response.steps);
       setResult([
         { label: "method", value: output.method === "welch" ? "Welch" : "Pooled" },
         { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
@@ -810,6 +838,7 @@ function TTestsTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="T-Test Result" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -830,20 +859,23 @@ function ChiSquareTool() {
     null,
   );
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setHint(null);
       setLoading(true);
+      setSteps([]);
       const alphaVal = parseFloatSafe(alpha);
       if (mode === "goodness") {
         const { left: observedValues, right: expectedValues } = parsePairedColumns(gofTable, 0, 1);
-        const output = await runCalculation<GoodnessOfFitResult>("goodness-of-fit", {
+        const { result: output, steps } = await runCalculationWithSteps<GoodnessOfFitResult>("goodness-of-fit", {
           observed: observedValues,
           expected: expectedValues,
           alpha: alphaVal,
         });
+        setSteps(steps);
         if (Math.min(...expectedValues) < 5) {
           setHint({
             variant: "warning",
@@ -859,10 +891,11 @@ function ChiSquareTool() {
         return;
       }
       const matrix = parseNumericMatrix(contingencyTable);
-      const output = await runCalculation<IndependenceResult>("chi-square-independence", {
+      const { result: output, steps } = await runCalculationWithSteps<IndependenceResult>("chi-square-independence", {
         table: matrix,
         alpha: alphaVal,
       });
+      setSteps(steps);
       if (minExpectedCountIndependence(matrix) < 5) {
         setHint({
           variant: "warning",
@@ -927,6 +960,7 @@ function ChiSquareTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Chi-Square Result" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -938,17 +972,20 @@ function AnovaTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
+      setSteps([]);
       if (mode === "one-way") {
         const groups = oneWayInput
           .split("\n")
           .map((line) => parseNumberList(line))
           .filter((line) => line.length > 0);
-        const output = await runCalculation<OneWayAnovaResult>("one-way-anova", { groups });
+        const { result: output, steps } = await runCalculationWithSteps<OneWayAnovaResult>("one-way-anova", { groups });
+        setSteps(steps);
         setResult([
           { label: "F-statistic", value: formatNumber(output.fStat, 6) },
           { label: "df between", value: String(output.dfBetween) },
@@ -959,7 +996,8 @@ function AnovaTool() {
       }
 
       const grid = parseTwoWayAnovaGrid(twoWayInput);
-      const output = await runCalculation<TwoWayAnovaResult>("two-way-anova", { data: grid });
+      const { result: output, steps } = await runCalculationWithSteps<TwoWayAnovaResult>("two-way-anova", { data: grid });
+      setSteps(steps);
       setResult([
         { label: "F row", value: formatNumber(output.fRow, 6) },
         { label: "F col", value: formatNumber(output.fCol, 6) },
@@ -1010,6 +1048,7 @@ function AnovaTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="ANOVA Result" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -1021,13 +1060,16 @@ function DescriptiveTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
+      setSteps([]);
       const values = parseNumericColumn(valuesTable, 0);
-      const output = await runCalculation<DescriptiveStatsResult>("descriptive-stats", { values });
+      const { result: output, steps } = await runCalculationWithSteps<DescriptiveStatsResult>("descriptive-stats", { values });
+      setSteps(steps);
       setResult([
         { label: "n", value: String(output.n) },
         { label: "mean", value: formatNumber(output.mean, 6) },
@@ -1058,6 +1100,7 @@ function DescriptiveTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Descriptive Statistics" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -1075,17 +1118,20 @@ function RegressionTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
+      setSteps([]);
       const { left: xValues, right: yValues } = parsePairedColumns(xyTable, 0, 1);
-      const output = await runCalculation<RegressionResult>("linear-regression", {
+      const { result: output, steps } = await runCalculationWithSteps<RegressionResult>("linear-regression", {
         xValues,
         yValues,
         alpha: parseFloatSafe(alpha),
       });
+      setSteps(steps);
       setResult([
         { label: "equation", value: output.equation },
         { label: "slope", value: formatNumber(output.slope, 6) },
@@ -1120,6 +1166,7 @@ function RegressionTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Regression Result" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -1131,14 +1178,17 @@ function BoxPlotTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-      const output = await runCalculation<BoxPlotSummaryResult>("box-plot", {
+      setSteps([]);
+      const { result: output, steps } = await runCalculationWithSteps<BoxPlotSummaryResult>("box-plot", {
         values: parseNumericColumn(valuesTable, 0),
       });
+      setSteps(steps);
       setResult([
         { label: "min", value: formatNumber(output.min, 4) },
         { label: "Q1", value: formatNumber(output.q1, 4) },
@@ -1170,6 +1220,7 @@ function BoxPlotTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Box Plot Summary" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -1183,11 +1234,13 @@ function SpecialMeansTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [steps, setSteps] = useState<SolutionStep[]>([]);
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
+      setSteps([]);
       const payload: Record<string, unknown> = {
         values: parseNumericColumn(valuesTable, 0),
       };
@@ -1195,7 +1248,8 @@ function SpecialMeansTool() {
       const trimCountVal = parseFloatSafe(trimCount);
       if (Number.isFinite(trimPercentVal)) payload.trimPercent = trimPercentVal;
       if (Number.isFinite(trimCountVal)) payload.trimCount = trimCountVal;
-      const output = await runCalculation<SpecialMeansResult>("special-means", payload);
+      const { result: output, steps } = await runCalculationWithSteps<SpecialMeansResult>("special-means", payload);
+      setSteps(steps);
       setResult([
         { label: "trimean", value: formatNumber(output.trimean, 6) },
         {
@@ -1235,6 +1289,7 @@ function SpecialMeansTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Special Means" lines={result} /> : null}
+      <StatisticsSteps steps={steps} />
     </div>
   );
 }
@@ -1615,6 +1670,32 @@ export function StatisticsGroupTools({
     if (groupSlug === "reference") return "grid-cols-1";
     return "md:grid-cols-2";
   }, [groupSlug]);
+
+  // Inference and Data show one tab per tool instead of stacked cards.
+  if ((groupSlug === "inference" || groupSlug === "data") && tools.length > 0) {
+    return (
+      <Tabs defaultValue={tools[0].id} className="w-full">
+        <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0">
+          {tools.map((tool) => (
+            <TabsTrigger
+              key={tool.id}
+              value={tool.id}
+              className="rounded-md border border-primary-main/20 bg-white px-4 data-[state=active]:bg-button-main data-[state=active]:text-white"
+            >
+              {tool.title}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {tools.map((tool) => (
+          <TabsContent key={tool.id} value={tool.id}>
+            <ToolFrame tool={tool}>
+              <ToolInteraction tool={tool} />
+            </ToolFrame>
+          </TabsContent>
+        ))}
+      </Tabs>
+    );
+  }
 
   return (
     <div className={`grid gap-4 ${columnsClass}`}>
