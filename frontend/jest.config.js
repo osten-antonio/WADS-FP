@@ -9,7 +9,6 @@ module.exports = {
     "<rootDir>/components/ui/",
   ],
   moduleNameMapper: {
-    "\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js",
     "^@/(.*)$": "<rootDir>/$1",
   },
   preset: "ts-jest",

@@ -1,9 +1,246 @@
-// Local fallback math for the Inference and Data tools, used by computeLocally
-// (lib/statistics/local.ts) when the backend is unreachable. Mirrors the backend
-// engine (backend/src/lib/statistics/math.ts) so results match. Probability and
-// Counting are intentionally not included — they have no offline fallback.
+import {
+  lookupChiSquare,
+  lookupFValue,
+  lookupTValue,
+  normalCdf as standardNormalCdf,
+} from "@/lib/statistics/tables";
 
-import { lookupChiSquare, lookupFValue, lookupTValue } from "./tables";
+export function factorial(n: number): number {
+  if (!Number.isInteger(n) || n < 0) {
+    throw new Error("Factorial is only defined for non-negative integers.");
+  }
+  if (n > 170) {
+    throw new Error("Input too large for factorial (max 170).");
+  }
+  if (n <= 1) return 1;
+  let result = 1;
+  for (let i = 2; i <= n; i += 1) {
+    result *= i;
+  }
+  return result;
+}
+
+function logFactorial(n: number): number {
+  if (!Number.isInteger(n) || n < 0) return Number.NaN;
+  let sum = 0;
+  for (let i = 2; i <= n; i += 1) {
+    sum += Math.log(i);
+  }
+  return sum;
+}
+
+export function combinations(n: number, r: number): number {
+  if (!Number.isInteger(n) || !Number.isInteger(r) || n < 0 || r < 0) {
+    throw new Error("n and r must be non-negative integers.");
+  }
+  if (r > n) return 0;
+  if (n > 170) {
+    throw new Error("n is too large for exact combinations (max 170).");
+  }
+  return factorial(n) / (factorial(r) * factorial(n - r));
+}
+
+export function permutations(n: number, r: number): number {
+  if (!Number.isInteger(n) || !Number.isInteger(r) || n < 0 || r < 0) {
+    throw new Error("n and r must be non-negative integers.");
+  }
+  if (r > n) return 0;
+  if (n > 170) {
+    throw new Error("n is too large for exact permutations (max 170).");
+  }
+  return factorial(n) / factorial(n - r);
+}
+
+export function normalCdf(x: number, mean = 0, stdDev = 1): number {
+  return standardNormalCdf((x - mean) / stdDev);
+}
+
+export function binomialPmf(n: number, k: number, p: number): number {
+  if (k < 0 || k > n) return 0;
+  return combinations(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+}
+
+export function binomialRangeProbability(
+  n: number,
+  min: number,
+  max: number,
+  p: number,
+): number {
+  if (!Number.isInteger(n) || n < 0) throw new Error("n must be a non-negative integer.");
+  if (!Number.isInteger(min) || !Number.isInteger(max)) throw new Error("min and max must be integers.");
+  if (p < 0 || p > 1) throw new Error("Probability must be between 0 and 1.");
+  if (min < 0 || max > n || min > max) throw new Error("Invalid min/max range.");
+  if (n > 170) throw new Error("n too large for exact binomial. Use normal approximation.");
+
+  let total = 0;
+  for (let k = min; k <= max; k += 1) {
+    total += binomialPmf(n, k, p);
+  }
+  return total;
+}
+
+export function binomialNormalApproxProbability(
+  n: number,
+  min: number,
+  max: number,
+  p: number,
+): { probability: number; mean: number; stdDev: number; zLow: number; zHigh: number } {
+  if (!Number.isInteger(n) || n < 0) throw new Error("n must be a non-negative integer.");
+  if (!Number.isInteger(min) || !Number.isInteger(max)) throw new Error("min and max must be integers.");
+  if (p < 0 || p > 1) throw new Error("Probability must be between 0 and 1.");
+  if (min < 0 || max > n || min > max) throw new Error("Invalid min/max range.");
+
+  const q = 1 - p;
+  const mean = n * p;
+  const variance = n * p * q;
+  const stdDev = Math.sqrt(variance);
+  if (!Number.isFinite(stdDev) || stdDev === 0) {
+    throw new Error("Normal approximation is not valid for these inputs.");
+  }
+
+  const lower = min - 0.5;
+  const upper = max + 0.5;
+  const zLow = (lower - mean) / stdDev;
+  const zHigh = (upper - mean) / stdDev;
+  const probability = standardNormalCdf(zHigh) - standardNormalCdf(zLow);
+
+  return { probability, mean, stdDev, zLow, zHigh };
+}
+
+export function poissonPmf(lambda: number, k: number): number {
+  if (lambda <= 0) throw new Error("lambda must be positive.");
+  if (!Number.isInteger(k) || k < 0) return 0;
+  const exponent = k * Math.log(lambda) - lambda - logFactorial(k);
+  return Math.exp(exponent);
+}
+
+export function poissonRangeProbability(lambda: number, min: number, max: number): number {
+  if (lambda <= 0) throw new Error("lambda must be positive.");
+  if (!Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min) {
+    throw new Error("Invalid min/max range.");
+  }
+  let total = 0;
+  for (let k = min; k <= max; k += 1) {
+    total += poissonPmf(lambda, k);
+  }
+  return total;
+}
+
+export function poissonNormalApproxProbability(
+  lambda: number,
+  min: number,
+  max: number,
+): { probability: number; mean: number; stdDev: number; zLow: number; zHigh: number } {
+  if (lambda <= 0) throw new Error("lambda must be positive.");
+  if (!Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min) {
+    throw new Error("Invalid min/max range.");
+  }
+
+  const mean = lambda;
+  const stdDev = Math.sqrt(lambda);
+  const lower = min - 0.5;
+  const upper = max + 0.5;
+  const zLow = (lower - mean) / stdDev;
+  const zHigh = (upper - mean) / stdDev;
+  const probability = standardNormalCdf(zHigh) - standardNormalCdf(zLow);
+  return { probability, mean, stdDev, zLow, zHigh };
+}
+
+export function hypergeometricProbability(
+  N: number,
+  K: number,
+  n: number,
+  k: number,
+): number {
+  if (![N, K, n, k].every(Number.isInteger)) throw new Error("All values must be integers.");
+  if (N < 0 || K < 0 || n < 0 || k < 0) throw new Error("All values must be non-negative.");
+  if (K > N) throw new Error("K cannot exceed N.");
+  if (n > N) throw new Error("n cannot exceed N.");
+  if (N > 170) throw new Error("N is too large for exact hypergeometric (max 170).");
+
+  const minK = Math.max(0, n - (N - K));
+  const maxK = Math.min(n, K);
+  if (k < minK || k > maxK) return 0;
+
+  const numerator = combinations(K, k) * combinations(N - K, n - k);
+  const denominator = combinations(N, n);
+  return numerator / denominator;
+}
+
+export function parseNumberList(input: string): number[] {
+  return input
+    .split(/[\s,]+/)
+    .map((v) => Number(v.trim()))
+    .filter((v) => Number.isFinite(v));
+}
+
+export function parseMatrixRows(input: string): number[][] {
+  return input
+    .split("\n")
+    .map((line) =>
+      line
+        .split(/[\s,]+/)
+        .map((v) => Number(v.trim()))
+        .filter((v) => Number.isFinite(v)),
+    )
+    .filter((row) => row.length > 0);
+}
+
+export function parseTwoWayAnovaGrid(input: string): number[][][] {
+  const rows = input
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (rows.length < 2) {
+    throw new Error("Need at least 2 row lines.");
+  }
+
+  const parsed = rows.map((row) =>
+    row
+      .split("|")
+      .map((cell) => parseNumberList(cell))
+      .filter((cell) => cell.length > 0),
+  );
+
+  const colCount = parsed[0].length;
+  if (colCount < 2) {
+    throw new Error("Need at least 2 columns.");
+  }
+  for (const row of parsed) {
+    if (row.length !== colCount) {
+      throw new Error("All rows must have the same number of columns.");
+    }
+  }
+
+  const reps = parsed[0][0].length;
+  if (reps < 2) {
+    throw new Error("Each cell must have at least 2 replications.");
+  }
+  for (const row of parsed) {
+    for (const cell of row) {
+      if (cell.length !== reps) {
+        throw new Error("All cells must have the same replication count.");
+      }
+    }
+  }
+
+  return parsed;
+}
+
+export interface DescriptiveStatsResult {
+  n: number;
+  mean: number;
+  median: number;
+  mode: number[];
+  min: number;
+  max: number;
+  range: number;
+  sampleVariance: number;
+  populationVariance: number;
+  sampleStdDev: number;
+  populationStdDev: number;
+}
 
 function mean(values: number[]): number {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
@@ -27,16 +264,7 @@ function populationVariance(values: number[]): number {
   return values.reduce((sum, v) => sum + (v - m) ** 2, 0) / values.length;
 }
 
-function quartiles(values: number[]): { q1: number; median: number; q3: number } {
-  const sorted = [...values].sort((a, b) => a - b);
-  const med = median(sorted);
-  const mid = Math.floor(sorted.length / 2);
-  const lower = sorted.slice(0, mid);
-  const upper = sorted.length % 2 === 0 ? sorted.slice(mid) : sorted.slice(mid + 1);
-  return { q1: median(lower), median: med, q3: median(upper) };
-}
-
-export function descriptiveStats(values: number[]) {
+export function descriptiveStats(values: number[]): DescriptiveStatsResult {
   if (values.length < 2) throw new Error("Need at least 2 data points.");
   const sorted = [...values].sort((a, b) => a - b);
   const freq = new Map<number, number>();
@@ -68,7 +296,24 @@ export function descriptiveStats(values: number[]) {
   };
 }
 
-export function linearRegression(xValues: number[], yValues: number[], alpha = 0.05) {
+export interface RegressionResult {
+  n: number;
+  slope: number;
+  intercept: number;
+  r: number;
+  rSquared: number;
+  tStatistic: number;
+  df: number;
+  tCritical: number | null;
+  isSignificant: boolean;
+  equation: string;
+}
+
+export function linearRegression(
+  xValues: number[],
+  yValues: number[],
+  alpha = 0.05,
+): RegressionResult {
   if (xValues.length !== yValues.length || xValues.length < 2) {
     throw new Error("Need paired x/y values with at least 2 data points.");
   }
@@ -118,7 +363,28 @@ export function linearRegression(xValues: number[], yValues: number[], alpha = 0
   };
 }
 
-export function boxPlotSummary(values: number[]) {
+export interface BoxPlotSummaryResult {
+  min: number;
+  q1: number;
+  median: number;
+  q3: number;
+  max: number;
+  iqr: number;
+  lowerFence: number;
+  upperFence: number;
+  outliers: number[];
+}
+
+function quartiles(values: number[]): { q1: number; median: number; q3: number } {
+  const sorted = [...values].sort((a, b) => a - b);
+  const med = median(sorted);
+  const mid = Math.floor(sorted.length / 2);
+  const lower = sorted.slice(0, mid);
+  const upper = sorted.length % 2 === 0 ? sorted.slice(mid) : sorted.slice(mid + 1);
+  return { q1: median(lower), median: med, q3: median(upper) };
+}
+
+export function boxPlotSummary(values: number[]): BoxPlotSummaryResult {
   if (values.length < 2) throw new Error("Need at least 2 data points.");
   const sorted = [...values].sort((a, b) => a - b);
   const { q1, median: med, q3 } = quartiles(sorted);
@@ -139,15 +405,28 @@ export function boxPlotSummary(values: number[]) {
   };
 }
 
-export function specialMeans(values: number[], trimPercent?: number, trimCount?: number) {
+export interface SpecialMeansResult {
+  trimean: number;
+  geometricMean: number;
+  trimmedMean: number;
+  trimPerSide: number;
+  quartiles: { q1: number; median: number; q3: number };
+}
+
+export function specialMeans(
+  values: number[],
+  trimPercent?: number,
+  trimCount?: number,
+): SpecialMeansResult {
   if (values.length < 2) throw new Error("Need at least 2 data points.");
   const sorted = [...values].sort((a, b) => a - b);
   const q = quartiles(sorted);
   const trimean = (q.q1 + 2 * q.median + q.q3) / 4;
 
-  const geometricMean = sorted.some((v) => v <= 0)
-    ? Number.NaN
-    : Math.exp(sorted.reduce((s, v) => s + Math.log(v), 0) / sorted.length);
+  const geometricMean =
+    sorted.some((v) => v <= 0)
+      ? Number.NaN
+      : Math.exp(sorted.reduce((s, v) => s + Math.log(v), 0) / sorted.length);
 
   let trimPerSide = 0;
   if (typeof trimCount === "number" && Number.isFinite(trimCount)) {
@@ -157,14 +436,24 @@ export function specialMeans(values: number[], trimPercent?: number, trimCount?:
     trimPerSide = Math.floor((clamped / 100) * sorted.length);
   }
 
-  const trimmed = trimPerSide > 0 ? sorted.slice(trimPerSide, sorted.length - trimPerSide) : sorted;
+  const trimmed =
+    trimPerSide > 0 ? sorted.slice(trimPerSide, sorted.length - trimPerSide) : sorted;
   if (trimmed.length === 0) throw new Error("Trim settings remove all values.");
   const trimmedMean = mean(trimmed);
 
   return { trimean, geometricMean, trimmedMean, trimPerSide, quartiles: q };
 }
 
-export function oneSampleTTest(values: number[], mu0: number, alpha = 0.05) {
+export interface OneSampleTResult {
+  tStatistic: number;
+  df: number;
+  sampleMean: number;
+  sampleStdDev: number;
+  tCritical: number | null;
+  reject: boolean;
+}
+
+export function oneSampleTTest(values: number[], mu0: number, alpha = 0.05): OneSampleTResult {
   if (values.length < 2) throw new Error("Need at least 2 values.");
   const m = mean(values);
   const s = Math.sqrt(sampleVariance(values));
@@ -177,7 +466,20 @@ export function oneSampleTTest(values: number[], mu0: number, alpha = 0.05) {
   return { tStatistic, df, sampleMean: m, sampleStdDev: s, tCritical, reject };
 }
 
-export function pairedTTest(before: number[], after: number[], alpha = 0.05) {
+export interface PairedTResult {
+  tStatistic: number;
+  df: number;
+  meanDiff: number;
+  sdDiff: number;
+  tCritical: number | null;
+  reject: boolean;
+}
+
+export function pairedTTest(
+  before: number[],
+  after: number[],
+  alpha = 0.05,
+): PairedTResult {
   if (before.length !== after.length || before.length < 2) {
     throw new Error("Need paired before/after values with at least 2 pairs.");
   }
@@ -192,12 +494,21 @@ export function pairedTTest(before: number[], after: number[], alpha = 0.05) {
   return { tStatistic, df, meanDiff: m, sdDiff: sd, tCritical, reject };
 }
 
+export interface IndependentTResult {
+  tStatistic: number;
+  df: number;
+  method: "pooled" | "welch";
+  pooledVariance: number;
+  tCritical: number | null;
+  reject: boolean;
+}
+
 export function independentTTestFromStats(
   group1: { n: number; mean: number; sd: number },
   group2: { n: number; mean: number; sd: number },
   alpha = 0.05,
   tails: 1 | 2 = 2,
-) {
+): IndependentTResult {
   const { n: n1, mean: m1, sd: s1 } = group1;
   const { n: n2, mean: m2, sd: s2 } = group2;
   if (n1 < 2 || n2 < 2) throw new Error("Sample sizes must be at least 2.");
@@ -234,7 +545,7 @@ export function independentTTestFromStats(
   return {
     tStatistic,
     df,
-    method: useWelch ? ("welch" as const) : ("pooled" as const),
+    method: useWelch ? "welch" : "pooled",
     pooledVariance,
     tCritical,
     reject,
@@ -246,19 +557,38 @@ export function independentTTestFromData(
   sample2: number[],
   alpha = 0.05,
   tails: 1 | 2 = 2,
-) {
+): IndependentTResult {
   if (sample1.length < 2 || sample2.length < 2) {
     throw new Error("Each sample needs at least 2 values.");
   }
   return independentTTestFromStats(
-    { n: sample1.length, mean: mean(sample1), sd: Math.sqrt(sampleVariance(sample1)) },
-    { n: sample2.length, mean: mean(sample2), sd: Math.sqrt(sampleVariance(sample2)) },
+    {
+      n: sample1.length,
+      mean: mean(sample1),
+      sd: Math.sqrt(sampleVariance(sample1)),
+    },
+    {
+      n: sample2.length,
+      mean: mean(sample2),
+      sd: Math.sqrt(sampleVariance(sample2)),
+    },
     alpha,
     tails,
   );
 }
 
-export function goodnessOfFit(observed: number[], expected: number[], alpha = 0.05) {
+export interface GoodnessOfFitResult {
+  chiSquare: number;
+  df: number;
+  chiCritical: number | null;
+  reject: boolean;
+}
+
+export function goodnessOfFit(
+  observed: number[],
+  expected: number[],
+  alpha = 0.05,
+): GoodnessOfFitResult {
   if (observed.length !== expected.length || observed.length < 2) {
     throw new Error("Observed and expected must have same length (>=2).");
   }
@@ -270,14 +600,23 @@ export function goodnessOfFit(observed: number[], expected: number[], alpha = 0.
   return { chiSquare, df, chiCritical, reject };
 }
 
-export function chiSquareIndependence(table: number[][], alpha = 0.05) {
+export interface IndependenceResult {
+  chiSquare: number;
+  df: number;
+  chiCritical: number | null;
+  reject: boolean;
+}
+
+export function chiSquareIndependence(table: number[][], alpha = 0.05): IndependenceResult {
   const rows = table.length;
   const cols = table[0]?.length ?? 0;
   if (rows < 2 || cols < 2) throw new Error("Need at least a 2x2 table.");
   if (table.some((row) => row.length !== cols)) throw new Error("All rows must have same length.");
 
   const rowTotals = table.map((row) => row.reduce((s, v) => s + v, 0));
-  const colTotals = Array.from({ length: cols }, (_, c) => table.reduce((s, row) => s + row[c], 0));
+  const colTotals = Array.from({ length: cols }, (_, c) =>
+    table.reduce((s, row) => s + row[c], 0),
+  );
   const grandTotal = rowTotals.reduce((s, v) => s + v, 0);
 
   let chiSquare = 0;
@@ -294,7 +633,14 @@ export function chiSquareIndependence(table: number[][], alpha = 0.05) {
   return { chiSquare, df, chiCritical, reject };
 }
 
-export function oneWayAnova(groups: number[][]) {
+export interface OneWayAnovaResult {
+  fStat: number;
+  dfBetween: number;
+  dfWithin: number;
+  fCritical: number | null;
+}
+
+export function oneWayAnova(groups: number[][]): OneWayAnovaResult {
   if (groups.length < 2) throw new Error("Need at least 2 groups.");
   const nonEmpty = groups.filter((g) => g.length > 0);
   if (nonEmpty.length < 2) throw new Error("Need at least 2 non-empty groups.");
@@ -317,7 +663,20 @@ export function oneWayAnova(groups: number[][]) {
   return { fStat, dfBetween, dfWithin, fCritical };
 }
 
-export function twoWayAnova(data: number[][][]) {
+export interface TwoWayAnovaResult {
+  fRow: number;
+  fCol: number;
+  fInter: number;
+  dfRow: number;
+  dfCol: number;
+  dfInter: number;
+  dfError: number;
+  fCriticalRow: number | null;
+  fCriticalCol: number | null;
+  fCriticalInter: number | null;
+}
+
+export function twoWayAnova(data: number[][][]): TwoWayAnovaResult {
   const R = data.length;
   if (R < 2) throw new Error("Need at least 2 rows.");
   const C = data[0].length;
@@ -361,16 +720,22 @@ export function twoWayAnova(data: number[][][]) {
   }
 
   let ssRow = 0;
-  for (let i = 0; i < R; i += 1) ssRow += C * n * (rowMeans[i] - grandMean) ** 2;
+  for (let i = 0; i < R; i += 1) {
+    ssRow += C * n * (rowMeans[i] - grandMean) ** 2;
+  }
 
   let ssCol = 0;
-  for (let j = 0; j < C; j += 1) ssCol += R * n * (colMeans[j] - grandMean) ** 2;
+  for (let j = 0; j < C; j += 1) {
+    ssCol += R * n * (colMeans[j] - grandMean) ** 2;
+  }
 
   let ssError = 0;
   for (let i = 0; i < R; i += 1) {
     for (let j = 0; j < C; j += 1) {
       const cellMean = cellMeans[i][j];
-      for (let k = 0; k < n; k += 1) ssError += (data[i][j][k] - cellMean) ** 2;
+      for (let k = 0; k < n; k += 1) {
+        ssError += (data[i][j][k] - cellMean) ** 2;
+      }
     }
   }
 
@@ -380,10 +745,14 @@ export function twoWayAnova(data: number[][][]) {
   const dfInter = (R - 1) * (C - 1);
   const dfError = R * C * (n - 1);
 
+  const msRow = ssRow / dfRow;
+  const msCol = ssCol / dfCol;
+  const msInter = ssInter / dfInter;
   const msError = ssError / dfError;
-  const fRow = ssRow / dfRow / msError;
-  const fCol = ssCol / dfCol / msError;
-  const fInter = ssInter / dfInter / msError;
+
+  const fRow = msRow / msError;
+  const fCol = msCol / msError;
+  const fInter = msInter / msError;
 
   return {
     fRow,
