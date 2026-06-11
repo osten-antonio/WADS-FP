@@ -25,6 +25,7 @@ export type StepBoxProps = {
   step: number | string
   summary: string
   expression?: string
+  expressionNode?: React.ReactNode
   defaultOpen?: boolean
   explainBody?: string
   explainPlaceholder?: string
@@ -35,6 +36,7 @@ export function StepBox({
   step,
   summary,
   expression,
+  expressionNode,
   defaultOpen = false,
   explainBody =
     "This is a placeholder for the explain feature. It will call the backend when it is ready.",
@@ -88,7 +90,7 @@ export function StepBox({
       <CollapsibleContent className="px-5 pb-3">
         <p className="text-sm text-slate-700 text-left">{summary}</p>
         <div className="mt-3 text-center text-lg font-semibold text-slate-900">
-          <span className="font-mono">{expression}</span>
+          {expressionNode ?? <span className="font-mono">{expression}</span>}
         </div>
 
         <div className="mt-4 flex items-center justify-end">
