@@ -1666,13 +1666,8 @@ export function StatisticsGroupTools({
   groupSlug: StatisticsGroupSlug;
   tools: StatisticsTool[];
 }) {
-  const columnsClass = useMemo(() => {
-    if (groupSlug === "reference") return "grid-cols-1";
-    return "md:grid-cols-2";
-  }, [groupSlug]);
-
-  // Inference and Data show one tab per tool instead of stacked cards.
-  if ((groupSlug === "inference" || groupSlug === "data") && tools.length > 0) {
+  // Probability, Counting, Inference, and Data show one tab per tool instead of stacked cards.
+  if (groupSlug !== "reference" && tools.length > 0) {
     return (
       <Tabs defaultValue={tools[0].id} className="w-full">
         <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0">
@@ -1697,8 +1692,9 @@ export function StatisticsGroupTools({
     );
   }
 
+  // Reference stays a single-column card layout.
   return (
-    <div className={`grid gap-4 ${columnsClass}`}>
+    <div className="grid grid-cols-1 gap-4">
       {tools.map((tool) => (
         <ToolFrame key={tool.id} tool={tool}>
           <ToolInteraction tool={tool} />
