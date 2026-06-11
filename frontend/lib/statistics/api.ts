@@ -3,6 +3,8 @@
 // numeric inputs and renders the result. Requests go through the Next.js proxy
 // route at /api/statistics/<operation> (the Express base URL is server-only).
 
+import { computeLocally } from "./local";
+
 export const STATISTICS_OPERATIONS = [
   "binomial-range",
   "binomial-normal-approx",
@@ -153,6 +155,12 @@ export interface SolutionStep {
   expression?: string;
 }
 
+// Thrown when the backend can't be reached (network failure or proxy 502/504),
+// as opposed to a genuine validation/calculation error from a live backend.
+export class BackendUnreachableError extends Error {}
+
+const UNREACHABLE_MESSAGE = "Could not reach the calculation service. Check your connection.";
+
 // Posts to the backend and returns the `{ result, steps? }` envelope.
 async function postCalculation<T>(
   operation: StatisticsOperation,
@@ -166,7 +174,12 @@ async function postCalculation<T>(
       body: JSON.stringify(payload),
     });
   } catch {
-    throw new Error("Could not reach the calculation service. Check your connection.");
+    throw new BackendUnreachableError(UNREACHABLE_MESSAGE);
+  }
+
+  // 502/504 from the proxy mean the Express backend is down or timed out.
+  if (res.status === 502 || res.status === 504) {
+    throw new BackendUnreachableError(UNREACHABLE_MESSAGE);
   }
 
   const data = (await res.json().catch(() => null)) as
@@ -191,9 +204,19 @@ export async function runCalculation<T>(
 }
 
 // Returns the result plus worked-solution steps (used by inference/data tools).
+// Falls back to computing the result and steps locally when the backend is
+// unreachable, so the worked solution is still shown without a backend.
 export async function runCalculationWithSteps<T>(
   operation: StatisticsOperation,
   payload: Record<string, unknown>,
 ): Promise<{ result: T; steps: SolutionStep[] }> {
-  return postCalculation<T>(operation, payload);
+  try {
+    return await postCalculation<T>(operation, payload);
+  } catch (err) {
+    if (err instanceof BackendUnreachableError) {
+      const local = computeLocally(operation, payload);
+      return { result: local.result as T, steps: local.steps };
+    }
+    throw err;
+  }
 }
