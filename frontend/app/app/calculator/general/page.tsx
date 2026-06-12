@@ -1,10 +1,20 @@
 "use client"
 
 import type { CSSProperties } from "react"
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 type MathFieldElement = HTMLElement & {
     mathVirtualKeyboardPolicy: "manual" | "auto" | "sandboxed"
+}
+
+type MathVirtualKeyboard = {
+    container: HTMLElement | null
+    boundingRect?: DOMRectReadOnly
+    show: () => void
+    hide: () => void
+    addEventListener: (type: string, listener: () => void) => void
+    removeEventListener: (type: string, listener: () => void) => void
 }
 
 type Placement = "page-bottom" | "page-top" | "inline"
@@ -45,6 +55,12 @@ function escapeCssAttr(value: string): string {
 export default function GeneralCalculatorPage() {
     const mf = useRef<MathFieldElement | null>(null)
     const inlineKeyboardHostRef = useRef<HTMLDivElement | null>(null)
+    const [inlineKeyboardHeight, setInlineKeyboardHeight] = useState<number | null>(null)
+    const isMobile = useIsMobile()
+
+    const effectivePlacement = isMobile && KEYBOARD_OPTIONS.placement === "inline"
+        ? "page-bottom"
+        : KEYBOARD_OPTIONS.placement
 
     const keyboardVars = useMemo(
         () =>
@@ -63,6 +79,16 @@ export default function GeneralCalculatorPage() {
         []
     )
 
+    const inlineKeyboardHostStyle = useMemo(
+        () =>
+            ({
+                ...keyboardVars,
+                height: inlineKeyboardHeight ? `${inlineKeyboardHeight}px` : "auto",
+                minHeight: inlineKeyboardHeight ? undefined : "250px"
+            }) as CSSProperties,
+        [inlineKeyboardHeight, keyboardVars]
+    )
+
     const perKeyCss = useMemo(
         () =>
             KEYBOARD_OPTIONS.perKeyColors
@@ -77,6 +103,24 @@ export default function GeneralCalculatorPage() {
 
     useEffect(() => {
         let isCancelled = false
+        let cleanupListeners: (() => void) | undefined
+
+        const syncInlineKeyboardHeight = () => {
+            if (effectivePlacement !== "inline") {
+                setInlineKeyboardHeight(null)
+                return
+            }
+
+            const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
+            if (!keyboard) {
+                return
+            }
+
+            const measuredHeight = keyboard.boundingRect?.height
+            if (typeof measuredHeight === "number" && measuredHeight > 0) {
+                setInlineKeyboardHeight(Math.ceil(measuredHeight))
+            }
+        }
 
         const initializeMathlive = async () => {
             await import("mathlive")
@@ -87,13 +131,13 @@ export default function GeneralCalculatorPage() {
 
             mf.current.mathVirtualKeyboardPolicy = "manual"
 
-            const keyboard = window.mathVirtualKeyboard
+            const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
             if (!keyboard) {
                 return
             }
 
             const targetHost =
-                KEYBOARD_OPTIONS.placement === "inline"
+                effectivePlacement === "inline"
                     ? inlineKeyboardHostRef.current
                     : document.body
 
@@ -103,31 +147,62 @@ export default function GeneralCalculatorPage() {
 
             const handleFocusIn = () => {
                 keyboard.show()
+                syncInlineKeyboardHeight()
             }
 
             mf.current.addEventListener("focusin", handleFocusIn)
             mf.current.focus()
 
+            if (effectivePlacement === "inline") {
+                const handleGeometryChange = () => {
+                    syncInlineKeyboardHeight()
+                }
+
+                keyboard.addEventListener("geometrychange", handleGeometryChange)
+                window.addEventListener("resize", handleGeometryChange)
+                window.addEventListener("orientationchange", handleGeometryChange)
+
+                cleanupListeners = () => {
+                    keyboard.removeEventListener("geometrychange", handleGeometryChange)
+                    window.removeEventListener("resize", handleGeometryChange)
+                    window.removeEventListener("orientationchange", handleGeometryChange)
+                    mf.current?.removeEventListener("focusin", handleFocusIn)
+                }
+            } else {
+                cleanupListeners = () => {
+                    mf.current?.removeEventListener("focusin", handleFocusIn)
+                }
+            }
+
             requestAnimationFrame(() => {
                 keyboard.show()
+                syncInlineKeyboardHeight()
             })
-
-            return () => {
-                mf.current?.removeEventListener("focusin", handleFocusIn)
-            }
         }
 
-        let cleanup: (() => void) | undefined
-        void initializeMathlive().then((dispose) => {
-            cleanup = dispose
-        })
+        void initializeMathlive()
 
         return () => {
             isCancelled = true
             window.mathVirtualKeyboard?.hide()
-            mf.current?.removeEventListener("focusin", handleFocusIn)
+            cleanupListeners?.()
+            setInlineKeyboardHeight(null)
         }
-    }, [])
+    }, [effectivePlacement])
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.mathVirtualKeyboard) {
+            const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard
+            const targetHost =
+                effectivePlacement === "inline"
+                    ? inlineKeyboardHostRef.current
+                    : document.body
+
+            if (targetHost) {
+                keyboard.container = targetHost
+            }
+        }
+    }, [effectivePlacement])
 
     return (
         <main className="min-h-screen bg-scan-background p-6 md:p-10">
@@ -138,15 +213,19 @@ export default function GeneralCalculatorPage() {
                     ref={mf}
                     className="w-full rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-lg"
                     placeholder="Me Thinks..."
-                    math-mode-space="\,"
+                    math-mode-space="\ "
                 />
             </section>
 
-            <section className="mx-auto w-full max-w-5xl space-y-5 rounded-xl border border-primary-light/40 bg-white p-4 md:p-6 mt-4">
-                {KEYBOARD_OPTIONS.placement === "inline" ? (
-                    <div ref={inlineKeyboardHostRef} className="math-vk-inline-host" style={keyboardVars} />
-                ) : null}
-            </section>
+            {effectivePlacement === "inline" && (
+                <section className="mt-1 mx-auto w-full max-w-5xl space-y-5 rounded-xl border border-primary-light/40 bg-white p-4 md:p-6">
+                    <div
+                        ref={inlineKeyboardHostRef}
+                        className="math-vk-inline-host"
+                        style={inlineKeyboardHostStyle}
+                    />
+                </section>
+            )}
 
             <style jsx global>{`
                 math-field::part(virtual-keyboard-toggle) {
@@ -171,11 +250,10 @@ export default function GeneralCalculatorPage() {
                     --keyboard-zindex: 120;
                 }
 
-                ${KEYBOARD_OPTIONS.placement === "inline"
+                ${effectivePlacement === "inline"
                     ? `.math-vk-inline-host {
                     position: relative;
                     width: 100%;
-                    height: 40vh;
                     display: flex;
                     justify-content: center;
                     align-items: center;

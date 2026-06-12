@@ -59,7 +59,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                 <SidebarButton route="/app/calculator/general">
                     General
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/algebra">
                     Algebra
                 </SidebarButton>
                 <SidebarButton route="/app/calculator">
