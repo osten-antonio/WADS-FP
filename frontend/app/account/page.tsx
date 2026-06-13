@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, Pencil, X } from "lucide-react"
+import { Check, Pencil, Trash2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -60,6 +60,7 @@ export default function AccountPage() {
   const [selectedTopic, setSelectedTopic] = React.useState(ALL_TOPICS_VALUE)
   const [historyItems, setHistoryItems] = React.useState<HistoryItem[]>([])
   const [isClearingHistory, setIsClearingHistory] = React.useState(false)
+  const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set())
   const [historyError, setHistoryError] = React.useState<string | null>(null)
 
   const redirectToLogin = React.useCallback(() => {
@@ -240,6 +241,56 @@ export default function AccountPage() {
     }
   }
 
+  const handleDeleteHistoryItem = async (id: string) => {
+    const confirmed = window.confirm("Delete this history entry?")
+    if (!confirmed) return
+
+    try {
+      setHistoryError(null)
+      setDeletingIds((current) => new Set(current).add(id))
+
+      const response = await fetch("/api/user/delete-history", {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          submissionIds: [id],
+        }),
+      })
+
+      if (response.status === 401) {
+        redirectToLogin()
+        return
+      }
+
+      if (!response.ok) {
+        let message = "Failed to delete history entry."
+        try {
+          const body = (await response.json()) as { message?: string }
+          if (body.message) message = body.message
+        } catch {
+          message = `Failed to delete history entry. Status: ${response.status}`
+        }
+        throw new Error(message)
+      }
+
+      setHistoryItems((current) => current.filter((item) => item.id !== id))
+      toast.success("History entry deleted")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete history entry."
+      setHistoryError(message)
+      toast.error(message)
+    } finally {
+      setDeletingIds((current) => {
+        const next = new Set(current)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
   const shownName = loadingProfile ? "Loading..." : (name || "User")
 
   const visibleHistoryItems = React.useMemo(() => {
@@ -314,10 +365,23 @@ export default function AccountPage() {
             ) : null}
             {!loadingProfile && !historyError
               ? visibleHistoryItems.map((item) => (
-                  <article key={item.id} className="mb-2 rounded-lg bg-white p-2 last:mb-0">
-                    <p className="text-xs font-semibold text-slate-800">{item.category}</p>
-                    <p className="mt-1 line-clamp-2 text-xs text-slate-700">{item.text || "(no text input saved)"}</p>
-                    <p className="mt-1 text-[11px] text-slate-500">{formatHistoryDate(item.createdAt)}</p>
+                  <article key={item.id} className="mb-2 flex items-start gap-2 rounded-lg bg-white p-2 last:mb-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-slate-800">{item.category}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-700">{item.text || "(no text input saved)"}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">{formatHistoryDate(item.createdAt)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleDeleteHistoryItem(item.id)
+                      }}
+                      disabled={deletingIds.has(item.id)}
+                      className="rounded-full p-1 text-slate-400 hover:text-red-600 disabled:opacity-50"
+                      aria-label="Delete history entry"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
                   </article>
                 ))
               : null}
@@ -339,7 +403,7 @@ export default function AccountPage() {
             >
               <option value={ALL_TOPICS_VALUE}>All Topics</option>
               {CALCULATOR_TOPIC_OPTIONS.map((topic) => (
-                <option key={topic.slug} value={topic.label} className="text-slate-900">
+                <option key={topic.slug} value={topic.category} className="text-slate-900">
                   {topic.label}
                 </option>
               ))}
@@ -415,12 +479,25 @@ export default function AccountPage() {
                 ) : null}
                 {!loadingProfile && !historyError
                   ? visibleHistoryItems.map((item) => (
-                      <article key={item.id} className="mb-2 rounded-lg bg-white p-3 last:mb-0">
-                        <p className="text-xs font-semibold text-slate-800">
-                          {item.category} · {item.inputMode}
-                        </p>
-                        <p className="mt-1 line-clamp-2 text-sm text-slate-700">{item.text || "(no text input saved)"}</p>
-                        <p className="mt-1 text-xs text-slate-500">{formatHistoryDate(item.createdAt)}</p>
+                      <article key={item.id} className="mb-2 flex items-start gap-2 rounded-lg bg-white p-3 last:mb-0">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-800">
+                            {item.category} · {item.inputMode}
+                          </p>
+                          <p className="mt-1 line-clamp-2 text-sm text-slate-700">{item.text || "(no text input saved)"}</p>
+                          <p className="mt-1 text-xs text-slate-500">{formatHistoryDate(item.createdAt)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void handleDeleteHistoryItem(item.id)
+                          }}
+                          disabled={deletingIds.has(item.id)}
+                          className="rounded-full p-1 text-slate-400 hover:text-red-600 disabled:opacity-50"
+                          aria-label="Delete history entry"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
                       </article>
                     ))
                   : null}
@@ -441,7 +518,7 @@ export default function AccountPage() {
                 >
                   <option value={ALL_TOPICS_VALUE}>All Topics</option>
                   {CALCULATOR_TOPIC_OPTIONS.map((topic) => (
-                    <option key={topic.slug} value={topic.label} className="text-slate-900">
+                    <option key={topic.slug} value={topic.category} className="text-slate-900">
                       {topic.label}
                     </option>
                   ))}
