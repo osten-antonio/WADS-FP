@@ -56,10 +56,10 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-                <SidebarButton route="/app/calculator/general">
+                <SidebarButton route="/app/calculator">
                     General
                 </SidebarButton>
-                <SidebarButton route="/app/calculator/algebra">
+                <SidebarButton route="/app/calculator">
                     Algebra
                 </SidebarButton>
                 <SidebarButton route="/app/calculator">
