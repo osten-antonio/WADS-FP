@@ -255,12 +255,19 @@ export default function GeneralCalculatorPage() {
                     position: relative;
                     width: 100%;
                     display: flex;
+                    flex-direction: column;
                     justify-content: center;
                     align-items: center;
+                    background-color: var(--keyboard-background);
+                }
+
+                .math-vk-inline-host .ML__keyboard {
+                    width: 100%;
                 }
 
                 .math-vk-inline-host .MLK__backdrop {
                     border-radius: 12px;
+                    background-color: transparent !important;
                 }`
                     : `body > .ML__keyboard {
                     position: fixed;
