@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Markdown } from "./Markdown";
 
 export function HintBox({ number, hint }: { number: number, hint: string }){
-    const [hintHidden, setHintHidden] = useState(false)
+    const [hintHidden, setHintHidden] = useState(true)
     
     const toggleHintHidden = () => setHintHidden((s) => !s)
 

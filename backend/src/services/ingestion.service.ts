@@ -30,8 +30,6 @@ async function convertImageToPdf(imageBuffer: Buffer): Promise<Buffer> {
   let scale = Math.min(maxWidth / image.width, maxHeight / image.height);
 
 
-  if (scale > 1) scale = 1; 
-
   const imgWidth = image.width * scale;
   const imgHeight = image.height * scale;
 

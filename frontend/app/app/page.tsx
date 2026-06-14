@@ -4,6 +4,7 @@ import { useRef, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Camera, SendHorizontal, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { solveImage } from "@/lib/api"
 
 function ImageScanContent() {
   const router = useRouter()
@@ -41,16 +42,24 @@ function ImageScanContent() {
     if (!selectedFile) return
     setIsScanning(true)
 
-    // Backend connection will be added later
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const formData = new FormData()
+      formData.append("image", selectedFile)
+      const result = await solveImage(formData)
 
-    setIsScanning(false)
-    // TODO SAVE RESPONSE ON LOCALSTORAGE, TO BE FETCHED AND CLEARED AFTER REDIRECT
-    if(topic == 'general'){
-      router.push("/app/calculator");
-    } 
-    else{
-      router.push(`/app/calculator/${topic}`);
+      if (result.question) {
+        localStorage.setItem("scannedQuestion", result.question)
+      }
+
+      if (topic === "general") {
+        router.push("/app/calculator")
+      } else {
+        router.push(`/app/calculator/${topic}`)
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to scan image"
+      alert(message)
+      setIsScanning(false)
     }
   }
 

@@ -12,6 +12,9 @@ import { MathKeyboardStyles } from "@/components/calculator/MathKeyboardStyles"
 import { KEYBOARD_OPTIONS } from "@/lib/keyboard-config"
 import type { MathFieldElement, MathVirtualKeyboard } from "@/lib/mathlive-types"
 import { useRouter } from "next/navigation"
+import { solveText } from "@/lib/api"
+import { useCalculator } from "@/lib/calculator-context"
+import { CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics"
 
 export function GenericCalcPage({
   SolutionScreen,
@@ -23,6 +26,7 @@ export function GenericCalcPage({
   topicSlug?: string
 }) {
   const router = useRouter();
+  const { setSolved } = useCalculator();
   const mf = useRef<MathFieldElement | null>(null)
   const inlineKeyboardHostRef = useRef<HTMLDivElement | null>(null)
   const functionSelectorRef = useRef<HTMLDivElement | null>(null)
@@ -41,6 +45,11 @@ export function GenericCalcPage({
 
   const shortcuts = useMemo(() => getShortcutsForTopic(topic), [topic])
 
+  const category = useMemo(() => {
+    const match = CALCULATOR_TOPIC_OPTIONS.find((t) => t.slug === topicSlug)
+    return match?.category ?? "General"
+  }, [topicSlug])
+
   const handleShortcutInsert = useCallback((latex: string) => {
     if (mf.current) {
       mf.current.executeCommand(["insert", latex])
@@ -57,11 +66,41 @@ export function GenericCalcPage({
     setIsSolving(true)
     setHasResult(false)
 
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const result = await solveText(expression, category)
+      setSolved(expression, result.answer, category, topicSlug ?? "general")
+      setHasResult(true)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to solve"
+      alert(message)
+    } finally {
+      setIsSolving(false)
+    }
+  }, [expression, category, topicSlug, setSolved])
 
-    setIsSolving(false)
-    setHasResult(true)
-  }, [expression])
+  useEffect(() => {
+    const scannedQuestion = localStorage.getItem("scannedQuestion")
+    if (scannedQuestion) {
+      localStorage.removeItem("scannedQuestion")
+      setExpression(scannedQuestion)
+      if (mf.current) {
+        mf.current.value = scannedQuestion
+      }
+      setIsSolving(true)
+      solveText(scannedQuestion, category)
+        .then((result) => {
+          setSolved(scannedQuestion, result.answer, category, topicSlug ?? "general")
+          setHasResult(true)
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : "Failed to solve scanned question"
+          alert(message)
+        })
+        .finally(() => {
+          setIsSolving(false)
+        })
+    }
+  }, [category, topicSlug, setSolved])
 
   useEffect(() => {
     if (isMobile || !functionSelectorRef.current) return
