@@ -80,11 +80,10 @@ export function MathKeyboardStyles({ effectivePlacement }: MathKeyboardStylesPro
                 : `body > .ML__keyboard {
                 position: fixed;
                 z-index: 120;
-                width: min(960px, calc(100vw - 1rem));
+                width: calc(100vw - 1rem);
+                left: 0.5rem;
+                right: 0.5rem;
                 ${KEYBOARD_OPTIONS.placement === "page-top" ? "top: var(--vk-edge-offset);" : "bottom: var(--vk-edge-offset);"}
-                ${KEYBOARD_OPTIONS.alignment === "left" ? "left: 0.5rem;" : ""}
-                ${KEYBOARD_OPTIONS.alignment === "center" ? "left: 50%; transform: translateX(-50%);" : ""}
-                ${KEYBOARD_OPTIONS.alignment === "right" ? "right: 0.5rem;" : ""}
             }
 
             body > .ML__keyboard .MLK__backdrop {

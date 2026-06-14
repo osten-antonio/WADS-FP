@@ -2,18 +2,99 @@
 
 import type { CSSProperties } from "react"
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { Camera, Send, Loader2, X } from "lucide-react"
+import { Camera, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useIsMobile, useIsBelowXl } from "@/hooks/use-mobile"
 import { Result } from "@/components/calculator/Result"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
 import { ShortcutBar, getShortcutsForTopic } from "@/components/calculator/ShortcutBar"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { MathKeyboardStyles } from "@/components/calculator/MathKeyboardStyles"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { X } from "lucide-react"
 import { KEYBOARD_OPTIONS } from "@/lib/keyboard-config"
 import type { MathFieldElement, MathVirtualKeyboard } from "@/lib/mathlive-types"
 
-export default function CalculatorPage() {
+interface CalculatorViewProps {
+  topic: string
+  SolutionScreen?: React.ReactNode
+}
+
+function wrapBareText(latex: string): string {
+  let result = ""
+  let i = 0
+  const len = latex.length
+
+  const findMatchingBrace = (str: string, openPos: number): number => {
+    let depth = 1
+    for (let j = openPos + 1; j < str.length; j++) {
+      if (str[j] === "{") depth++
+      else if (str[j] === "}") depth--
+      if (depth === 0) return j
+    }
+    return str.length - 1
+  }
+
+  while (i < len) {
+    if (latex[i] === "\\") {
+      const rest = latex.slice(i)
+
+      if (rest.startsWith("\\text{")) {
+        const braceEnd = findMatchingBrace(latex, i + 5)
+        result += latex.slice(i, braceEnd + 1)
+        i = braceEnd + 1
+        continue
+      }
+
+      const cmdMatch = rest.match(/^\\([a-zA-Z]+)/)
+      if (cmdMatch) {
+        const cmdLen = cmdMatch[0].length
+        result += latex.slice(i, i + cmdLen)
+        i += cmdLen
+        continue
+      }
+
+      result += latex[i]
+      i++
+      continue
+    }
+
+    if (latex[i] === "{") {
+      const braceEnd = findMatchingBrace(latex, i)
+      result += latex.slice(i, braceEnd + 1)
+      i = braceEnd + 1
+      continue
+    }
+
+    if (latex[i] === "}") {
+      result += latex[i]
+      i++
+      continue
+    }
+
+    if (latex[i].match(/[a-zA-Z]/)) {
+      let wordEnd = i
+      while (wordEnd < len && latex[wordEnd].match(/[a-zA-Z]/)) {
+        wordEnd++
+      }
+      const word = latex.slice(i, wordEnd)
+
+      if (word.length > 1) {
+        result += `\\text{${word}}`
+      } else {
+        result += word
+      }
+      i = wordEnd
+      continue
+    }
+
+    result += latex[i]
+    i++
+  }
+
+  return result
+}
+
+export function CalculatorView({ topic, SolutionScreen }: CalculatorViewProps) {
   const mf = useRef<MathFieldElement | null>(null)
   const inlineKeyboardHostRef = useRef<HTMLDivElement | null>(null)
   const functionSelectorRef = useRef<HTMLDivElement | null>(null)
@@ -27,17 +108,10 @@ export default function CalculatorPage() {
   const [hasResult, setHasResult] = useState(false)
   const [isFunctionsOpen, setIsFunctionsOpen] = useState(false)
 
+  const shortcuts = useMemo(() => getShortcutsForTopic(topic), [topic])
+
   const isMobile = useIsMobile()
   const isBelowXl = useIsBelowXl()
-
-  const shortcuts = useMemo(() => getShortcutsForTopic("General"), [])
-
-  const handleShortcutInsert = useCallback((latex: string) => {
-    if (mf.current) {
-      mf.current.executeCommand(["insert", latex])
-      mf.current.focus()
-    }
-  }, [])
 
   const handleOpenFunctions = useCallback(() => {
     setIsFunctionsOpen(true)
@@ -84,6 +158,27 @@ export default function CalculatorPage() {
     [inlineKeyboardHeight, keyboardVars]
   )
 
+  const handleMathLiveInput = useCallback((ev: Event) => {
+    const target = ev.target as MathFieldElement
+    const rawValue = target.value
+    const processed = wrapBareText(rawValue)
+
+    if (processed !== rawValue) {
+      // https://mathlive.io/mathfield/api/#mathfieldelementsetvalue
+      // @ts-ignore
+      target.setValue(processed)
+    }
+
+    setExpression(processed)
+  }, [])
+
+  const handleShortcutInsert = useCallback((latex: string) => {
+    if (mf.current) {
+      mf.current.executeCommand(["insert", latex])
+      mf.current.focus()
+    }
+  }, [])
+
   useEffect(() => {
     let isCancelled = false
     let cleanupListeners: (() => void) | undefined
@@ -113,14 +208,12 @@ export default function CalculatorPage() {
       }
 
       mf.current.mathVirtualKeyboardPolicy = "manual"
-
+      
       // https://mathlive.io/mathfield/api/#mathfieldelementmathmodespace
       // @ts-ignore
       mf.current.mathModeSpace = "\\ "
 
-      mf.current.addEventListener('input', (ev) => {
-        setExpression((ev.target as MathFieldElement).value)
-      })
+      mf.current.addEventListener("input", handleMathLiveInput)
 
       const handleFocusIn = () => {
         setIsFocused(true)
@@ -148,67 +241,67 @@ export default function CalculatorPage() {
         return
       }
 
-      ; (keyboard as MathVirtualKeyboard & { layouts: unknown[] }).layouts = [
+      ;(keyboard as MathVirtualKeyboard & { layouts: unknown[] }).layouts = [
         {
-          label: '123',
-          tooltip: 'Numeric',
+          label: "123",
+          tooltip: "Numeric",
           layers: [{
             rows: [
               [
-                { latex: 'x^{2}', label: 'x²' },
-                { latex: 'x^{#?}', label: 'xⁿ' },
-                { latex: '\\left|#?\\right|', label: '|x|' },
-                { latex: 'e', label: 'e' },
-                { latex: '\\ln(#?)', label: 'ln' },
+                { latex: "x^{2}", label: "x²" },
+                { latex: "x^{#?}", label: "xⁿ" },
+                { latex: "\\left|#?\\right|", label: "|x|" },
+                { latex: "e", label: "e" },
+                { latex: "\\ln(#?)", label: "ln" },
               ],
               [
-                { latex: '(', label: '(' },
-                { latex: ')', label: ')' },
-                { latex: '^{#?}', label: '^' },
-                { latex: '\\sqrt{#?}', label: '√x' },
-                { latex: '\\log(#?)', label: 'log' },
+                { latex: "(", label: "(" },
+                { latex: ")", label: ")" },
+                { latex: "^{#?}", label: "^" },
+                { latex: "\\sqrt{#?}", label: "√x" },
+                { latex: "\\log(#?)", label: "log" },
               ],
               [
-                { latex: '7', label: '7', class: 'number' },
-                { latex: '8', label: '8', class: 'number' },
-                { latex: '9', label: '9', class: 'number' },
-                { latex: '\\frac{#?}{#?}', label: '/' },
-                { latex: '\\sin(#?)', label: 'sin' },
+                { latex: "7", label: "7", class: "number" },
+                { latex: "8", label: "8", class: "number" },
+                { latex: "9", label: "9", class: "number" },
+                { latex: "\\frac{#?}{#?}", label: "/" },
+                { latex: "\\sin(#?)", label: "sin" },
               ],
               [
-                { latex: '4', label: '4', class: 'number' },
-                { latex: '5', label: '5', class: 'number' },
-                { latex: '6', label: '6', class: 'number' },
-                { latex: '\\times', label: '×' },
-                { latex: '\\cos(#?)', label: 'cos' },
+                { latex: "4", label: "4", class: "number" },
+                { latex: "5", label: "5", class: "number" },
+                { latex: "6", label: "6", class: "number" },
+                { latex: "\\times", label: "×" },
+                { latex: "\\cos(#?)", label: "cos" },
               ],
               [
-                { latex: '1', label: '1', class: 'number' },
-                { latex: '2', label: '2', class: 'number' },
-                { latex: '3', label: '3', class: 'number' },
-                { latex: '-', label: '-' },
-                { latex: '\\tan(#?)', label: 'tan' },
+                { latex: "1", label: "1", class: "number" },
+                { latex: "2", label: "2", class: "number" },
+                { latex: "3", label: "3", class: "number" },
+                { latex: "-", label: "-" },
+                { latex: "\\tan(#?)", label: "tan" },
               ],
               [
-                { latex: '0', label: '0', class: 'number' },
-                { latex: '.', label: '.' },
-                { latex: '=', label: '=' },
-                { latex: '+', label: '+' },
-                { latex: '\\pi', label: 'π' },
+                { latex: "0", label: "0", class: "number" },
+                { latex: ".", label: "." },
+                { latex: "=", label: "=" },
+                { latex: "+", label: "+" },
+                { latex: "\\pi", label: "π" },
               ],
               [
-                '[shift]',
-                '[left]',
-                '[right]',
-                '[backspace]',
-                '[return]',
+                "[shift]",
+                "[left]",
+                "[right]",
+                "[backspace]",
+                "[return]",
               ],
             ]
           }]
         },
-        'alphabetic',
-        'symbols',
-        'greek',
+        "alphabetic",
+        "symbols",
+        "greek",
       ]
 
       const targetHost =
@@ -258,7 +351,7 @@ export default function CalculatorPage() {
       cleanupListeners?.()
       setInlineKeyboardHeight(null)
     }
-  }, [effectivePlacement])
+  }, [effectivePlacement, handleMathLiveInput])
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.mathVirtualKeyboard) {
@@ -275,52 +368,61 @@ export default function CalculatorPage() {
   }, [effectivePlacement])
 
   const handleSolve = async () => {
-    if (!expression.trim()) return;
-    setIsSolving(true);
-    setHasResult(false);
+    if (!expression.trim()) return
+    setIsSolving(true)
+    setHasResult(false)
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    setIsSolving(false);
-    setHasResult(true);
-  };
+    setIsSolving(false)
+    setHasResult(true)
+  }
 
   return (
     <div className="flex flex-col min-h-screen h-full bg-slate-50/10">
       <main className="flex flex-col xl:flex-row p-4 gap-6 max-w-7xl mx-auto w-full">
         <div className="flex-2 flex flex-col gap-4">
           <section className="flex flex-col gap-4 p-4 bg-white rounded-2xl border shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 border-b pb-2">General</h2>
+            <h2 className="text-xl font-bold text-slate-900 border-b pb-2">{topic}</h2>
             <div className="group gap-2 flex flex-row items-end">
-              <div className="flex-1 flex flex-row items-end gap-2">
+              <div className="flex-1 relative max-w-[630px]">
                 <math-field
                   ref={mf}
-                  className="flex-1 w-full rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-lg min-h-[50px]"
+                  className="w-full max-w-[630px] rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-md min-h-[50px]"
                   placeholder="x^2 - 2x + 1 = 0"
                   math-mode-space="\ "
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSolve();
+                    if (e.key === "Enter") {
+                      if (!e.shiftKey) {
+                        e.preventDefault()
+                        handleSolve()
+                      } else {
+                        if (mf.current) {
+                          mf.current.executeCommand(["insert", "\\\\"])
+                          e.preventDefault()
+                        }
+                      }
                     }
                   }}
                 />
+              </div>
+              <div className="flex flex-row gap-1 self-center h-full">
                 <Button
-                  variant='ghost'
-                  disabled={!expression.trim() || isSolving}
+                    variant="ghost"
+                    disabled={!expression.trim() || isSolving}
+                    className="hover:bg-slate-100 aspect-square border h-12 w-12 text-slate-500 transition-colors shrink-0 p-0"
+                    onClick={handleSolve}
+                  >
+                    {isSolving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
                   className="hover:bg-slate-100 aspect-square border h-12 w-12 text-slate-500 transition-colors shrink-0 p-0"
-                  onClick={handleSolve}
+                  onClick={() => { }}
                 >
-                  {isSolving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                  <Camera className="h-5 w-5" />
                 </Button>
               </div>
-              <Button
-                variant="ghost"
-                className="hover:bg-slate-100 aspect-square border h-12 w-12 text-slate-500 transition-colors shrink-0 p-0"
-                onClick={() => { }}
-              >
-                <Camera className="h-5 w-5" />
-              </Button>
             </div>
           </section>
 
@@ -331,7 +433,7 @@ export default function CalculatorPage() {
                   <FunctionSelector
                     onSelect={(f) => {
                       if (mf.current) {
-                        mf.current.executeCommand(['insert', f])
+                        mf.current.executeCommand(["insert", f])
                         mf.current.focus()
                       }
                     }}
@@ -366,7 +468,7 @@ export default function CalculatorPage() {
             </div>
           ) : hasResult ? (
             <div className="w-full text-slate-900 h-full">
-              <Result />
+              {SolutionScreen ?? <Result />}
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
