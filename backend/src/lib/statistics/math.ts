@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Statistics calculation engine.
 // Migrated from the frontend so all computation and validation happens
 // server-side. Input parsing (strings -> numbers) stays on the client; these
@@ -716,3 +717,15 @@ export function twoWayAnova(data: number[][][]): TwoWayAnovaResult {
     fCriticalInter: lookupFValue(dfInter, dfError, 0.05),
   };
 }
+=======
+// Aggregation module: re-export smaller sub-modules so the original
+// `math.ts` import path remains stable while the implementation is split.
+
+export * from "./helpers";
+export * from "./probability";
+export * from "./descriptive";
+export * from "./regression";
+export * from "./inference";
+export * from "./anova";
+export * from "./tables";
+>>>>>>> feat/statistics-backend

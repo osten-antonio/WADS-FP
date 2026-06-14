@@ -3,6 +3,7 @@ import * as z from "zod";
 import { sendErrorResponse } from "../lib/error-response";
 import * as schema from "../schemas/statistics.schema";
 import * as math from "../lib/statistics/math";
+import * as statsService from "../services/statistics.service";
 
 // Wraps a Zod request schema + a pure calculation into an Express handler.
 // Validation failures and calculation errors both return 400 with a readable
@@ -53,7 +54,7 @@ export const statisticsOperations = {
 
   // Inference
   "one-sample-t-test": makeHandler(schema.oneSampleTTestRequest, (i) =>
-    math.oneSampleTTest(i.values, i.mu0, i.alpha),
+    statsService.oneSampleTTestWithSteps(i.values, i.mu0, i.alpha),
   ),
   "paired-t-test": makeHandler(schema.pairedTTestRequest, (i) =>
     math.pairedTTest(i.before, i.after, i.alpha),
@@ -75,10 +76,10 @@ export const statisticsOperations = {
 
   // Data
   "descriptive-stats": makeHandler(schema.descriptiveStatsRequest, (i) =>
-    math.descriptiveStats(i.values),
+    statsService.descriptiveStatsWithSteps(i.values),
   ),
   "linear-regression": makeHandler(schema.linearRegressionRequest, (i) =>
-    math.linearRegression(i.xValues, i.yValues, i.alpha),
+    statsService.linearRegressionWithSteps(i.xValues, i.yValues, i.alpha),
   ),
   "box-plot": makeHandler(schema.boxPlotRequest, (i) => math.boxPlotSummary(i.values)),
   "special-means": makeHandler(schema.specialMeansRequest, (i) =>

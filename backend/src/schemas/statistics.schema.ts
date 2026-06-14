@@ -112,6 +112,25 @@ export const specialMeansRequest = z.object({
 });
 
 // Shared response envelope. `result` is the calculation output (number or object).
-export const statisticsResponse = z.object({
-  result: z.unknown(),
+import { z as zod } from 'zod';
+
+const stepSchema = zod.object({
+  id: zod.string(),
+  title: zod.string(),
+  description: zod.string().optional(),
+  formula: zod.string().optional(),
+  calculation: zod.string().optional(),
+  result: zod.string().optional(),
+  note: zod.string().optional(),
+});
+
+const calculationResult = zod.object({
+  value: zod.unknown(),
+  steps: stepSchema.array(),
+  formula: zod.string().optional(),
+  inputs: zod.record(zod.string(), zod.union([zod.string(), zod.number()])).optional(),
+});
+
+export const statisticsResponse = zod.object({
+  result: calculationResult,
 });

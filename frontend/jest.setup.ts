@@ -15,3 +15,15 @@ if (typeof window !== "undefined" && !window.matchMedia) {
     }),
   })
 }
+
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class ResizeObserver {
+    callback: ResizeObserverCallback
+    constructor(callback: ResizeObserverCallback) {
+      this.callback = callback
+    }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+}
