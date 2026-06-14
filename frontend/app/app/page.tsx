@@ -58,7 +58,7 @@ function ImageScanContent() {
     <div className="flex items-center justify-center min-h-full bg-scan-background px-4">
       <div className="flex flex-col items-center gap-6 w-full max-w-lg">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-primary-main/85">Image Scan</h1>
+          <h1 className="text-3xl font-bold text-primary-dark/85">Image Scan</h1>
           <p className="text-base text-primary-dark/60">
             Solve your math question, step by step, by uploading an image
           </p>
@@ -126,7 +126,7 @@ function ImageScanContent() {
             onClick={handleScan}
             disabled={isScanning}
             className="w-full h-12 rounded-xl text-base font-semibold shadow-md 
-              hover:shadow-lg transition-all duration-200"
+              hover:shadow-lg transition-all duration-200 bg-primary-dark"
           >
             {isScanning ? (
               <>

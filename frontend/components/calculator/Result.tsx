@@ -43,7 +43,7 @@ export function Result(){
 
     const toggleHidden = () => setHidden((s) => !s)
     return (
-        <div className="w-full flex flex-col gap-4 h-full">
+        <div className="w-full flex flex-col gap-4 min-h-[400px]">
             <h1 className="text-xl text-left font-bold">Solution</h1>
             <InputGroup className="w-full">
                 <InputGroupInput value={hidden ? maskedValue : resultValue} readOnly />

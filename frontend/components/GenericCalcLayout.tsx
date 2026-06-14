@@ -131,6 +131,13 @@ export function GenericCalcPage({
         setExpression((ev.target as MathFieldElement).value)
       })
 
+      mf.current.addEventListener("keydown", (ev: KeyboardEvent) => {
+        if (ev.key === "Enter" && !ev.shiftKey) {
+          ev.preventDefault()
+          handleSolve()
+        }
+      })
+
       const handleFocusIn = () => {
         setIsFocused(true)
         if (effectivePlacement !== "inline") {
@@ -297,21 +304,17 @@ export function GenericCalcPage({
       <main className="flex flex-col xl:flex-row p-4 gap-6 max-w-7xl mx-auto w-full">
         <div className="flex-2 flex flex-col gap-4">
           <section className="flex flex-col gap-4 p-4 bg-white rounded-2xl border shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 border-b pb-2">{topic}</h2>
+            <h2 className="text-xl font-bold text-primary-dark/90 border-b pb-2">{topic}</h2>
             <div className="group gap-2 flex flex-row items-end">
               <div className="flex-1 flex flex-row items-end gap-2">
-                <math-field
-                  ref={mf}
-                  className="flex-1 w-full rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-lg min-h-[50px]"
-                  placeholder="x^2 - 2x + 1 = 0"
-                  math-mode-space="\ "
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSolve()
-                    }
-                  }}
-                />
+                <div className="w-full max-w-[630px] overflow-hidden">
+                   <math-field
+                     ref={mf}
+                     className="w-full rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-lg"
+                     placeholder="x^2 - 2x + 1 = 0"
+                     math-mode-space="\ "
+                   />
+                </div>
                 <Button
                   variant="ghost"
                   disabled={!expression.trim() || isSolving}
@@ -358,7 +361,7 @@ export function GenericCalcPage({
                   />
                   <div
                     ref={inlineKeyboardHostRef}
-                    className="math-vk-inline-host flex-1 shadow-sm rounded-xl overflow-hidden"
+                    className="math-vk-inline-host flex-1 mt-2 shadow-sm rounded-xl overflow-hidden"
                     style={
                       !isMobile && functionSelectorHeight
                         ? {
@@ -426,19 +429,8 @@ export function GenericCalcPage({
       <Sheet open={isFunctionsOpen} onOpenChange={setIsFunctionsOpen}>
         <SheetContent
           side="bottom"
-          className="h-[60vh] sm:max-w-xl mx-auto p-0 flex flex-col bg-slate-50 rounded-t-3xl shadow-2xl overflow-hidden border-none"
+          className=" sm:max-w-xl mx-auto p-0 flex flex-col bg-slate-50 rounded-t-3xl shadow-2xl overflow-hidden border-none"
         >
-          <SheetHeader className="p-6 border-b bg-white flex items-center justify-between">
-            <SheetTitle className="text-xl font-bold text-slate-900">Function Library</SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-0"
-              onClick={() => setIsFunctionsOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </SheetHeader>
           <div className="flex-1 overflow-hidden p-4">
             <FunctionSelector
               onSelect={(f) => {

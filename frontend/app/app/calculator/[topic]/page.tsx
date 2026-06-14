@@ -1,3 +1,4 @@
+import { Result } from "@/components/calculator/Result";
 import { GenericCalcPage } from "@/components/GenericCalcLayout";
 import { CALCULATOR_TOPIC_LABELS, CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics";
 import { redirect } from "next/navigation";
@@ -17,10 +18,9 @@ export default async function Page({ params }: { params: Promise<{ topic: string
         );
     }
     
-
     return(
         <>
-            <GenericCalcPage topic={CALCULATOR_TOPIC_LABELS[topic as keyof typeof CALCULATOR_TOPIC_LABELS]} topicSlug={topic} SolutionScreen={undefined}/>
+            <GenericCalcPage topic={CALCULATOR_TOPIC_LABELS[topic as keyof typeof CALCULATOR_TOPIC_LABELS]} topicSlug={topic} SolutionScreen={<Result />}/>
         </>
     )
 }
