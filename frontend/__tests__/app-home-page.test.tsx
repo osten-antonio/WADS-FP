@@ -1,8 +1,9 @@
 import { render, screen, fireEvent } from "@testing-library/react"
 import InputFile from "@/app/app/page"
 
-// Mock URL.createObjectURL
-global.URL.createObjectURL = jest.fn(() => "mocked-url")
+// Mock URL.createObjectURL. Return a blob: URL like the real API does, since the
+// page only renders previews whose src is an object URL.
+global.URL.createObjectURL = jest.fn(() => "blob:http://localhost/mocked-url")
 
 describe("InputFile component", () => {
   beforeEach(() => {
@@ -30,7 +31,7 @@ describe("InputFile component", () => {
     fireEvent.change(fileInput, { target: { files: [file] } })
     const img = screen.getByAltText("preview") as HTMLImageElement
     expect(img).toBeInTheDocument()
-    expect(img.src).toBe("http://localhost/mocked-url")
+    expect(img.src).toBe("blob:http://localhost/mocked-url")
   })
 
   it("clears text value when send button is clicked", () => {
