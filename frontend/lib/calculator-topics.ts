@@ -2,7 +2,7 @@
 // backend/src/lib/categories.ts). The account history filter matches against it,
 // so it must stay in sync with the backend list even when `label` differs.
 export const CALCULATOR_TOPIC_OPTIONS = [
-  { slug: "general", label: "General Math", category: "General" },
+  { slug: "general", label: "General", category: "General" },
   { slug: "algebra", label: "Algebra", category: "Algebra" },
   { slug: "calculus", label: "Calculus", category: "Calculus" },
   { slug: "trigonometry", label: "Trigonometry", category: "Trigonometry" },

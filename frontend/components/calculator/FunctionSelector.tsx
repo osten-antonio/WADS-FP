@@ -13,16 +13,52 @@ interface FunctionSelectorProps {
 
 const functionCategories = [
   {
-    name: "Standard",
-    items: ["asin", "acos", "atan", "floor", "ceil", "trunc", "round"],
+    name: "Basic",
+    items: ["abs", "sign", "sqrt", "cbrt", "exp", "ln", "log", "log10", "log2"],
+  },
+  {
+    name: "Trigonometric",
+    items: ["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"],
+  },
+  {
+    name: "Hyperbolic",
+    items: ["sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "sech", "csch", "coth"],
+  },
+  {
+    name: "Rounding",
+    items: ["floor", "ceil", "round", "trunc", "fract", "mod", "div"],
+  },
+  {
+    name: "Exponential & Log",
+    items: ["exp", "expm1", "ln", "log", "log1p", "log2", "log10", "pow", "sqrt", "cbrt", "hypot"],
   },
   {
     name: "Probability",
-    items: ["factorial", "random", "combinations", "permutations"],
+    items: ["factorial", "random", "combinations", "permutations", "gamma", "lgamma", "beta", "erf", "erfc"],
+  },
+  {
+    name: "Statistics",
+    items: ["mean", "median", "mode", "stdev", "variance", "min", "max", "sum", "product", "quantile"],
   },
   {
     name: "Advanced",
-    items: ["derivative", "integral", "limit", "sum", "product"],
+    items: ["derivative", "integral", "limit", "sum", "product", "solve", "roots", "taylor", "fourier", "laplace"],
+  },
+  {
+    name: "Complex",
+    items: ["re", "im", "abs", "arg", "conj", "polar", "rect", "exp", "log", "pow", "sqrt"],
+  },
+  {
+    name: "Matrix",
+    items: ["det", "inv", "transpose", "trace", "rank", "eigenvalues", "eigenvectors", "svd", "qr", "lu", "cholesky"],
+  },
+  {
+    name: "Special",
+    items: ["gamma", "beta", "erf", "erfc", "zeta", "airy", "bessel", "legendre", "hermite", "laguerre"],
+  },
+  {
+    name: "Polynomials",
+    items: ["polyval", "polyfit", "polyder", "polyint", "polyadd", "polysub", "polymul", "polydiv", "polyroots", "polyfromroots"],
   },
 ]
 
@@ -37,7 +73,7 @@ export function FunctionSelector({ onSelect, onClose }: FunctionSelectorProps) {
   })).filter((cat) => cat.items.length > 0)
 
   return (
-    <div className="flex w-full flex-col h-full bg-background rounded-xl border shadow-xl overflow-hidden min-h-100">
+    <div className="flex w-full flex-col h-[640px] bg-background rounded-xl border shadow-xl overflow-y-auto overflow-hidden min-h-100">
       <div className="p-4 border-b flex flex-col gap-3 sticky top-0 bg-background z-10">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Functions</h2>

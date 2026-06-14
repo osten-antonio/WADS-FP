@@ -43,7 +43,7 @@ export function Result(){
 
     const toggleHidden = () => setHidden((s) => !s)
     return (
-        <div className="w-full flex flex-col gap-4 h-full">
+        <div className="w-full flex flex-col gap-4 min-h-[400px]">
             <h1 className="text-xl text-left font-bold">Solution</h1>
             <InputGroup className="w-full">
                 <InputGroupInput value={hidden ? maskedValue : resultValue} readOnly />
@@ -76,9 +76,24 @@ export function Result(){
                         <div className="flex justify-center items-center py-8"><Loader2 className="animate-spin" /></div>
                     ) : tabData['steps'] && (
                         <>
-                            <StepBox step={1} summary="Simplify the expression" />
-                            <StepBox step={2} summary="Apply the power rule" />
-                            <StepBox step={3} summary="Evaluate the derivative" />
+                            <StepBox 
+                                step={1} 
+                                summary="Simplify the expression **$(x + 1)^2$**" 
+                                expression="(x + 1)^2"
+                                explainBody="Expand using **$(a + b)^2 = a^2 + 2ab + b^2$** where $a = x$ and $b = 1$"
+                            />
+                            <StepBox 
+                                step={2} 
+                                summary="Apply the power rule: **$\\frac{d}{dx}[x^n] = nx^{n-1}$**"
+                                expression="2x + 2"
+                                explainBody="The derivative of **$x^2$** is **$2x$**, derivative of **$2x$** is **$2$**, derivative of **$1$** is **$0$**"
+                            />
+                            <StepBox 
+                                step={3} 
+                                summary="Evaluate the derivative: **$f'(x) = 2x + 2$**"
+                                expression="2x + 2"
+                                explainBody="The final derivative is **$2x + 2$**. This represents the instantaneous rate of change at any point $x$."
+                            />
                         </>
                     )}
                 </TabsContent>
@@ -86,7 +101,6 @@ export function Result(){
                     {loadingTabs['hints'] ? (
                         <div className="flex justify-center items-center py-8"><Loader2 className="animate-spin" /></div>
                     ) : tabData['hints'] && (
-                        // using card causes problem
                         <div className="rounded-2xl drop-shadow-2xl p-1 border-dashed border">
                             <div className="bg-primary-light/30 rounded-xl p-2">
                                 <h1 className="text-left font-bold">Hints</h1>
@@ -94,9 +108,9 @@ export function Result(){
                                 <p className="text-justify">The solution involves applying standard rules of calculus. Consider the following hints to help you understand the process.</p>
                             </div>
                             <div className="bg-primary-light/30 rounded-xl mt-2 p-2 text-left">
-                                <HintBox number={1} hint="The derivative of x^2 is 2x." />
-                                <HintBox number={2} hint="Use the power rule: d/dx[x^n] = nx^(n-1)." />
-                                <HintBox number={3} hint="Apply the constant multiple rule if needed." />
+                                <HintBox number={1} hint="The derivative of **$x^2$** is **$2x$** (power rule)." />
+                                <HintBox number={2} hint="Use the power rule: **$\\frac{d}{dx}[x^n] = nx^{n-1}$** for each term." />
+                                <HintBox number={3} hint="Apply the **constant multiple rule**: **$\\frac{d}{dx}[c \\cdot f(x)] = c \\cdot f'(x)$** and **sum rule**: **$\\frac{d}{dx}[f(x) + g(x)] = f'(x) + g'(x)$**." />
                             </div>
                         </div>
                     )}
@@ -106,9 +120,9 @@ export function Result(){
                         <div className="flex justify-center items-center py-8"><Loader2 className="animate-spin" /></div>
                     ) : tabData['practices'] && (
                         <div className="flex gap-2 flex-col">
-                            <PracticeBox number={1} question="Simplify x^2 + 2x + 1" questionLtx="x^2 + 2x + 1" />
-                            <PracticeBox number={2} question="Simplify 2x^2 - 4x" questionLtx="2x^2 - 4x" />
-                            <PracticeBox number={3} question="Simplify x^3 + 3x^2" questionLtx="x^3 + 3x^2" />
+                            <PracticeBox number={1} question="Find derivative of $(x + 2)^2$" questionLtx="\\frac{d}{dx}[(x + 2)^2]" />
+                            <PracticeBox number={2} question="Find derivative of $3x^2 - 6x$" questionLtx="\\frac{d}{dx}[3x^2 - 6x]" />
+                            <PracticeBox number={3} question="Find derivative of $x^3 + 3x^2$" questionLtx="\\frac{d}{dx}[x^3 + 3x^2]" />
                         </div>
                     )}
                 </TabsContent>

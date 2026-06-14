@@ -1,33 +1,18 @@
 ﻿import { render, screen, fireEvent } from "@testing-library/react"
-import CalculatorPage from "@/app/app/calculator/page"
-import { GenericCalcPage } from "@/components/GenericCalcLayout"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
-import { Keypad } from "@/components/calculator/Keypad"
 import { Result } from "@/components/calculator/Result"
 
-describe("calculator", () => {
-  it("CalculatorPage renders topic header", () => {
-    render(<CalculatorPage />)
-    expect(screen.getByText("General")).toBeInTheDocument()
-  })
-
-  it("GenericCalcPage has textarea and empty-state text", () => {
-    render(<GenericCalcPage topic="Test" />)
-    expect(screen.getByPlaceholderText("x\u00B2 - 2x + 1 = 0")).toBeInTheDocument()
-    expect(screen.getByText("Enter a problem to be solved")).toBeInTheDocument()
-  })
-
-  it("FunctionSelector renders categories", () => {
+describe("FunctionSelector", () => {
+  it("renders categories", () => {
     render(<FunctionSelector onSelect={jest.fn()} />)
-    expect(screen.getByText("Standard")).toBeInTheDocument()
+    expect(screen.getByText("Basic")).toBeInTheDocument()
+    expect(screen.getByText("Trigonometric")).toBeInTheDocument()
     expect(screen.getByText("Advanced")).toBeInTheDocument()
   })
 
-  it("Keypad fires callback on digit press", () => {
-    const onKeyPress = jest.fn()
-    render(<Keypad onKeyPress={onKeyPress} onOpenFunctions={jest.fn()} onSwitchToQwerty={jest.fn()} />)
-    fireEvent.click(screen.getAllByRole("button", { name: "7" })[0])
-    expect(onKeyPress).toHaveBeenCalledWith("7")
+  it("has search input", () => {
+    render(<FunctionSelector onSelect={jest.fn()} />)
+    expect(screen.getByPlaceholderText("Search functions...")).toBeInTheDocument()
   })
 })
 

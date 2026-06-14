@@ -5,7 +5,7 @@ export const KEYBOARD_OPTIONS = {
     alignment: "center" as Alignment,
     edgeOffsetPx: 12,
     sizing: {
-        keycapHeightPx: 52,
+        keycapHeightPx: 65,
         keycapFontSizePx: 20,
         keycapGapPx: 8
     },

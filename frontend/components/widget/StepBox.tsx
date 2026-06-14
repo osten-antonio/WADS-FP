@@ -20,6 +20,8 @@ import { ChevronDown, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
+import { Markdown } from "./Markdown"
+import { Katex } from "./Katex"
 
 export type StepBoxProps = {
   step: number | string
@@ -88,9 +90,9 @@ export function StepBox({
       </div>
 
       <CollapsibleContent className="px-5 pb-3">
-        <p className="text-sm text-slate-700 text-left">{summary}</p>
+        <Markdown className="text-sm text-slate-700 text-left" content={summary} inline />
         <div className="mt-3 text-center text-lg font-semibold text-slate-900">
-          {expressionNode ?? <span className="font-mono">{expression}</span>}
+          {expressionNode ?? (expression ? <Katex expression={expression} className="font-mono" /> : null)}
         </div>
 
         <div className="mt-4 flex items-center justify-end">
@@ -113,11 +115,7 @@ export function StepBox({
 
         {explainStatus !== "idle" ? (
           <div className="mt-3 rounded-xl border border-dashed border-slate-500/60 bg-[#B3E0D7] p-4 text-sm text-slate-800">
-            <p className="mt-1 text-slate-700">
-              {explainStatus === "loading"
-                ? "Fetching explanation..."
-                : explainBody}
-            </p>
+            <Markdown className="mt-1 text-slate-700" content={explainStatus === "loading" ? "Fetching explanation..." : explainBody} />
             <div className="mt-3">
               <div className="relative">
                 <textarea

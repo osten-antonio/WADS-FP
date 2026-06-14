@@ -272,6 +272,7 @@ function ToolFrame({
   tool: StatisticsTool;
   children: React.ReactNode;
 }) {
+  const isReference = tool.id === "statistical-tables";
   return (
     <section id={tool.id}>
       <Card className="h-full border-primary-main/15 bg-white shadow-sm">
@@ -280,8 +281,8 @@ function ToolFrame({
           <p className="text-sm leading-relaxed text-slate-700">{tool.description}</p>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg bg-primary-dark px-3 py-3 font-mono text-xs text-white">
-            {tool.formula}
+          <div className="rounded-lg bg-primary-dark px-3 py-3 font-mono text-base text-white">
+            {isReference ? tool.formula : <Katex expression={tool.formula} />}
           </div>
           {children}
         </CardContent>
@@ -289,6 +290,7 @@ function ToolFrame({
     </section>
   );
 }
+
 
 function CalculateButton({
   loading,
@@ -685,17 +687,17 @@ function TTestsTool() {
         return;
       }
 
-      let response: { result: IndependentTResult; steps: SolutionStep[] };
+      let output: IndependentTResult;
       if (inputMode === "data") {
         const { left, right } = parsePairedColumns(independentTable, 0, 1);
-        response = await runCalculationWithSteps<IndependentTResult>("independent-t-test-data", {
+        output = await runCalculation<IndependentTResult>("independent-t-test-data", {
           sample1: left,
           sample2: right,
           alpha: alphaVal,
           tails,
         });
       } else {
-        response = await runCalculationWithSteps<IndependentTResult>("independent-t-test-stats", {
+        output = await runCalculation<IndependentTResult>("independent-t-test-stats", {
           group1: {
             n: parseFloatSafe(stats1.n),
             mean: parseFloatSafe(stats1.mean),
@@ -710,8 +712,6 @@ function TTestsTool() {
           tails,
         });
       }
-      const output = response.result;
-      setSteps(response.steps);
       setResult([
         { label: "method", value: output.method === "welch" ? "Welch" : "Pooled" },
         { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
