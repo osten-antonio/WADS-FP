@@ -15,7 +15,7 @@ export default async function Page({ params }: { params: Promise<{ topic: string
 
     return(
         <>
-            <GenericCalcPage topic={CALCULATOR_TOPIC_LABELS[topic as keyof typeof CALCULATOR_TOPIC_LABELS]} SolutionScreen={undefined}/>
+            <GenericCalcPage topic={CALCULATOR_TOPIC_LABELS[topic as keyof typeof CALCULATOR_TOPIC_LABELS]} topicSlug={topic} SolutionScreen={undefined}/>
         </>
     )
 }

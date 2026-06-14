@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
 import { Keypad } from "@/components/calculator/Keypad"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,7 +14,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 // this just ui/ux stuff, not breaking feature 
 
 // TODO the internals of the textbox should automatically parse to Katex/Latex, same with the scanner page
-export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: React.ReactNode, topic: string }) {
+export function GenericCalcPage({ SolutionScreen, topic, topicSlug }: { SolutionScreen?: React.ReactNode, topic: string, topicSlug?: string }) {
+  const router = useRouter();
   const [expression, setExpression] = React.useState("");
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const [isFunctionsOpen, setIsFunctionsOpen] = React.useState(false);
@@ -148,7 +150,7 @@ export function GenericCalcPage({ SolutionScreen, topic }: { SolutionScreen?: Re
               <Button 
                 variant="ghost" 
                 className="hover:bg-slate-100 aspect-square border h-12 w-12 text-slate-500 transition-colors shrink-0 p-0"
-                onClick={() => {}}
+                onClick={() => router.push(`/app?topic=${topicSlug || "general"}`)}
               >
                 <Camera className="h-5 w-5" />
               </Button>
