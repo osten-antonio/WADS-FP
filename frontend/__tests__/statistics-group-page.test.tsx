@@ -8,13 +8,10 @@ import StatisticsGroupRoutePage from "@/app/app/calculator/statistics/[group]/pa
 jest.mock("@/lib/statistics/api", () => ({
   ...jest.requireActual("@/lib/statistics/api"),
   runCalculation: jest.fn().mockResolvedValue(0.5),
-<<<<<<< HEAD
   runCalculationWithSteps: jest.fn().mockResolvedValue({
     result: { tStatistic: -1.74, df: 5, sampleMean: 970, sampleStdDev: 42.3, tCritical: 2.571, reject: false },
     steps: [{ step: 1, summary: "State hypotheses", expression: "H_0: \\mu = 1000" }],
   }),
-=======
->>>>>>> feat/statistics-backend
 }));
 
 describe("StatisticsGroupPage", () => {
@@ -43,7 +40,6 @@ describe("StatisticsGroupPage", () => {
 
     fireEvent.click(screen.getAllByText("Calculate")[0]);
     expect(await screen.findByText("Binomial Probability")).toBeInTheDocument();
-<<<<<<< HEAD
   });
 
   it("renders inference subsections as tabs", () => {
@@ -61,7 +57,5 @@ describe("StatisticsGroupPage", () => {
     expect(await screen.findByText("T-Test Result")).toBeInTheDocument();
     expect(screen.getByText("Solution steps")).toBeInTheDocument();
     expect(screen.getByText("Step 1")).toBeInTheDocument();
-=======
->>>>>>> feat/statistics-backend
   });
 });

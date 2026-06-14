@@ -41,11 +41,8 @@ import {
 import { parseNumberList, parseTwoWayAnovaGrid } from "@/lib/statistics/parse";
 import {
   runCalculation,
-<<<<<<< HEAD
   runCalculationWithSteps,
   type SolutionStep,
-=======
->>>>>>> feat/statistics-backend
   type BoxPlotSummaryResult,
   type DescriptiveStatsResult,
   type GoodnessOfFitResult,
@@ -646,35 +643,22 @@ function TTestsTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
       const alphaVal = parseFloatSafe(alpha);
       if (mode === "one-sample") {
         const values = parseNumericColumn(oneSampleTable, 0);
         const { result: output, steps } = await runCalculationWithSteps<OneSampleTResult>("one-sample-t-test", {
-=======
-      const alphaVal = parseFloatSafe(alpha);
-      if (mode === "one-sample") {
-        const values = parseNumericColumn(oneSampleTable, 0);
-        const output = await runCalculation<OneSampleTResult>("one-sample-t-test", {
->>>>>>> feat/statistics-backend
           values,
           mu0: parseFloatSafe(mu0),
           alpha: alphaVal,
         });
-<<<<<<< HEAD
         setSteps(steps);
-=======
->>>>>>> feat/statistics-backend
         setResult([
           { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
           { label: "df", value: String(Math.round(output.df)) },
@@ -685,19 +669,12 @@ function TTestsTool() {
       }
       if (mode === "paired") {
         const { left: before, right: after } = parsePairedColumns(pairedTable, 0, 1);
-<<<<<<< HEAD
         const { result: output, steps } = await runCalculationWithSteps<PairedTResult>("paired-t-test", {
-=======
-        const output = await runCalculation<PairedTResult>("paired-t-test", {
->>>>>>> feat/statistics-backend
           before,
           after,
           alpha: alphaVal,
         });
-<<<<<<< HEAD
         setSteps(steps);
-=======
->>>>>>> feat/statistics-backend
         setResult([
           { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
           { label: "df", value: String(Math.round(output.df)) },
@@ -708,28 +685,17 @@ function TTestsTool() {
         return;
       }
 
-<<<<<<< HEAD
       let response: { result: IndependentTResult; steps: SolutionStep[] };
       if (inputMode === "data") {
         const { left, right } = parsePairedColumns(independentTable, 0, 1);
         response = await runCalculationWithSteps<IndependentTResult>("independent-t-test-data", {
-=======
-      let output: IndependentTResult;
-      if (inputMode === "data") {
-        const { left, right } = parsePairedColumns(independentTable, 0, 1);
-        output = await runCalculation<IndependentTResult>("independent-t-test-data", {
->>>>>>> feat/statistics-backend
           sample1: left,
           sample2: right,
           alpha: alphaVal,
           tails,
         });
       } else {
-<<<<<<< HEAD
         response = await runCalculationWithSteps<IndependentTResult>("independent-t-test-stats", {
-=======
-        output = await runCalculation<IndependentTResult>("independent-t-test-stats", {
->>>>>>> feat/statistics-backend
           group1: {
             n: parseFloatSafe(stats1.n),
             mean: parseFloatSafe(stats1.mean),
@@ -744,11 +710,8 @@ function TTestsTool() {
           tails,
         });
       }
-<<<<<<< HEAD
       const output = response.result;
       setSteps(response.steps);
-=======
->>>>>>> feat/statistics-backend
       setResult([
         { label: "method", value: output.method === "welch" ? "Welch" : "Pooled" },
         { label: "t-statistic", value: formatNumber(output.tStatistic, 6) },
@@ -896,36 +859,23 @@ function ChiSquareTool() {
     null,
   );
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setHint(null);
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
       const alphaVal = parseFloatSafe(alpha);
       if (mode === "goodness") {
         const { left: observedValues, right: expectedValues } = parsePairedColumns(gofTable, 0, 1);
         const { result: output, steps } = await runCalculationWithSteps<GoodnessOfFitResult>("goodness-of-fit", {
-=======
-      const alphaVal = parseFloatSafe(alpha);
-      if (mode === "goodness") {
-        const { left: observedValues, right: expectedValues } = parsePairedColumns(gofTable, 0, 1);
-        const output = await runCalculation<GoodnessOfFitResult>("goodness-of-fit", {
->>>>>>> feat/statistics-backend
           observed: observedValues,
           expected: expectedValues,
           alpha: alphaVal,
         });
-<<<<<<< HEAD
         setSteps(steps);
-=======
->>>>>>> feat/statistics-backend
         if (Math.min(...expectedValues) < 5) {
           setHint({
             variant: "warning",
@@ -941,18 +891,11 @@ function ChiSquareTool() {
         return;
       }
       const matrix = parseNumericMatrix(contingencyTable);
-<<<<<<< HEAD
       const { result: output, steps } = await runCalculationWithSteps<IndependenceResult>("chi-square-independence", {
         table: matrix,
         alpha: alphaVal,
       });
       setSteps(steps);
-=======
-      const output = await runCalculation<IndependenceResult>("chi-square-independence", {
-        table: matrix,
-        alpha: alphaVal,
-      });
->>>>>>> feat/statistics-backend
       if (minExpectedCountIndependence(matrix) < 5) {
         setHint({
           variant: "warning",
@@ -1029,30 +972,20 @@ function AnovaTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
-=======
->>>>>>> feat/statistics-backend
       if (mode === "one-way") {
         const groups = oneWayInput
           .split("\n")
           .map((line) => parseNumberList(line))
           .filter((line) => line.length > 0);
-<<<<<<< HEAD
         const { result: output, steps } = await runCalculationWithSteps<OneWayAnovaResult>("one-way-anova", { groups });
         setSteps(steps);
-=======
-        const output = await runCalculation<OneWayAnovaResult>("one-way-anova", { groups });
->>>>>>> feat/statistics-backend
         setResult([
           { label: "F-statistic", value: formatNumber(output.fStat, 6) },
           { label: "df between", value: String(output.dfBetween) },
@@ -1063,12 +996,8 @@ function AnovaTool() {
       }
 
       const grid = parseTwoWayAnovaGrid(twoWayInput);
-<<<<<<< HEAD
       const { result: output, steps } = await runCalculationWithSteps<TwoWayAnovaResult>("two-way-anova", { data: grid });
       setSteps(steps);
-=======
-      const output = await runCalculation<TwoWayAnovaResult>("two-way-anova", { data: grid });
->>>>>>> feat/statistics-backend
       setResult([
         { label: "F row", value: formatNumber(output.fRow, 6) },
         { label: "F col", value: formatNumber(output.fCol, 6) },
@@ -1131,24 +1060,16 @@ function DescriptiveTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
       const values = parseNumericColumn(valuesTable, 0);
       const { result: output, steps } = await runCalculationWithSteps<DescriptiveStatsResult>("descriptive-stats", { values });
       setSteps(steps);
-=======
-      const values = parseNumericColumn(valuesTable, 0);
-      const output = await runCalculation<DescriptiveStatsResult>("descriptive-stats", { values });
->>>>>>> feat/statistics-backend
       setResult([
         { label: "n", value: String(output.n) },
         { label: "mean", value: formatNumber(output.mean, 6) },
@@ -1197,31 +1118,20 @@ function RegressionTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
       const { left: xValues, right: yValues } = parsePairedColumns(xyTable, 0, 1);
       const { result: output, steps } = await runCalculationWithSteps<RegressionResult>("linear-regression", {
-=======
-      const { left: xValues, right: yValues } = parsePairedColumns(xyTable, 0, 1);
-      const output = await runCalculation<RegressionResult>("linear-regression", {
->>>>>>> feat/statistics-backend
         xValues,
         yValues,
         alpha: parseFloatSafe(alpha),
       });
-<<<<<<< HEAD
       setSteps(steps);
-=======
->>>>>>> feat/statistics-backend
       setResult([
         { label: "equation", value: output.equation },
         { label: "slope", value: formatNumber(output.slope, 6) },
@@ -1268,26 +1178,17 @@ function BoxPlotTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
       const { result: output, steps } = await runCalculationWithSteps<BoxPlotSummaryResult>("box-plot", {
         values: parseNumericColumn(valuesTable, 0),
       });
       setSteps(steps);
-=======
-      const output = await runCalculation<BoxPlotSummaryResult>("box-plot", {
-        values: parseNumericColumn(valuesTable, 0),
-      });
->>>>>>> feat/statistics-backend
       setResult([
         { label: "min", value: formatNumber(output.min, 4) },
         { label: "Q1", value: formatNumber(output.q1, 4) },
@@ -1333,19 +1234,13 @@ function SpecialMeansTool() {
   const [result, setResult] = useState<Array<{ label: string; value: string }> | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [steps, setSteps] = useState<SolutionStep[]>([]);
-=======
->>>>>>> feat/statistics-backend
 
   async function calculate() {
     try {
       setError("");
       setLoading(true);
-<<<<<<< HEAD
       setSteps([]);
-=======
->>>>>>> feat/statistics-backend
       const payload: Record<string, unknown> = {
         values: parseNumericColumn(valuesTable, 0),
       };
@@ -1353,12 +1248,8 @@ function SpecialMeansTool() {
       const trimCountVal = parseFloatSafe(trimCount);
       if (Number.isFinite(trimPercentVal)) payload.trimPercent = trimPercentVal;
       if (Number.isFinite(trimCountVal)) payload.trimCount = trimCountVal;
-<<<<<<< HEAD
       const { result: output, steps } = await runCalculationWithSteps<SpecialMeansResult>("special-means", payload);
       setSteps(steps);
-=======
-      const output = await runCalculation<SpecialMeansResult>("special-means", payload);
->>>>>>> feat/statistics-backend
       setResult([
         { label: "trimean", value: formatNumber(output.trimean, 6) },
         {

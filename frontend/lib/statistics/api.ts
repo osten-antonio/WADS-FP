@@ -3,11 +3,8 @@
 // numeric inputs and renders the result. Requests go through the Next.js proxy
 // route at /api/statistics/<operation> (the Express base URL is server-only).
 
-<<<<<<< HEAD
 import { computeLocally } from "./local";
 
-=======
->>>>>>> feat/statistics-backend
 export const STATISTICS_OPERATIONS = [
   "binomial-range",
   "binomial-normal-approx",
@@ -150,7 +147,6 @@ export interface TwoWayAnovaResult {
   fCriticalInter: number | null;
 }
 
-<<<<<<< HEAD
 // One step of a worked solution; shape mirrors StepBox so steps render through it.
 // Supplied by the backend for inference/data ops; `expression` is a LaTeX string.
 export interface SolutionStep {
@@ -170,16 +166,6 @@ async function postCalculation<T>(
   operation: StatisticsOperation,
   payload: Record<string, unknown>,
 ): Promise<{ result: T; steps: SolutionStep[] }> {
-=======
-/**
- * Sends a calculation request to the backend and returns the typed result.
- * Throws an Error carrying the backend's message on any failure.
- */
-export async function runCalculation<T>(
-  operation: StatisticsOperation,
-  payload: Record<string, unknown>,
-): Promise<T> {
->>>>>>> feat/statistics-backend
   let res: Response;
   try {
     res = await fetch(`/api/statistics/${operation}`, {
@@ -188,7 +174,6 @@ export async function runCalculation<T>(
       body: JSON.stringify(payload),
     });
   } catch {
-<<<<<<< HEAD
     throw new BackendUnreachableError(UNREACHABLE_MESSAGE);
   }
 
@@ -199,13 +184,6 @@ export async function runCalculation<T>(
 
   const data = (await res.json().catch(() => null)) as
     | { result?: T; steps?: SolutionStep[]; message?: string }
-=======
-    throw new Error("Could not reach the calculation service. Check your connection.");
-  }
-
-  const data = (await res.json().catch(() => null)) as
-    | { result?: T; message?: string }
->>>>>>> feat/statistics-backend
     | null;
 
   if (!res.ok) {
@@ -214,7 +192,6 @@ export async function runCalculation<T>(
   if (!data || !("result" in data)) {
     throw new Error("Calculation service returned an unexpected response.");
   }
-<<<<<<< HEAD
   return { result: data.result as T, steps: data.steps ?? [] };
 }
 
@@ -242,7 +219,4 @@ export async function runCalculationWithSteps<T>(
     }
     throw err;
   }
-=======
-  return data.result as T;
->>>>>>> feat/statistics-backend
 }
