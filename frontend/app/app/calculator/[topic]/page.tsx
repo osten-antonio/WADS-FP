@@ -1,9 +1,14 @@
 import { GenericCalcPage } from "@/components/GenericCalcLayout";
 import { CALCULATOR_TOPIC_LABELS, CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics";
+import { redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: Promise<{ topic: string }> }) {
     const { topic } = await params;
+
     const availableTopics = CALCULATOR_TOPIC_OPTIONS.map((item) => item.slug);
+    if(topic && typeof topic === "string" && topic=="general"){
+        redirect("/app/calculator");
+    }
     if(!topic || !availableTopics.includes(topic as (typeof availableTopics)[number])) {
         return (
             <div className="flex items-center justify-center h-screen">

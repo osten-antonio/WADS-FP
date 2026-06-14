@@ -45,15 +45,21 @@ function ImageScanContent() {
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     setIsScanning(false)
-    router.push(`/app/calculator/${topic}`)
+    // TODO SAVE RESPONSE ON LOCALSTORAGE, TO BE FETCHED AND CLEARED AFTER REDIRECT
+    if(topic == 'general'){
+      router.push("/app/calculator");
+    } 
+    else{
+      router.push(`/app/calculator/${topic}`);
+    }
   }
 
   return (
     <div className="flex items-center justify-center min-h-full bg-scan-background px-4">
       <div className="flex flex-col items-center gap-6 w-full max-w-lg">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-slate-900">Image Scan</h1>
-          <p className="text-base text-slate-500">
+          <h1 className="text-3xl font-bold text-primary-main/85">Image Scan</h1>
+          <p className="text-base text-primary-dark/60">
             Solve your math question, step by step, by uploading an image
           </p>
         </div>

@@ -55,25 +55,25 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         </div>
                     </CollapsibleContent>
                 </Collapsible>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/general">
                     General
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/algebra">
                     Algebra
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/proofs">
                     Proofs and theorem
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/linear-algebra">
                     Linear algebra
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/trigonometry">
                     Trigonometry
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/calculus">
                     Calculus
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/pre-calculus">
                     Pre-calculus
                 </SidebarButton>
             </SidebarContent>
