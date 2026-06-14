@@ -43,6 +43,17 @@ function parseSide(side: string, variable: string) {
     return { coeff, constSum };
 }
 
+// Extract a bracketed matrix literal in linear time. A regex with a nested
+// quantifier (e.g. /\[\s*\[.*\]\s*(,\s*\[.*\]\s*)*\]/) backtracks exponentially
+// on inputs like "[[],[],[]..." (ReDoS). The literal always spans from the first
+// '[' to the last ']', so scan for those instead; JSON.parse validates the shape.
+function extractBracketedMatrix(text: string): string | null {
+    const start = text.indexOf('[');
+    const end = text.lastIndexOf(']');
+    if (start === -1 || end <= start) return null;
+    return text.slice(start, end + 1);
+}
+
 export async function tryMathSolve(question: string): Promise<MathSolveResult> {
     const q = cleanLatex(normalizeQuestion(question));
 
@@ -75,10 +86,10 @@ export async function tryMathSolve(question: string): Promise<MathSolveResult> {
     }
 
     // Matrices
-    const matrixMatch = q.match(/\[\s*\[.*\]\s*(,\s*\[.*\]\s*)*\]/s);
-    if (matrixMatch && /determinant|det|inverse|inv/i.test(q)) {
+    const matrixLiteral = extractBracketedMatrix(q);
+    if (matrixLiteral && /determinant|det|inverse|inv/i.test(q)) {
         try {
-            const mat = matrix(JSON.parse(matrixMatch[0]));
+            const mat = matrix(JSON.parse(matrixLiteral));
 
             if (/determinant|det/i.test(q)) {
                 const dval = det(mat);

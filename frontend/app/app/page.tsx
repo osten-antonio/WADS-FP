@@ -15,7 +15,8 @@ export default function InputFile() {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setPreview(url);
+      // Only ever render an object URL (blob:) so the preview src can't become an arbitrary scheme
+      setPreview(url.startsWith("blob:") ? url : null);
     } else {
       setPreview(null);
     }
