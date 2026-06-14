@@ -96,10 +96,15 @@ solverRouter.post('/statistics/:operation', globalRateLimit, (req, res) => {
 		const result = statsService.runOperation(operation, req.body);
 		return res.json({ result });
 	} catch (err) {
-		// If not implemented in service, fallback to existing statistics controller handlers
-		const opHandler = (statisticsOperations as any)[operation];
-		if (opHandler) {
-			return opHandler(req, res);
+		// If not implemented in service, fallback to existing statistics controller handlers.
+		// Only dispatch to an own, callable handler so a user-controlled `operation`
+		// (e.g. "constructor", "toString") can't reach an inherited prototype method.
+		const hasHandler = Object.prototype.hasOwnProperty.call(statisticsOperations, operation);
+		const opHandler = hasHandler
+			? (statisticsOperations as Record<string, unknown>)[operation]
+			: undefined;
+		if (typeof opHandler === "function") {
+			return (opHandler as (req: express.Request, res: express.Response) => unknown)(req, res);
 		}
 		const message = err instanceof Error ? err.message : "Calculation error";
 		return sendErrorResponse(res, 400, message, "CALCULATION_ERROR");
