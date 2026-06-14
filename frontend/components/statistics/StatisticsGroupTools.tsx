@@ -272,6 +272,7 @@ function ToolFrame({
   tool: StatisticsTool;
   children: React.ReactNode;
 }) {
+  const isReference = tool.id === "statistical-tables";
   return (
     <section id={tool.id}>
       <Card className="h-full border-primary-main/15 bg-white shadow-sm">
@@ -280,8 +281,8 @@ function ToolFrame({
           <p className="text-sm leading-relaxed text-slate-700">{tool.description}</p>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg bg-primary-dark px-3 py-3 font-mono text-xs text-white">
-            {tool.formula}
+          <div className="rounded-lg bg-primary-dark px-3 py-3 font-mono text-base text-white">
+            {isReference ? tool.formula : <Katex expression={tool.formula} />}
           </div>
           {children}
         </CardContent>

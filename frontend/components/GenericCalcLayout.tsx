@@ -303,7 +303,7 @@ export function GenericCalcPage({
     <div className="flex flex-col min-h-screen h-full bg-slate-50/10">
       <main className="flex flex-col xl:flex-row p-4 gap-6 max-w-7xl mx-auto w-full">
         <div className="flex-2 flex flex-col gap-4">
-          <section className="flex flex-col gap-4 p-4 bg-white rounded-2xl border shadow-sm">
+          <section className="flex flex-col gap-4 p-4  bg-white rounded-2xl border shadow-sm">
             <h2 className="text-xl font-bold text-primary-dark/90 border-b pb-2">{topic}</h2>
             <div className="group gap-2 flex flex-row items-end">
               <div className="flex-1 flex flex-row items-end gap-2">
@@ -341,8 +341,8 @@ export function GenericCalcPage({
           </section>
 
           {effectivePlacement === "inline" && (
-            <div className="flex gap-2 w-full h-full">
-              <div className="w-full flex flex-row gap-2">
+            <div className="flex gap-4 w-full h-full">
+              <div className="w-full flex flex-row gap-4">
                 <div ref={functionSelectorRef} className="hidden xl:block w-1/3 min-w-[250px] max-w-[400px]">
                   <FunctionSelector
                     onSelect={(f) => {
@@ -353,7 +353,7 @@ export function GenericCalcPage({
                     }}
                   />
                 </div>
-                <div className="flex-1 flex flex-col min-h-0 max-w-[500px]">
+                <div className="flex-1 flex flex-col min-h-0 max-w-[520px] h-[640px]">
                   <ShortcutBar
                     shortcuts={shortcuts}
                     onInsert={handleShortcutInsert}
@@ -385,7 +385,7 @@ export function GenericCalcPage({
             </div>
           )}
         </div>
-
+        <div className="flex-1 flex flex-col">
         <div
           className={
             "flex-1 flex flex-col min-h-100 h-full items-center justify-center p-8 border border-dashed rounded-xl text-center text-slate-400 font-medium " +
@@ -405,6 +405,7 @@ export function GenericCalcPage({
               <p className="text-sm opacity-60">Click the send button or press Enter</p>
             </div>
           )}
+        </div>
         </div>
 
         <MathKeyboardStyles effectivePlacement={effectivePlacement} />

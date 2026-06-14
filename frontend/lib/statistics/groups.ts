@@ -31,22 +31,21 @@ export const STATISTICS_GROUPS: Record<StatisticsGroupSlug, StatisticsGroup> = {
         title: "Binomial",
         description:
           "Exact and range probability for successes in n independent trials.",
-        formula: "P(min <= X <= max) = sum[k=min..max] C(n,k) * p^k * (1-p)^(n-k)",
+        formula: "P(\\min \\le X \\le \\max) = \\sum_{k=\\min}^{\\max} \\binom{n}{k} p^k (1-p)^{n-k}",
       },
       {
         id: "poisson",
         title: "Poisson",
         description:
           "Event-count probability from average rate lambda, including ranges.",
-        formula: "P(X = k) = (lambda^k * e^(-lambda)) / k!",
+        formula: "P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}",
       },
       {
         id: "hypergeometric",
         title: "Hypergeometric",
         description:
           "Sampling without replacement from a finite population.",
-        formula:
-          "P(X = k) = [C(K,k) * C(N-K,n-k)] / C(N,n)",
+        formula: "P(X = k) = \\frac{\\binom{K}{k} \\binom{N-K}{n-k}}{\\binom{N}{n}}",
       },
     ],
   },
@@ -61,14 +60,14 @@ export const STATISTICS_GROUPS: Record<StatisticsGroupSlug, StatisticsGroup> = {
         title: "Permutations",
         description:
           "Ordered arrangement count of r objects selected from n.",
-        formula: "P(n,r) = n! / (n-r)!",
+        formula: "P(n,r) = \\frac{n!}{(n-r)!}",
       },
       {
         id: "combinations",
         title: "Combinations",
         description:
           "Unordered selection count of r objects selected from n.",
-        formula: "C(n,r) = n! / (r! * (n-r)!)",
+        formula: "C(n,r) = \\binom{n}{r} = \\frac{n!}{r!\\,(n-r)!}",
       },
     ],
   },
@@ -83,21 +82,21 @@ export const STATISTICS_GROUPS: Record<StatisticsGroupSlug, StatisticsGroup> = {
         title: "T-Tests",
         description:
           "One-sample, paired, and independent test setups.",
-        formula: "t = (x_bar - mu_0) / (s / sqrt(n))",
+        formula: "t = \\frac{\\bar{x} - \\mu_0}{s/\\sqrt{n}}",
       },
       {
         id: "chi-square",
         title: "Chi-Square",
         description:
           "Goodness-of-fit and independence tests with expected counts.",
-        formula: "chi^2 = sum((O - E)^2 / E)",
+        formula: "\\chi^2 = \\sum \\frac{(O - E)^2}{E}",
       },
       {
         id: "anova",
         title: "ANOVA",
         description:
           "One-way and two-way variance decomposition and F testing.",
-        formula: "F = MS_between / MS_within",
+        formula: "F = \\frac{MS_{\\text{between}}}{MS_{\\text{within}}}",
       },
     ],
   },
@@ -112,28 +111,28 @@ export const STATISTICS_GROUPS: Record<StatisticsGroupSlug, StatisticsGroup> = {
         title: "Descriptive Stats",
         description:
           "Mean, median, mode, range, variance, and standard deviation.",
-        formula: "x_bar = (sum x_i) / n",
+        formula: "\\bar{x} = \\frac{\\sum x_i}{n}",
       },
       {
         id: "regression",
         title: "Regression",
         description:
           "Simple linear model, correlation, and significance summary.",
-        formula: "y_hat = a + b*x",
+        formula: "\\hat{y} = a + bx",
       },
       {
         id: "box-plot",
         title: "Box Plot",
         description:
           "Five-number summary, IQR fences, whiskers, and outlier checks.",
-        formula: "IQR = Q3 - Q1",
+        formula: "IQR = Q_3 - Q_1",
       },
       {
         id: "special-means",
         title: "Special Means",
         description:
           "Trimean, geometric mean, and trimmed-mean analysis.",
-        formula: "T = (Q1 + 2*Q2 + Q3) / 4",
+        formula: "T = \\frac{Q_1 + 2Q_2 + Q_3}{4}",
       },
     ],
   },
