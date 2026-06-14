@@ -3,8 +3,6 @@
 // numeric inputs and renders the result. Requests go through the Next.js proxy
 // route at /api/statistics/<operation> (the Express base URL is server-only).
 
-import { computeLocally } from "./local";
-
 export const STATISTICS_OPERATIONS = [
   "binomial-range",
   "binomial-normal-approx",
@@ -204,19 +202,10 @@ export async function runCalculation<T>(
 }
 
 // Returns the result plus worked-solution steps (used by inference/data tools).
-// Falls back to computing the result and steps locally when the backend is
-// unreachable, so the worked solution is still shown without a backend.
+// No local fallback - math runs on the backend.
 export async function runCalculationWithSteps<T>(
   operation: StatisticsOperation,
   payload: Record<string, unknown>,
 ): Promise<{ result: T; steps: SolutionStep[] }> {
-  try {
-    return await postCalculation<T>(operation, payload);
-  } catch (err) {
-    if (err instanceof BackendUnreachableError) {
-      const local = computeLocally(operation, payload);
-      return { result: local.result as T, steps: local.steps };
-    }
-    throw err;
-  }
+  return await postCalculation<T>(operation, payload);
 }

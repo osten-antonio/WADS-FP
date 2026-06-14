@@ -2,12 +2,12 @@
 
 import type { CSSProperties } from "react"
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { Camera, Send, Loader2, X } from "lucide-react"
+import { Camera, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useIsMobile, useIsBelowXl } from "@/hooks/use-mobile"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
 import { ShortcutBar, getShortcutsForTopic } from "@/components/calculator/ShortcutBar"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { MathKeyboardStyles } from "@/components/calculator/MathKeyboardStyles"
 import { KEYBOARD_OPTIONS } from "@/lib/keyboard-config"
 import type { MathFieldElement, MathVirtualKeyboard } from "@/lib/mathlive-types"
@@ -51,6 +51,17 @@ export function GenericCalcPage({
   const handleOpenFunctions = useCallback(() => {
     setIsFunctionsOpen(true)
   }, [])
+
+  const handleSolve = useCallback(async () => {
+    if (!expression.trim()) return
+    setIsSolving(true)
+    setHasResult(false)
+
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    setIsSolving(false)
+    setHasResult(true)
+  }, [expression])
 
   useEffect(() => {
     if (isMobile || !functionSelectorRef.current) return
@@ -124,7 +135,7 @@ export function GenericCalcPage({
 
       mf.current.mathVirtualKeyboardPolicy = "manual"
 
-      // @ts-ignore
+      // @ts-expect-error mathModeSpace is not in MathFieldElement type but exists at runtime
       mf.current.mathModeSpace = "\\ "
 
       mf.current.addEventListener("input", (ev) => {
@@ -274,7 +285,7 @@ export function GenericCalcPage({
       cleanupListeners?.()
       setInlineKeyboardHeight(null)
     }
-  }, [effectivePlacement])
+  }, [effectivePlacement, handleSolve])
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.mathVirtualKeyboard) {
@@ -288,17 +299,6 @@ export function GenericCalcPage({
     }
   }, [effectivePlacement])
 
-  const handleSolve = async () => {
-    if (!expression.trim()) return
-    setIsSolving(true)
-    setHasResult(false)
-
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsSolving(false)
-    setHasResult(true)
-  }
-
   return (
     <div className="flex flex-col min-h-screen h-full bg-slate-50/10">
       <main className="flex flex-col xl:flex-row p-4 gap-6 max-w-7xl mx-auto w-full">
@@ -307,7 +307,7 @@ export function GenericCalcPage({
             <h2 className="text-xl font-bold text-primary-dark/90 border-b pb-2">{topic}</h2>
             <div className="group gap-2 flex flex-row items-end">
               <div className="flex-1 flex flex-row items-end gap-2">
-                <div className="w-full max-w-[630px] overflow-hidden">
+                <div className="w-full max-w-[670px] overflow-hidden">
                    <math-field
                      ref={mf}
                      className="w-full rounded-lg border border-primary-light bg-scan-background px-3 py-2 text-lg"

@@ -1,7 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import { InputGroupButton } from "../ui/input-group";
 import { useState } from "react";
-import { Katex } from "./Katex";
 import { Markdown } from "./Markdown";
 
 export function HintBox({ number, hint }: { number: number, hint: string }){
