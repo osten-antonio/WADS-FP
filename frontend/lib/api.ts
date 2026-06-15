@@ -7,12 +7,37 @@ export class ApiError extends Error {
   }
 }
 
+export class CategoryMismatchError extends Error {
+  suggested: string;
+  constructor(suggested: string) {
+    super(`This problem looks like it belongs to "${suggested}".`);
+    this.name = "CategoryMismatchError";
+    this.suggested = suggested;
+  }
+}
+
+async function getAuthHeader(): Promise<string | undefined> {
+  if (typeof window === "undefined") return undefined;
+  const { auth } = await import("@/lib/firebase-client");
+  const user = auth.currentUser;
+  if (!user) return undefined;
+  try {
+    const token = await user.getIdToken();
+    return `Bearer ${token}`;
+  } catch {
+    return undefined;
+  }
+}
+
 async function apiPost<T>(url: string, body: Record<string, unknown>): Promise<T> {
   let res: Response;
+  const authHeader = await getAuthHeader();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (authHeader) headers["Authorization"] = authHeader;
   try {
     res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       credentials: "include",
       body: JSON.stringify(body),
     });
@@ -24,9 +49,12 @@ async function apiPost<T>(url: string, body: Record<string, unknown>): Promise<T
     throw new ApiError(UNREACHABLE_MESSAGE);
   }
 
-  const data = (await res.json().catch(() => null)) as T | { message?: string } | null;
+  const data = (await res.json().catch(() => null)) as T | { message?: string; code?: string; suggested?: string } | null;
 
   if (!res.ok) {
+    if (res.status === 422 && (data as { code?: string })?.code === "CATEGORY_NOT_MATCHING") {
+      throw new CategoryMismatchError((data as { suggested?: string })?.suggested ?? "General");
+    }
     throw new Error((data as { message?: string } | null)?.message ?? `Request failed (status ${res.status}).`);
   }
 
@@ -59,15 +87,19 @@ export interface PracticeGenerateResult {
   questions: string[];
 }
 
-export async function solveText(question: string, category: string): Promise<SolveResult> {
-  return apiPost<SolveResult>("/api/ingestion/text", { question, category, forced: false });
+export async function solveText(question: string, category: string, forced = false): Promise<SolveResult> {
+  return apiPost<SolveResult>("/api/ingestion/text", { question, category, forced });
 }
 
 export async function solveImage(formData: FormData): Promise<IngestionImageResult> {
   let res: Response;
+  const authHeader = await getAuthHeader();
+  const headers: Record<string, string> = {};
+  if (authHeader) headers["Authorization"] = authHeader;
   try {
     res = await fetch("/api/ingestion/image", {
       method: "POST",
+      headers,
       credentials: "include",
       body: formData,
     });

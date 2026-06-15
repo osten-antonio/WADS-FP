@@ -160,11 +160,13 @@ export async function handleTextUpload(req: Request, res: Response) {
 						id = recordedId;
 					}
 
+				if (aiResp.answer && aiResp.answer !== "None") {
 					try {
 						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, aiResp.answer as string, id);
 					} catch (e) {
 						console.error('Failed to cache AI answer', e);
 					}
+				}
 
 					// return the AI response but ensure it contains our submission id
 					aiResp.id = id;
