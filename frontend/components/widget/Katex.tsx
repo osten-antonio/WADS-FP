@@ -13,7 +13,7 @@ export function Katex({
   className?: string
 }) {
   const html = useMemo(
-    () => katex.renderToString(expression.replace(/\\\\/g, "\\"), { throwOnError: false }), // normalize
+    () => katex.renderToString(expression, { throwOnError: false }),
     [expression],
   )
   
