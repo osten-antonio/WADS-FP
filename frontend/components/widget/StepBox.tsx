@@ -1,25 +1,14 @@
 "use client"
 
-/*
-HOW TO USE THIS COMPONENT
-Because this component is originally spanning the entire page, to implement into a page, implement
-the following or similar code:
-
-<StepBox 
-  ...props
-  className="mx-auto max-w-2xl"
-/>
-
-For the "Explain", "Explained", and "Explaining..." text, that would depend on whether the 
-explanation already exists in the database or not on top of everything else.
-*/
-
-
 import * as React from "react"
 import { ChevronDown, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
+import { Markdown } from "./Markdown"
+import { Katex } from "./Katex"
+import { generateExplanation, followUpExplanation } from "@/lib/api"
+import { useCalculator } from "@/lib/calculator-context"
 
 export type StepBoxProps = {
   step: number | string
@@ -38,32 +27,57 @@ export function StepBox({
   expression,
   expressionNode,
   defaultOpen = false,
-  explainBody =
-    "This is a placeholder for the explain feature. It will call the backend when it is ready.",
+  explainBody,
   explainPlaceholder = "Ask a follow up question",
   className,
 }: StepBoxProps) {
+  const ctx = useCalculator()
+  const state = ctx?.state ?? { question: "", answer: "", category: "", topicSlug: "" }
   const [explainStatus, setExplainStatus] = React.useState<
     "idle" | "loading" | "done"
   >("idle")
-  const explainTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  )
+  const [explanationText, setExplanationText] = React.useState(explainBody ?? "")
+  const [followUpQuestion, setFollowUpQuestion] = React.useState("")
 
-  React.useEffect(() => {
-    return () => {
-      if (explainTimeoutRef.current) {
-        clearTimeout(explainTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const handleExplain = () => {
+  const handleExplain = async () => {
     if (explainStatus !== "idle") return
     setExplainStatus("loading")
-    explainTimeoutRef.current = setTimeout(() => {
+
+    try {
+      const result = await generateExplanation(state.question, state.answer, {
+        step: Number(step),
+        explanation: summary,
+      })
+      setExplanationText(result.explanation)
       setExplainStatus("done")
-    }, 900)
+    } catch {
+      setExplanationText("Failed to generate explanation. Please try again.")
+      setExplainStatus("done")
+    }
+  }
+
+  const handleFollowUp = async () => {
+    if (!followUpQuestion.trim() || explainStatus !== "done") return
+
+    try {
+      const result = await followUpExplanation(
+        explanationText,
+        followUpQuestion,
+        state.question,
+        state.answer,
+      )
+      setExplanationText((prev) => `${prev}\n\n${result.explanation}`)
+      setFollowUpQuestion("")
+    } catch {
+      // follow-up failed silently
+    }
+  }
+
+  const handleFollowUpKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      void handleFollowUp()
+    }
   }
 
   return (
@@ -88,9 +102,9 @@ export function StepBox({
       </div>
 
       <CollapsibleContent className="px-5 pb-3">
-        <p className="text-sm text-slate-700 text-left">{summary}</p>
+        <Markdown className="text-sm text-slate-700 text-left" content={summary} inline />
         <div className="mt-3 text-center text-lg font-semibold text-slate-900">
-          {expressionNode ?? <span className="font-mono">{expression}</span>}
+          {expressionNode ?? (expression ? <Katex expression={expression} className="font-mono" /> : null)}
         </div>
 
         <div className="mt-4 flex items-center justify-end">
@@ -113,15 +127,14 @@ export function StepBox({
 
         {explainStatus !== "idle" ? (
           <div className="mt-3 rounded-xl border border-dashed border-slate-500/60 bg-[#B3E0D7] p-4 text-sm text-slate-800">
-            <p className="mt-1 text-slate-700">
-              {explainStatus === "loading"
-                ? "Fetching explanation..."
-                : explainBody}
-            </p>
+            <Markdown className="mt-1 text-slate-700" content={explainStatus === "loading" ? "Fetching explanation..." : explanationText} />
             <div className="mt-3">
               <div className="relative">
                 <textarea
                   rows={2}
+                  value={followUpQuestion}
+                  onChange={(e) => setFollowUpQuestion(e.target.value)}
+                  onKeyDown={handleFollowUpKeyDown}
                   placeholder={explainPlaceholder}
                   disabled={explainStatus !== "done"}
                   className="w-full resize-none rounded-lg border border-slate-400/70 bg-white/80 px-3 pb-9 pt-2 pr-12 text-sm leading-5 text-slate-800 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-300/50 disabled:cursor-not-allowed disabled:opacity-70"
@@ -129,7 +142,8 @@ export function StepBox({
                 <Button
                   type="button"
                   size="icon-sm"
-                  disabled={explainStatus !== "done"}
+                  disabled={explainStatus !== "done" || !followUpQuestion.trim()}
+                  onClick={handleFollowUp}
                   className="absolute bottom-2 right-2 size-8 rounded-full bg-transparent text-slate-600 shadow-none hover:bg-slate-900/5 hover:text-slate-800 disabled:opacity-50"
                   aria-label="Send question"
                 >

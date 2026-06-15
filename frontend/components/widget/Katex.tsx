@@ -13,8 +13,9 @@ export function Katex({
   className?: string
 }) {
   const html = useMemo(
-    () => katex.renderToString(expression, { throwOnError: false }),
+    () => katex.renderToString(expression.replace(/\\\\/g, "\\"), { throwOnError: false }), // normalize
     [expression],
   )
+  
   return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />
 }

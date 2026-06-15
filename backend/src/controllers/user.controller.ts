@@ -87,7 +87,8 @@ export async function login(req: Request, res: Response) {
         name: userAccount.displayName,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("[login] error:", err);
     return sendErrorResponse(res, 401, "Invalid or expired token");
   }
 }

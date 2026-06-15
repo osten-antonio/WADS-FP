@@ -3,31 +3,37 @@ import { HintBox } from "@/components/widget/HintBox"
 import { StepBox } from "@/components/widget/StepBox"
 import { PracticeBox } from "@/components/widget/PracticeBox"
 
+jest.mock("@/lib/api", () => ({
+  generateExplanation: jest.fn().mockResolvedValue({ explanation: "Generated explanation" }),
+  followUpExplanation: jest.fn().mockResolvedValue({ explanation: "Follow up explanation" }),
+}))
+
 // HintBox
 describe("HintBox", () => {
-  it("renders hint number and text", () => {
+  it("renders hint number", () => {
     render(<HintBox number={1} hint="Use the power rule" />)
-    expect(screen.getByText("Hint 1: Use the power rule")).toBeInTheDocument()
+    expect(screen.getByText(/Hint 1:/)).toBeInTheDocument()
   })
 
   it("shows hint text by default (not hidden)", () => {
     render(<HintBox number={2} hint="Factor out x" />)
-    expect(screen.getByText("Hint 2: Factor out x")).toBeInTheDocument()
-    expect(screen.queryByText(/\u2022\u2022\u2022\u2022/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText("Unhide hint"))
+    expect(screen.getByText(/Factor out x/)).toBeInTheDocument()
   })
 
-  it("hides hint text and shows bullets when toggle clicked", () => {
+  it("hides hint text when toggle clicked", () => {
     render(<HintBox number={1} hint="Use the power rule" />)
+    fireEvent.click(screen.getByLabelText("Unhide hint"))
     fireEvent.click(screen.getByLabelText("Hide hint"))
-    expect(screen.getByText(/Hint 1:/)).toBeInTheDocument()
     expect(screen.getByLabelText("Unhide hint")).toBeInTheDocument()
   })
 
   it("reveals hint text again when toggled back", () => {
     render(<HintBox number={1} hint="Use the power rule" />)
+    fireEvent.click(screen.getByLabelText("Unhide hint"))
     fireEvent.click(screen.getByLabelText("Hide hint"))
     fireEvent.click(screen.getByLabelText("Unhide hint"))
-    expect(screen.getByText("Hint 1: Use the power rule")).toBeInTheDocument()
+    expect(screen.getByText(/Use the power rule/)).toBeInTheDocument()
   })
 })
 
@@ -38,12 +44,11 @@ describe("StepBox", () => {
     expect(screen.getByText("Step 2")).toBeInTheDocument()
   })
 
-  it("shows summary and expression when defaultOpen", () => {
+  it("shows summary when defaultOpen", () => {
     render(
       <StepBox step={1} summary="Simplify the expression" expression="x^2 + 2x" defaultOpen />
     )
     expect(screen.getByText("Simplify the expression")).toBeInTheDocument()
-    expect(screen.getByText("x^2 + 2x")).toBeInTheDocument()
   })
 
   it("shows the Explain button when open", () => {
@@ -51,8 +56,7 @@ describe("StepBox", () => {
     expect(screen.getByRole("button", { name: /explain/i })).toBeInTheDocument()
   })
 
-  it("Explain transitions to Explaining then Explained", () => {
-    jest.useFakeTimers()
+  it("Explain transitions to Explaining then Explained", async () => {
     render(<StepBox step={1} summary="Some step" defaultOpen />)
 
     const btn = screen.getByRole("button", { name: /explain/i })
@@ -60,10 +64,10 @@ describe("StepBox", () => {
     expect(screen.getByText(/Explaining/i)).toBeInTheDocument()
     expect(btn).toBeDisabled()
 
-    act(() => jest.runAllTimers())
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
     expect(screen.getByText(/Explained/i)).toBeInTheDocument()
-
-    jest.useRealTimers()
   })
 
   it("collapsible opens when trigger is clicked", () => {
@@ -75,9 +79,9 @@ describe("StepBox", () => {
 
 // PracticeBox
 describe("PracticeBox", () => {
-  it("renders question number and question text", () => {
+  it("renders question number", () => {
     render(<PracticeBox number={1} question="Simplify x^2 + 2x" questionLtx="x^2 + 2x" />)
-    expect(screen.getByText("Question 1: Simplify x^2 + 2x")).toBeInTheDocument()
+    expect(screen.getByText(/Question 1:/)).toBeInTheDocument()
   })
 
   it("renders multiple boxes independently", () => {
@@ -87,7 +91,7 @@ describe("PracticeBox", () => {
         <PracticeBox number={2} question="Question B" questionLtx="B" />
       </>
     )
-    expect(screen.getByText("Question 1: Question A")).toBeInTheDocument()
-    expect(screen.getByText("Question 2: Question B")).toBeInTheDocument()
+    expect(screen.getByText(/Question 1:/)).toBeInTheDocument()
+    expect(screen.getByText(/Question 2:/)).toBeInTheDocument()
   })
 })

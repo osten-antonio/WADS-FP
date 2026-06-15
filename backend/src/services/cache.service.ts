@@ -1,7 +1,7 @@
 import { redis } from "../lib/redis";
 import { createHash } from "crypto";
 
-type StepItem = { step: number; explanation: string };
+type StepItem = { step: number; explanation: string; equation?: string | undefined };
 
 const DEFAULT_TTL = parseInt(process.env.REDIS_TTL_SECONDS ?? "604800", 10); // 7 days
 
@@ -64,6 +64,25 @@ export async function setStepsForQuestion(question: string, steps: StepItem[], s
   }
 }
 
+type HintItem = { text: string };
+type HintData = { hintGeneral: string; hints: HintItem[] };
+
+export async function getHintsForQuestion(question: string): Promise<HintData | null> {
+  const long = longHashFor(question);
+  const v = await redis.get(`hints:${long}`);
+  if (!v) return null;
+  try {
+    return JSON.parse(v) as HintData;
+  } catch {
+    return null;
+  }
+}
+
+export async function setHintsForQuestion(question: string, hints: HintData, ttl = DEFAULT_TTL) {
+  const long = longHashFor(question);
+  await redis.set(`hints:${long}`, JSON.stringify(hints), "EX", ttl);
+}
+
 export async function getPracticeListForQuestion(question: string): Promise<string[]> {
   const long = longHashFor(question);
   const items = await redis.lrange(`practice:${long}`, 0, -1);
@@ -97,6 +116,8 @@ export default {
   setAnswerForQuestionWithSubmissionId,
   getStepsForQuestion,
   setStepsForQuestion,
+  getHintsForQuestion,
+  setHintsForQuestion,
   getPracticeListForQuestion,
   appendPracticeListForQuestion,
   ensurePracticeItems,

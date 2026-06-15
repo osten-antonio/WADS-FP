@@ -3,8 +3,6 @@
 // numeric inputs and renders the result. Requests go through the Next.js proxy
 // route at /api/statistics/<operation> (the Express base URL is server-only).
 
-import { computeLocally } from "./local";
-
 export const STATISTICS_OPERATIONS = [
   "binomial-range",
   "binomial-normal-approx",
@@ -155,6 +153,41 @@ export interface SolutionStep {
   expression?: string;
 }
 
+// Backend step shape (from CalculationStep in backend types).
+interface BackendStep {
+  id: string;
+  title: string;
+  description?: string;
+  formula?: string;
+  calculation?: string;
+  result?: string;
+  note?: string;
+}
+
+// Backend calculation result envelope (from CalculationResult in backend types).
+interface BackendCalculationResult {
+  value: unknown;
+  steps?: BackendStep[];
+  formula?: string;
+  inputs?: Record<string, string | number>;
+}
+
+// Maps a backend CalculationStep into the frontend SolutionStep shape
+// expected by StepBox (step, summary, expression).
+function mapStep(s: BackendStep): SolutionStep {
+  const parts: string[] = [];
+  if (s.title) parts.push(`**${s.title}**`);
+  if (s.description) parts.push(s.description);
+  if (s.calculation) parts.push(s.calculation);
+  if (s.result) parts.push(`Result: ${s.result}`);
+  if (s.note) parts.push(s.note);
+  return {
+    step: s.id,
+    summary: parts.join("\n\n") || s.title,
+    expression: s.formula,
+  };
+}
+
 // Thrown when the backend can't be reached (network failure or proxy 502/504),
 // as opposed to a genuine validation/calculation error from a live backend.
 export class BackendUnreachableError extends Error {}
@@ -183,7 +216,7 @@ async function postCalculation<T>(
   }
 
   const data = (await res.json().catch(() => null)) as
-    | { result?: T; steps?: SolutionStep[]; message?: string }
+    | { result?: BackendCalculationResult | unknown; message?: string }
     | null;
 
   if (!res.ok) {
@@ -192,7 +225,25 @@ async function postCalculation<T>(
   if (!data || !("result" in data)) {
     throw new Error("Calculation service returned an unexpected response.");
   }
-  return { result: data.result as T, steps: data.steps ?? [] };
+
+  const envelope = data.result;
+
+  // Backend service-layer ops return { result: { value, steps, formula, inputs } }.
+  if (
+    envelope &&
+    typeof envelope === "object" &&
+    "value" in envelope &&
+    "steps" in envelope
+  ) {
+    const calc = envelope as BackendCalculationResult;
+    return {
+      result: calc.value as T,
+      steps: (calc.steps ?? []).map(mapStep),
+    };
+  }
+
+  // Direct math ops return { result: <plain value> } with no steps.
+  return { result: envelope as T, steps: [] };
 }
 
 // Returns just the typed result (used by probability/counting/reference tools).
@@ -204,19 +255,10 @@ export async function runCalculation<T>(
 }
 
 // Returns the result plus worked-solution steps (used by inference/data tools).
-// Falls back to computing the result and steps locally when the backend is
-// unreachable, so the worked solution is still shown without a backend.
+// No local fallback - math runs on the backend.
 export async function runCalculationWithSteps<T>(
   operation: StatisticsOperation,
   payload: Record<string, unknown>,
 ): Promise<{ result: T; steps: SolutionStep[] }> {
-  try {
-    return await postCalculation<T>(operation, payload);
-  } catch (err) {
-    if (err instanceof BackendUnreachableError) {
-      const local = computeLocally(operation, payload);
-      return { result: local.result as T, steps: local.steps };
-    }
-    throw err;
-  }
+  return await postCalculation<T>(operation, payload);
 }

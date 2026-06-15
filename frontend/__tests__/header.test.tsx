@@ -20,7 +20,7 @@ describe("Header", () => {
       </SidebarProvider>
     )
 
-    expect(screen.getAllByText("Calculator")[0]).toBeInTheDocument()
+    expect(screen.getByText("AIMS")).toBeInTheDocument()
     await user.click(screen.getByLabelText("Open account menu"))
     expect(screen.getByText("Login")).toBeInTheDocument()
     expect(screen.getByText("Sign Up")).toBeInTheDocument()
@@ -42,7 +42,7 @@ describe("Header", () => {
     )
 
     await user.click(screen.getByLabelText("Open account menu"))
-    expect(screen.getByText("Profile")).toBeInTheDocument()
+    expect(screen.getByText("Test User")).toBeInTheDocument()
     expect(screen.getByText("Logout")).toBeInTheDocument()
   })
 })

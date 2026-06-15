@@ -6,7 +6,8 @@ import { validateCategory } from "../middleware/validate.middleware";
 import {
     apiSecurityHeaders,
     validateFollowUpSecurity,
-    validateGenerateExplanationSecurity
+    validateGenerateExplanationSecurity,
+    validateStepsRequestSecurity
 } from "../middleware/security.middleware";
 
 /**
@@ -56,7 +57,7 @@ const explanationRouter = express.Router();
  *             example:
  *               message: "Invalid request parameters"
  */
-explanationRouter.post('/steps/', ollamaRateLimit, validateCategory, steps);
+explanationRouter.post('/steps/', ollamaRateLimit, validateStepsRequestSecurity, validateCategory, steps);
 
 /**
  * @openapi
@@ -93,7 +94,7 @@ explanationRouter.post('/steps/', ollamaRateLimit, validateCategory, steps);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-explanationRouter.post('/hint/', ollamaRateLimit, validateCategory, hint);
+explanationRouter.post('/hint/', ollamaRateLimit, validateStepsRequestSecurity, validateCategory, hint);
 
 /**
  * @openapi
