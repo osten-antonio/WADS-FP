@@ -259,6 +259,62 @@ export function validateIngestionTextSecurity(req: Request, res: Response, next:
   next();
 }
 
+export function validateStepsRequestSecurity(req: Request, res: Response, next: NextFunction): void {
+  if (!validateBodyObject(req, res)) return;
+
+  const question = sanitizeStringField({
+    field: "question",
+    value: req.body.question,
+    minLength: 1,
+    maxLength: 2000,
+    blockPromptInjection: true,
+    blockDangerousMarkup: true,
+  });
+
+  if (!question.ok) {
+    fail(res, question.error, "SECURITY_INVALID_QUESTION");
+    return;
+  }
+
+  req.body.question = question.value;
+
+  if (typeof req.body.answer === "string") {
+    const answer = sanitizeStringField({
+      field: "answer",
+      value: req.body.answer,
+      minLength: 1,
+      maxLength: 2000,
+      blockDangerousMarkup: true,
+    });
+
+    if (!answer.ok) {
+      fail(res, answer.error, "SECURITY_INVALID_ANSWER");
+      return;
+    }
+
+    req.body.answer = answer.value;
+  }
+
+  if (typeof req.body.category === "string") {
+    const category = sanitizeStringField({
+      field: "category",
+      value: req.body.category,
+      minLength: 1,
+      maxLength: 64,
+      blockDangerousMarkup: true,
+    });
+
+    if (!category.ok) {
+      fail(res, category.error, "SECURITY_INVALID_CATEGORY");
+      return;
+    }
+
+    req.body.category = category.value;
+  }
+
+  next();
+}
+
 export function validateGenerateExplanationSecurity(req: Request, res: Response, next: NextFunction): void {
   if (!validateBodyObject(req, res)) return;
 

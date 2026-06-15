@@ -985,6 +985,8 @@ function AnovaTool() {
           .map((line) => parseNumberList(line))
           .filter((line) => line.length > 0);
         const { result: output, steps } = await runCalculationWithSteps<OneWayAnovaResult>("one-way-anova", { groups });
+        console.log(output);
+        console.log(steps);
         setSteps(steps);
         setResult([
           { label: "F-statistic", value: formatNumber(output.fStat, 6) },
@@ -997,6 +999,8 @@ function AnovaTool() {
 
       const grid = parseTwoWayAnovaGrid(twoWayInput);
       const { result: output, steps } = await runCalculationWithSteps<TwoWayAnovaResult>("two-way-anova", { data: grid });
+      console.log(steps);
+      console.log(output);
       setSteps(steps);
       setResult([
         { label: "F row", value: formatNumber(output.fRow, 6) },

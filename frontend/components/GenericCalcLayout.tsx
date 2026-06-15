@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { solveText } from "@/lib/api"
 import { useCalculator } from "@/lib/calculator-context"
 import { CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics"
+import { textToLatex } from "@/lib/text-to-latex"
 
 export function GenericCalcPage({
   SolutionScreen,
@@ -26,7 +27,8 @@ export function GenericCalcPage({
   topicSlug?: string
 }) {
   const router = useRouter();
-  const { setSolved } = useCalculator();
+  const ctx = useCalculator();
+  const setSolved = ctx?.setSolved ?? (() => {});
   const mf = useRef<MathFieldElement | null>(null)
   const inlineKeyboardHostRef = useRef<HTMLDivElement | null>(null)
   const functionSelectorRef = useRef<HTMLDivElement | null>(null)
@@ -82,9 +84,10 @@ export function GenericCalcPage({
     const scannedQuestion = localStorage.getItem("scannedQuestion")
     if (scannedQuestion) {
       localStorage.removeItem("scannedQuestion")
-      setExpression(scannedQuestion)
+      const latex = textToLatex(scannedQuestion)
+      setExpression(latex)
       if (mf.current) {
-        mf.current.value = scannedQuestion
+        mf.current.value = latex
       }
       setIsSolving(true)
       solveText(scannedQuestion, category)
@@ -177,6 +180,8 @@ export function GenericCalcPage({
       // @ts-expect-error mathModeSpace is not in MathFieldElement type but exists at runtime
       mf.current.mathModeSpace = "\\ "
 
+      mf.current.setOptions({ defaultMode: "text" })
+
       mf.current.addEventListener("input", (ev) => {
         setExpression((ev.target as MathFieldElement).value)
       })
@@ -194,13 +199,22 @@ export function GenericCalcPage({
           const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
           keyboard?.show()
         }
+        requestAnimationFrame(() => {
+          mf.current?.executeCommand(["moveToEnd"])
+        })
         syncInlineKeyboardHeight()
       }
 
-      const handleFocusOut = () => {
+      const handleFocusOut = (ev: FocusEvent) => {
+        const relatedTarget = ev.relatedTarget as HTMLElement | null
+        const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
+
+        if (relatedTarget && keyboard?.container?.contains(relatedTarget)) {
+          return
+        }
+
         setIsFocused(false)
         if (effectivePlacement !== "inline") {
-          const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
           keyboard?.hide()
           setMobileKeyboardHeight(0)
         }

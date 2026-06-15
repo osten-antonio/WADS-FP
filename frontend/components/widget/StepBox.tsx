@@ -31,7 +31,8 @@ export function StepBox({
   explainPlaceholder = "Ask a follow up question",
   className,
 }: StepBoxProps) {
-  const { state } = useCalculator()
+  const ctx = useCalculator()
+  const state = ctx?.state ?? { question: "", answer: "", category: "", topicSlug: "" }
   const [explainStatus, setExplainStatus] = React.useState<
     "idle" | "loading" | "done"
   >("idle")
@@ -65,7 +66,7 @@ export function StepBox({
         state.question,
         state.answer,
       )
-      setExplanationText(result.explanation)
+      setExplanationText((prev) => `${prev}\n\n${result.explanation}`)
       setFollowUpQuestion("")
     } catch {
       // follow-up failed silently

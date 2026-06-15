@@ -27,7 +27,7 @@ async function convertImageToPdf(imageBuffer: Buffer): Promise<Buffer> {
 
   const maxWidth = 500;
   const maxHeight = 700;
-  let scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+  const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
 
 
   const imgWidth = image.width * scale;
@@ -47,40 +47,69 @@ async function convertImageToPdf(imageBuffer: Buffer): Promise<Buffer> {
   return Buffer.from(await pdfDoc.save());
 }
 
-async function performOCR(buffer: Buffer): Promise<string> {
+// async function performOCR(buffer: Buffer): Promise<string> {
+//   try {
+//     const pdfBuffer = await convertImageToPdf(buffer);
+
+
+//     const form = new FormData();
+
+//     form.append('file', pdfBuffer, {
+//       filename: 'document.pdf',
+//       contentType: 'application/pdf',
+//     });
+
+//     const baseUrl = process.env.NOUGAT_URL;
+//     if (!baseUrl) {
+//         throw new Error('NOUGAT_URL is not defined in .env');
+//     }
+//     const ocr_url = baseUrl.endsWith('/') ? `${baseUrl}predict/` : `${baseUrl}/predict/`;
+//     console.log(ocr_url);
+//     const response = await axios.post(
+//       ocr_url,
+//       form,
+//       {
+//         headers: {
+//           ...form.getHeaders(),
+//         }
+//       }
+//     );
+
+//     console.log("OCR Response");
+//     console.log(response);
+
+//     // TODO check response data
+//     return typeof response.data === 'string' ? response.data : response.data.text ?? JSON.stringify(response.data);
+
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error('OCR Request Failed:', error.response?.data || error.message);
+//     } else {
+//       console.error('Conversion Error:', error);
+//     }
+//     throw new Error('Failed to perform OCR');
+//   }
+// }
+
+async function performOCR(buffer: Buffer, mimetype: string): Promise<string> {
   try {
-    const pdfBuffer = await convertImageToPdf(buffer);
-
-
     const form = new FormData();
-
-    form.append('file', pdfBuffer, {
-      filename: 'document.pdf',
-      contentType: 'application/pdf',
+    form.append('file', buffer, {
+      filename: 'equation.png',
+      contentType: mimetype,  // pass through original image type
     });
 
     const baseUrl = process.env.NOUGAT_URL;
     if (!baseUrl) {
-        throw new Error('NOUGAT_URL is not defined in .env');
+      throw new Error('NOUGAT_URL is not defined in .env');
     }
     const ocr_url = baseUrl.endsWith('/') ? `${baseUrl}predict/` : `${baseUrl}/predict/`;
-    console.log(ocr_url);
-    const response = await axios.post(
-      ocr_url,
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-        }
-      }
-    );
 
-    console.log("OCR Response");
-    console.log(response);
+    const response = await axios.post(ocr_url, form, {
+      headers: { ...form.getHeaders() },
+    });
 
-    // TODO check response data
-    return response.data.text || JSON.stringify(response.data);
-
+    return typeof response.data === 'string' ? response.data : response.data.text ?? JSON.stringify(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('OCR Request Failed:', error.response?.data || error.message);
@@ -92,7 +121,6 @@ async function performOCR(buffer: Buffer): Promise<string> {
 }
 
 
-
 export async function processImageUpload(file: Express.Multer.File): Promise<IngestionResult> {
   // validate file using zod schema (ingestionImage expects an array shape)
 	try{
@@ -101,7 +129,7 @@ export async function processImageUpload(file: Express.Multer.File): Promise<Ing
 		const buffer = file.buffer;
 		if (!buffer) throw new Error("Uploaded file missing buffer");
 
-		const ocrText = await performOCR(buffer);
+		const ocrText = await performOCR(buffer, file.mimetype);
 		console.log(ocrText);
 		
 		const validated = ingestionResponse.parse({ question: ocrText });

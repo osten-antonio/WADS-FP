@@ -1,7 +1,7 @@
 import { redis } from "../lib/redis";
 import { createHash } from "crypto";
 
-type StepItem = { step: number; explanation: string };
+type StepItem = { step: number; explanation: string; equation?: string | undefined };
 
 const DEFAULT_TTL = parseInt(process.env.REDIS_TTL_SECONDS ?? "604800", 10); // 7 days
 

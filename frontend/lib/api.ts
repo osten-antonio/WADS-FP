@@ -43,7 +43,7 @@ export interface IngestionImageResult {
 }
 
 export interface ExplanationStepsResult {
-  steps: Array<{ step: number; explanation: string }>;
+  steps: Array<{ step: number; explanation: string; equation?: string }>;
 }
 
 export interface ExplanationHintResult {

@@ -8,7 +8,6 @@ import { StepBox } from "../widget/StepBox"
 import { Separator } from "../ui/separator"
 import { HintBox } from "../widget/HintBox"
 import { PracticeBox } from "../widget/PracticeBox"
-import { Katex } from "../widget/Katex"
 import { useCalculator } from "@/lib/calculator-context"
 import {
   getExplanationSteps,
@@ -20,7 +19,8 @@ import {
 } from "@/lib/api"
 
 export function Result() {
-  const { state } = useCalculator()
+  const ctx = useCalculator()
+  const state = ctx?.state ?? { question: "", answer: "", category: "", topicSlug: "" }
   const [copied, setCopied] = useState(false)
   const [hidden, setHidden] = useState(true)
   const [activeTab, setActiveTab] = useState<string | null>(null)
@@ -91,11 +91,6 @@ export function Result() {
   return (
     <div className="w-full flex flex-col gap-4 min-h-[400px]">
       <h1 className="text-xl text-left font-bold">Solution</h1>
-      {resultValue && (
-        <div className="text-left py-2">
-          <Katex expression={resultValue} className="text-2xl font-medium" />
-        </div>
-      )}
       <InputGroup className="w-full">
         <InputGroupInput value={hidden ? maskedValue : resultValue} readOnly />
         <InputGroupAddon align="inline-end">
@@ -131,6 +126,7 @@ export function Result() {
                   key={s.step}
                   step={s.step}
                   summary={s.explanation}
+                  expression={s.equation}
                 />
               ))}
             </>
@@ -164,7 +160,7 @@ export function Result() {
           ) : practiceData ? (
             <div className="flex gap-2 flex-col">
               {practiceData.questions.map((q, i) => (
-                <PracticeBox key={i} number={i + 1} question={q} questionLtx={q} />
+                <PracticeBox key={i} number={i + 1} question={q} />
               ))}
             </div>
           ) : (
