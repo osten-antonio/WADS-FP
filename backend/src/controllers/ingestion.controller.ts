@@ -77,9 +77,9 @@ export async function handleTextUpload(req: Request, res: Response) {
 		const result = await processTextUpload(parsed.question, parsed.category);
 
 		try {
-			// Check cache first
+			// Check cache first (skip if cached answer is "None" - it's an invalid cached result)
 			const cached = await cacheService.getAnswerByQuestion(result.question);
-			if (cached) {
+			if (cached && cached.answer?.trim().toLowerCase() !== "none") {
 				let submissionId = cached.submissionId ?? null;
 				if (!submissionId) {
 					submissionId = randomUUID();
@@ -132,6 +132,10 @@ export async function handleTextUpload(req: Request, res: Response) {
 				return res.json(solveResponse.parse({ answer: result_answer.answer, id }));
 			}
 			
+			const forcedNote = parsed.forced
+				? `\nThe user has explicitly requested you to solve this problem (forced mode). You MUST attempt to solve it regardless. Do NOT respond with "Not a math question".`
+				: `\nIf it is not a math question, respond with "Not a math question".`;
+
 			const prompt = `
 			Solve the following math question. The user's chosen category is "${parsed.category}".
 			You MUST attempt to solve the problem using your full mathematical knowledge, 
@@ -140,43 +144,42 @@ export async function handleTextUpload(req: Request, res: Response) {
 			with the answer, no filler text, e.g. "The answer of ___ is ___". 
 			You must ONLY respond with the final answer, no steps.
 
-			return ONLY valid JSON matching the schema {\n  "answer": "<string>",\n  "id": "<string>"\n}
-			If it is not a math question, respond with "Not a math question" 
+			return ONLY valid JSON matching the schema {\n  "answer": "<string>",\n  "id": "<string>"\n}${forcedNote}
 			Question: ${result.question}`;
 			const aiResp = await call_ollama(prompt, solveResponse);
-			if (JSON.stringify(aiResp).includes("Not a math question")) {
+
+			if (!parsed.forced && JSON.stringify(aiResp).includes("Not a math question")) {
 				throw Error('Not a math question');
 			}
 
-				if (aiResp?.id) {
-					// We will create our own submission id and persist it
-					let id: string = randomUUID();
-					const submissionObj = {
-						id,
-						inputMode: "TEXT" as const,
-						category: parsed.category ?? "General",
-						type: "INGESTION",
-						subtype: null,
-						text: result.question,
-					};
+			const answerStr = typeof aiResp.answer === "string" ? aiResp.answer.trim() : "";
+			if (!answerStr || answerStr.toLowerCase() === "none") {
+				return sendErrorResponse(res, 500, "AI could not solve this question");
+			}
 
-					const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
-					if (recordedId) {
-						id = recordedId;
-					}
+			// We will create our own submission id and persist it
+			let id: string = randomUUID();
+			const submissionObj = {
+				id,
+				inputMode: "TEXT" as const,
+				category: parsed.category ?? "General",
+				type: "INGESTION",
+				subtype: null,
+				text: result.question,
+			};
 
-				if (aiResp.answer && aiResp.answer !== "None") {
-					try {
-						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, aiResp.answer as string, id);
-					} catch (e) {
-						console.error('Failed to cache AI answer', e);
-					}
-				}
+			const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
+			if (recordedId) {
+				id = recordedId;
+			}
 
-					// return the AI response but ensure it contains our submission id
-					aiResp.id = id;
-				}
+			try {
+				await cacheService.setAnswerForQuestionWithSubmissionId(result.question, answerStr, id);
+			} catch (e) {
+				console.error('Failed to cache AI answer', e);
+			}
 
+			aiResp.id = id;
 			return res.json(aiResp);
 	
 		} catch (err: unknown) {
