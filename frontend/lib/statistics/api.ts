@@ -174,6 +174,10 @@ interface BackendCalculationResult {
 
 // Maps a backend CalculationStep into the frontend SolutionStep shape
 // expected by StepBox (step, summary, expression).
+//
+// The formula field is rendered as LaTeX via KaTeX in the expression slot.
+// The summary is rendered as Markdown; the backend wraps LaTeX in description,
+// calculation, and note fields with $...$ so remark-math + rehype-katex render them.
 function mapStep(s: BackendStep): SolutionStep {
   const parts: string[] = [];
   if (s.title) parts.push(`**${s.title}**`);

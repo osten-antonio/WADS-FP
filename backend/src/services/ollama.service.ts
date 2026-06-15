@@ -1,5 +1,6 @@
 import { Ollama } from 'ollama';
 import { type ZodObject, type ZodRawShape, type z, toJSONSchema, ZodError } from 'zod';
+import { repairJsonEscapes } from '../lib/repair-json-escapes';
 
 
 const host = process.env.OLLAMA_URL;
@@ -27,7 +28,14 @@ export async function call_ollama<T extends ZodRawShape>(prompt: string, schema:
             throw new Error('Ollama returned an empty response.');
         }
 
-        return schema.parse(JSON.parse(response.message.content));
+        // The model sometimes under-escapes backslashes in JSON (e.g. "\frac"),
+        // which JSON.parse corrupts or rejects. Repair before parsing (Fix B).
+        const content = response.message.content;
+        const repaired = repairJsonEscapes(content);
+        if (repaired !== content && process.env.NODE_ENV !== 'production') {
+            console.warn('[ollama] model under-escaped backslashes in JSON; repaired before parse (the prompt-level escaping rule may need attention)');
+        }
+        return schema.parse(JSON.parse(repaired));
 
     } catch (error: unknown) {
         if (typeof error === 'object' && error !== null && 'status' in error) {

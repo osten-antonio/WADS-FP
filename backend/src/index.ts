@@ -8,7 +8,7 @@ import explanationRouter from "./routes/explanation.routes";
 import practiceRouter from "./routes/practice.routes";
 import userRouter from "./routes/user.routes";
 import statisticsRouter from "./routes/statistics.routes";
-
+import path from 'path';
 import { setDefaultResultOrder } from 'dns';
 setDefaultResultOrder('ipv4first');
 
@@ -21,6 +21,7 @@ import { practiceRequest, practiceResponse, practiceRefresh } from "./schemas/pr
 import { userAccountSchema, updateUsernameRequest, forgotPasswordRequest, changePasswordRequest, historyFilterRequest, deleteHistoryRequest, problemSubmissionSchema, historyResponse, deleteHistoryResponse, profileResponse } from "./schemas/user.schema";
 import { ErrorResponse } from "./schemas/error.schema";
 import * as statisticsSchema from "./schemas/statistics.schema";
+
 
 const app: Application = express();
 const port = parseInt(process.env.BACKEND_PORT ?? '8000', 10);
@@ -119,13 +120,18 @@ const options = {
       }
     }
   },
-  apis: ['./src/routes/*.ts', './src/index.ts'], 
+    apis: [
+      path.join(__dirname, './routes/*.ts'), // ts-node / tsx dev
+      path.join(__dirname, './routes/*.js'), // compiled output
+      path.join(__dirname, './index.ts'),
+      path.join(__dirname, './index.js'),
+  ],
 };
 
 
 const openapiSpecification = swaggerJsdoc(options);
 
-
+app.use('/', swaggerUi.serve);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 
 // Register API routes
@@ -135,6 +141,7 @@ app.use('/explanation', explanationRouter);
 app.use('/practice', practiceRouter);
 app.use('/user', userRouter);
 app.use('/statistics', statisticsRouter);
+
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');

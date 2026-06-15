@@ -70,7 +70,6 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-backend:latest
-          no-cache: true
 
       - name: Build DB migration image (local target)
         run: |
@@ -131,7 +130,6 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-frontend:latest
-          no-cache: true
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -145,7 +143,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
         run: |
           cd frontend
           docker compose pull frontend
-          docker compose up -d --no-deps --force-recreate --build frontend 
+          docker compose up -d --no-deps --force-recreate frontend 
 
       - name: Cleanup dangling images
         run: docker image prune -f

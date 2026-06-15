@@ -20,9 +20,17 @@ describe("Markdown", () => {
     expect(container.innerHTML).toContain("katex")
   })
 
-  it("renders block LaTeX math", () => {
+  it("renders single-line $$math$$ as inline KaTeX without leaking literal dollar signs", () => {
     const { container } = render(<Markdown content="$$E = mc^2$$" />)
     expect(container.innerHTML).toContain("katex")
+    // The old regex parser leaked stray $ around the math; the pipeline must not.
+    expect(container.textContent).not.toContain("$")
+  })
+
+  it("renders display math ($$ on its own lines) with the katex-display class", () => {
+    const { container } = render(<Markdown content={"$$\nE = mc^2\n$$"} />)
+    expect(container.querySelector(".katex-display")).not.toBeNull()
+    expect(container.textContent).not.toContain("$")
   })
 
   it("renders combined markdown and LaTeX", () => {
@@ -34,11 +42,18 @@ describe("Markdown", () => {
   it("renders inline mode", () => {
     const { container } = render(<Markdown content="$x^2$" inline />)
     expect(container.innerHTML).toContain("katex")
+    // inline must not wrap content in a block <p>
+    expect(container.querySelector("p")).toBeNull()
   })
 
   it("handles empty content", () => {
     const { container } = render(<Markdown content="" />)
     expect(container.innerHTML).toBe("<div></div>")
+  })
+
+  it("renders a bullet list as <li> elements", () => {
+    const { container } = render(<Markdown content={"- alpha\n- beta"} />)
+    expect(container.querySelectorAll("li")).toHaveLength(2)
   })
 })
 
@@ -64,7 +79,10 @@ describe("Katex", () => {
   })
 
   it("falls back to raw text on error", () => {
-    const { container } = render(<Katex expression="invalid\\" />)
+    // Use a JS expression string (curly braces) so \\ = one backslash (an unterminated LaTeX command).
+    // JSX unquoted string attributes ("...") treat backslash as a literal, so "invalid\\" would
+    // be two backslashes (a valid LaTeX line break), not an error. One backslash triggers katex-error.
+    const { container } = render(<Katex expression={"invalid\\"} />)
     expect(container.textContent).toBe("invalid\\")
   })
 })

@@ -21,7 +21,7 @@ const explanationRouter = express.Router();
 
 /**
  * @openapi
- * /explanation/steps:
+ * /explanation/steps/:
  *   post:
  *     tags: [Explanation]
  *     summary: Generate solution steps
@@ -61,7 +61,7 @@ explanationRouter.post('/steps/', ollamaRateLimit, validateStepsRequestSecurity,
 
 /**
  * @openapi
- * /explanation/hint:
+ * /explanation/hint/:
  *   post:
  *     tags: [Explanation]
  *     summary: Generate hints
@@ -98,7 +98,7 @@ explanationRouter.post('/hint/', ollamaRateLimit, validateStepsRequestSecurity, 
 
 /**
  * @openapi
- * /explanation/generate:
+ * /explanation/generate/:
  *   post:
  *     tags: [Explanation]
  *     summary: Generate a full explanation for a specific step
@@ -109,6 +109,8 @@ explanationRouter.post('/hint/', ollamaRateLimit, validateStepsRequestSecurity, 
  *           schema:
  *             $ref: '#/components/schemas/explanationRequest'
  *           example:
+ *             question: "2x + 3 = 11"
+ *             answer: "x = 4"
  *             step:
  *               step: 1
  *               explanation: "Subtract 3 from both sides: 2x = 8"
@@ -132,7 +134,7 @@ explanationRouter.post('/generate/', apiSecurityHeaders, validateGenerateExplana
 
 /**
  * @openapi
- * /explanation/follow-up:
+ * /explanation/follow-up/:
  *   post:
  *     tags: [Explanation]
  *     summary: Ask a follow-up question about an explanation

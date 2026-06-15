@@ -41,13 +41,14 @@ const solverRouter = express.Router();
  *               answer: "x = 4"
  *               id: "550e8400-e29b-41d4-a716-446655440000"
  *       '400':
- *         description: Validation error
+ *         description: Validation error or not a math question
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
- *               message: "Could not solve equation"
+ *               message: "Not a math question"
+ *               code: "NOT_A_MATH_QUESTION"
  */
 solverRouter.post('/solve', globalRateLimit, solve);
 
@@ -76,11 +77,14 @@ solverRouter.post('/solve', globalRateLimit, solve);
  *               answer: "x^3/3 + C"
  *               id: "ai-550e8400-e29b-41d4-a716-446655440000"
  *       '400':
- *         description: Validation error
+ *         description: Validation error or not a math question
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               message: "Not a math question"
+ *               code: "NOT_A_MATH_QUESTION"
  */
 solverRouter.post('/solve/ai', ollamaRateLimit, solveAI);
 
@@ -89,6 +93,45 @@ solverRouter.post('/solve/ai', ollamaRateLimit, solveAI);
 // prototype method (e.g. "constructor", "toString").
 const validStatisticsOperations = new Set(Object.keys(statisticsOperations));
 
+/**
+ * @openapi
+ * /solver/statistics/{operation}:
+ *   post:
+ *     tags: [Solver]
+ *     summary: Run a statistics calculation
+ *     description: Dispatches to the server-side statistics engine. Supports all operations listed in the Statistics tag.
+ *     parameters:
+ *       - in: path
+ *         name: operation
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The calculation to run (e.g. binomial-range, descriptive-stats, one-way-anova).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *           example:
+ *             n: 10
+ *             min: 4
+ *             max: 6
+ *             p: 0.5
+ *     responses:
+ *       '200':
+ *         description: Calculation result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/statisticsResponse'
+ *       '400':
+ *         description: Validation or calculation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 // Statistics under solver namespace: POST /solver/statistics/:operation
 solverRouter.post('/statistics/:operation', globalRateLimit, (req, res) => {
 	// Normalize operation param to a single string for type-safety

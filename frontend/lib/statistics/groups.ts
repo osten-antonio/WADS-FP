@@ -10,6 +10,8 @@ export interface StatisticsTool {
   title: string;
   description: string;
   formula: string;
+  /** When true, `formula` is descriptive text, not LaTeX, and must not be rendered through KaTeX. */
+  formulaIsText?: boolean;
 }
 
 export interface StatisticsGroup {
@@ -148,6 +150,7 @@ export const STATISTICS_GROUPS: Record<StatisticsGroupSlug, StatisticsGroup> = {
         description:
           "t, z, chi-square, and F distribution lookup structure.",
         formula: "Critical values by alpha and degrees of freedom",
+        formulaIsText: true,
       },
     ],
   },

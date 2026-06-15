@@ -24,7 +24,7 @@ const userRouter = express.Router();
 
 /**
  * @openapi
- * /users/login:
+ * /user/login:
  *   post:
  *     tags: [User]
  *     summary: Login user
@@ -62,7 +62,7 @@ userRouter.post('/login', globalRateLimit, login);
 
 /**
  * @openapi
- * /users/profile:
+ * /user/profile:
  *   get:
  *     tags: [User]
  *     summary: Get current user profile
@@ -112,7 +112,7 @@ userRouter.get('/profile', globalRateLimit, authenticateUser, profile);
 
 /**
  * @openapi
- * /users/verify-session:
+ * /user/verify-session:
  *   get:
  *     tags: [User]
  *     summary: Fast session verification
@@ -129,7 +129,7 @@ userRouter.get('/verify-session', globalRateLimit, authenticateUser, verifySessi
 
 /**
  * @openapi
- * /users/update-username:
+ * /user/update-username:
  *   patch:
  *     tags: [User]
  *     summary: Update display name
@@ -183,7 +183,7 @@ userRouter.patch('/update-username', globalRateLimit, apiSecurityHeaders, valida
 
 /**
  * @openapi
- * /users/filter-history:
+ * /user/filter-history:
  *   get:
  *     tags: [User]
  *     summary: Filter submission history by category
@@ -228,7 +228,7 @@ userRouter.get('/filter-history', globalRateLimit, authenticateUser, filterHisto
 
 /**
  * @openapi
- * /users/delete-history:
+ * /user/delete-history:
  *   delete:
  *     tags: [User]
  *     summary: Delete submission history items
@@ -275,7 +275,7 @@ userRouter.delete('/delete-history', globalRateLimit, authenticateUser, deleteHi
 
 /**
  * @openapi
- * /users/delete-history/{id}:
+ * /user/delete-history/{id}:
  *   delete:
  *     tags: [User]
  *     summary: Delete a specific submission history item
@@ -321,7 +321,7 @@ userRouter.delete('/delete-history/:id', globalRateLimit, authenticateUser, dele
 
 /**
  * @openapi
- * /users/change-password:
+ * /user/change-password:
  *   patch:
  *     tags: [User]
  *     summary: Change password (Authenticated)
@@ -372,7 +372,7 @@ userRouter.patch('/change-password', globalRateLimit, authenticateUser, changePa
 
 /**
  * @openapi
- * /users/forgot-password:
+ * /user/forgot-password:
  *   post:
  *     tags: [User]
  *     summary: Request password reset email

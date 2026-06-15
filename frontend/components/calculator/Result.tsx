@@ -14,6 +14,7 @@ import {
   getExplanationSteps,
   getExplanationHint,
   generatePractice,
+  refreshPractice,
   type ExplanationStepsResult,
   type ExplanationHintResult,
   type PracticeGenerateResult,
@@ -31,6 +32,7 @@ export function Result() {
   const [stepsData, setStepsData] = useState<ExplanationStepsResult | null>(null)
   const [hintsData, setHintsData] = useState<ExplanationHintResult | null>(null)
   const [practiceData, setPracticeData] = useState<PracticeGenerateResult | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
   const resultValue = state.answer || ""
   const maskedValue = resultValue.replace(/./g, "•")
@@ -89,6 +91,19 @@ export function Result() {
   }
 
   const toggleHidden = () => setHidden((s) => !s)
+
+  const handleRefreshPractice = async () => {
+    if (!practiceData) return
+    setRefreshing(true)
+    try {
+      const data = await refreshPractice(state.question, state.category, practiceData.questions)
+      setPracticeData(data)
+    } catch (error) {
+      console.error("Failed to refresh practices:", error)
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   return (
     <div className="w-full flex flex-col gap-4 min-h-[400px]">
@@ -166,6 +181,15 @@ export function Result() {
               {practiceData.questions.map((q, i) => (
                 <PracticeBox key={i} number={i + 1} question={q} topicSlug={state.topicSlug} />
               ))}
+              <Button
+                variant="outline"
+                className="mt-2 self-end"
+                onClick={handleRefreshPractice}
+                disabled={refreshing}
+              >
+                {refreshing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                Refresh
+              </Button>
             </div>
           ) : (
             <p className="text-sm text-slate-500">Click the Practices tab to load.</p>
