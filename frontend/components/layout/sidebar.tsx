@@ -25,7 +25,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                 </Button>
             </SidebarHeader>
             <SidebarContent className="bg-primary-dark px-2 pt-2 flex flex-1 flex-col gap-1">
-                <SidebarButton route="/app">
+                <SidebarButton route="/app/scan">
                     Scan
                 </SidebarButton>
                 <Collapsible className="w-full group/collapsible">

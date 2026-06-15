@@ -1,91 +1,34 @@
-'use client'
+import Link from "next/link"
 
-import { Field, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import { Textarea } from "@/components/ui/textarea"
-import { Camera } from "lucide-react"
-import { SendHorizontal as Send } from 'lucide-react';
-
-export default function InputFile() {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [textValue, setTextValue] = useState('');
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setPreview(url);
-    } else {
-      setPreview(null);
-    }
-  };
-
-  const handleImageClick = () => {
-    const fileInput = document.getElementById('picture') as HTMLInputElement;
-    fileInput?.click();
-  };
-
-  const handleSend = () => {
-    setTextValue('');
-  };
-
+export default function HeroPage() {
   return (
-    <div className="flex items-center justify-center h-full bg-scan-background">
-      <Field className="flex text-center relative p-4">
-        <FieldLabel className="
-          w-full justify-center text-center
-          text-3xl">Image Scan</FieldLabel>
-        <FieldLabel className="
-          w-full justify-center text-center
-          text-lg">Solve your math question, step by step, by uploading an image</FieldLabel>
-        <div className="
-            max-w-167.5 min-h-50
-            mx-auto border-2
-            border-dashed border-gray-400 rounded-md 
-            zIndex-1 bg-text-input/60 flex 
-            items-center justify-center">
-          <Input 
-            id="picture" 
-            type="file"
-            onChange={handleFileChange}
-            className={preview ? "hidden" : "w-full h-50 text-transparent"}
-            data-testid="picture"
-          />
-          {!preview && <Camera size={48} className="absolute
-          bottom-30 pointer-events-none text-black"/>}
-          {preview && (
-          // eslint-disable-next-line @next/next/no-img-element -- preview is a blob: URL with unknown dimensions; next/image requires explicit width/height
-          <img
-            src={preview}
-            alt="preview"
-            onClick={handleImageClick}
-            className="mt-4 mx-auto max-w-full
-            h-auto rounded-md  zIndex-0 cursor-pointer
-            hover:opacity-90 transition-opacity"
-          />
-          )}
+    <main className="min-h-screen bg-scan-background flex items-center justify-center px-8 py-16 overflow-hidden relative">
+      <div className="flex-1 flex flex-col gap-6">
+        <div className="flex flex-col">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-black leading-tight tracking-tight">
+            Student First
+          </h1>
+          <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight"
+            style={{ color: "#2F4457" }}>
+            Learning Calculator
+          </h1>
         </div>
-        {!preview && (
-          <div className="relative w-175 max-w-175 mx-auto">
-            <Textarea
-              value={textValue}
-              onChange={(e) => setTextValue(e.target.value)}
-              placeholder="Enter text"
-              className="
-              h-25 w-full 
-              absolute bottom-0 left-1/2 
-              transform -translate-x-1/2 
-              bg-text-input border-2 border-dashed 
-              border-black/50 rounded-md pr-12"/>
-            <button
-              onClick={handleSend}
-              className="absolute bottom-2 right-3 pointer-events-auto z-10">
-              <Send size={30} className="text-black hover:text-gray-700" />
-            </button>
-          </div>
-        )}
-      </Field>
-    </div>
+        <div className="w-16 h-1 rounded-full" style={{ background: "#2F4457" }} />
+        <p className="text-lg text-black/70 max-w-md leading-relaxed"> {/* Subtitle */}
+          Where all of your calculation needs are met, studying made easy, practice with us now!
+        </p>
+        <Link href="/signup">
+          <button
+            className="mt-2 self-start px-8 py-3.5 rounded-xl 
+            text-base font-semibold shadow-lg 
+            transition-all duration-200 
+            hover:scale-105 hover:shadow-xl 
+            active:scale-95"
+            style={{ background: "#2F4457", color: "#FFFFFF" }}>
+            Register Now
+          </button>
+        </Link>
+      </div>
+    </main>
   )
 }
