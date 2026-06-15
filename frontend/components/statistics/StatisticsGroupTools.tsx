@@ -272,7 +272,7 @@ function ToolFrame({
   tool: StatisticsTool;
   children: React.ReactNode;
 }) {
-  const isReference = tool.id === "statistical-tables";
+  const isReference = tool.formulaIsText === true;
   return (
     <section id={tool.id}>
       <Card className="h-full border-primary-main/15 bg-white shadow-sm">
