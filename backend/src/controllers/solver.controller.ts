@@ -26,7 +26,10 @@ export async function solve(req: Request, res: Response) {
         const aiResp = await call_ollama(prompt, solveResponse);
         if (JSON.stringify(aiResp).includes("Not a math question")) {
             throw Error('Not a math question');
-        }        
+        }
+        if (aiResp.answer?.trim().toLowerCase() === "none") {
+            return sendErrorResponse(res, 500, "AI could not solve this question");
+        }
         return res.json(aiResp);
 
     } catch (err: unknown) {
@@ -52,7 +55,10 @@ export async function solveAI(req: Request, res: Response) {
         const aiResp = await call_ollama(prompt, solveResponse);
         if (JSON.stringify(aiResp).includes("Not a math question")) {
             throw Error('Not a math question');
-        }        
+        }
+        if (aiResp.answer?.trim().toLowerCase() === "none") {
+            return sendErrorResponse(res, 500, "AI could not solve this question");
+        }
         const id = randomUUID();
         aiResp.id = id;
         return res.json(aiResp);

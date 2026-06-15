@@ -77,9 +77,9 @@ export async function handleTextUpload(req: Request, res: Response) {
 		const result = await processTextUpload(parsed.question, parsed.category);
 
 		try {
-			// Check cache first
+			// Check cache first (skip if cached answer is "None" - it's an invalid cached result)
 			const cached = await cacheService.getAnswerByQuestion(result.question);
-			if (cached) {
+			if (cached && cached.answer?.trim().toLowerCase() !== "none") {
 				let submissionId = cached.submissionId ?? null;
 				if (!submissionId) {
 					submissionId = randomUUID();
@@ -152,38 +152,34 @@ export async function handleTextUpload(req: Request, res: Response) {
 				throw Error('Not a math question');
 			}
 
-			if (aiResp?.id) {
-				// We will create our own submission id and persist it
-				let id: string = randomUUID();
-				const submissionObj = {
-					id,
-					inputMode: "TEXT" as const,
-					category: parsed.category ?? "General",
-					type: "INGESTION",
-					subtype: null,
-					text: result.question,
-				};
+			const answerStr = typeof aiResp.answer === "string" ? aiResp.answer.trim() : "";
+			if (!answerStr || answerStr.toLowerCase() === "none") {
+				return sendErrorResponse(res, 500, "AI could not solve this question");
+			}
 
-				const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
-				if (recordedId) {
-					id = recordedId;
-				}
+			// We will create our own submission id and persist it
+			let id: string = randomUUID();
+			const submissionObj = {
+				id,
+				inputMode: "TEXT" as const,
+				category: parsed.category ?? "General",
+				type: "INGESTION",
+				subtype: null,
+				text: result.question,
+			};
 
-				const answerStr = typeof aiResp.answer === "string" ? aiResp.answer.trim() : "";
-				if (answerStr && answerStr.toLowerCase() !== "none") {
-					try {
-						await cacheService.setAnswerForQuestionWithSubmissionId(result.question, answerStr, id);
-					} catch (e) {
-						console.error('Failed to cache AI answer', e);
-					}
-				} else {
-					return sendErrorResponse(res, 500, "AI could not solve this question");
-				}
+			const recordedId = await tryRecordSubmissionFromRequest(req, submissionObj);
+			if (recordedId) {
+				id = recordedId;
+			}
 
-					// return the AI response but ensure it contains our submission id
-					aiResp.id = id;
-				}
+			try {
+				await cacheService.setAnswerForQuestionWithSubmissionId(result.question, answerStr, id);
+			} catch (e) {
+				console.error('Failed to cache AI answer', e);
+			}
 
+			aiResp.id = id;
 			return res.json(aiResp);
 	
 		} catch (err: unknown) {
