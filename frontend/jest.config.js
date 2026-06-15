@@ -13,7 +13,7 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/$1",
   },
   preset: "ts-jest",
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.tsx"],
   testEnvironment: "jsdom",
   transform: {
     "^.+\\.(ts|tsx)$": [

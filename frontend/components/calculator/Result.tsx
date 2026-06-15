@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "../ui/input-group"
+import { InputGroup, InputGroupAddon, InputGroupButton } from "../ui/input-group"
 import { CheckIcon, CopyIcon, Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "../ui/button"
 import { StepBox } from "../widget/StepBox"

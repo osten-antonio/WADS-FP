@@ -38,7 +38,8 @@ export function GenericCalcPage({
 }) {
   const router = useRouter();
   const ctx = useCalculator();
-  const setSolved = ctx?.setSolved ?? (() => {});
+  const NOOP = () => {};
+  const setSolved = ctx?.setSolved ?? NOOP;
   const mf = useRef<MathFieldElement | null>(null)
   const inlineKeyboardHostRef = useRef<HTMLDivElement | null>(null)
   const functionSelectorRef = useRef<HTMLDivElement | null>(null)
@@ -101,7 +102,7 @@ export function GenericCalcPage({
     }
   }, [expression, category, topicSlug, setSolved])
 
-  // ─── FIX 1: Stable ref so the mathlive effect never re-runs when expression changes ───
+  // Stable ref so the mathlive effect never re-runs when expression changes
   // handleSolve changes every time `expression` changes (it's in its dep array).
   // Previously handleSolve was also in the mathlive effect's dep array, which caused the
   // entire effect to tear down and re-run after every single keystroke — re-adding listeners

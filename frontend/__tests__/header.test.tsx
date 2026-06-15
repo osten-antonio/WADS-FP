@@ -42,7 +42,7 @@ describe("Header", () => {
     )
 
     await user.click(screen.getByLabelText("Open account menu"))
-    expect(screen.getByText("Profile")).toBeInTheDocument()
+    expect(screen.getByText("Test User")).toBeInTheDocument()
     expect(screen.getByText("Logout")).toBeInTheDocument()
   })
 })

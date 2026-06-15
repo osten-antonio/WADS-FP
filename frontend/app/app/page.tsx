@@ -3,6 +3,7 @@
 import { useRef, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Camera, SendHorizontal, Loader2 } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { solveImage } from "@/lib/api"
 
@@ -95,9 +96,12 @@ function ImageScanContent() {
           >
             {preview ? (
               <div className="relative group">
-                <img
+                <Image
                   src={preview}
                   alt="Preview"
+                  width={800}
+                  height={600}
+                  unoptimized
                   className="w-full max-h-80 object-contain rounded-2xl p-2"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-2xl" />

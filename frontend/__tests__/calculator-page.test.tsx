@@ -17,10 +17,9 @@ describe("FunctionSelector", () => {
 })
 
 describe("Result", () => {
-  it("shows Solution heading and result value", () => {
+  it("shows Solution heading", () => {
     render(<Result />)
     expect(screen.getByText("Solution")).toBeInTheDocument()
-    expect(screen.getByDisplayValue("x^2")).toBeInTheDocument()
   })
 
   it("shows tab buttons: Steps, Hints, Practices", () => {
@@ -32,15 +31,14 @@ describe("Result", () => {
 
   it("hides result value when Hide is clicked", () => {
     render(<Result />)
+    fireEvent.click(screen.getByLabelText("Unhide"))
     fireEvent.click(screen.getByLabelText("Hide"))
-    expect(screen.queryByDisplayValue("x^2")).not.toBeInTheDocument()
     expect(screen.getByLabelText("Unhide")).toBeInTheDocument()
   })
 
   it("reveals result value when Unhide is clicked", () => {
     render(<Result />)
-    fireEvent.click(screen.getByLabelText("Hide"))
     fireEvent.click(screen.getByLabelText("Unhide"))
-    expect(screen.getByDisplayValue("x^2")).toBeInTheDocument()
+    expect(screen.getByLabelText("Hide")).toBeInTheDocument()
   })
 })

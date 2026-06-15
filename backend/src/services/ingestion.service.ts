@@ -1,6 +1,5 @@
 import { ingestionImage, ingestionResponse, ingestionText } from "../schemas/ingestion.schema";
 import axios from 'axios';
-import { PDFDocument } from 'pdf-lib';
 import FormData from 'form-data';
 
 
@@ -8,95 +7,13 @@ type IngestionResult = {
 	question: string;
 };
 
-async function convertImageToPdf(imageBuffer: Buffer): Promise<Buffer> {
-  const pdfDoc = await PDFDocument.create();
-
-  let image;
-  const isPng = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50;
-  const isJpg = imageBuffer[0] === 0xff && imageBuffer[1] === 0xd8;
-
-  if (isPng) {
-    image = await pdfDoc.embedPng(imageBuffer);
-  } else if (isJpg) {
-    image = await pdfDoc.embedJpg(imageBuffer);
-  } else {
-    throw new Error('Unsupported image format.');
-  }
-
-  const page = pdfDoc.addPage([612, 792]);
-
-  const maxWidth = 500;
-  const maxHeight = 700;
-  const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
-
-
-  const imgWidth = image.width * scale;
-  const imgHeight = image.height * scale;
-
-
-  const x = (page.getWidth() - imgWidth) / 2;
-  const y = (page.getHeight() - imgHeight) / 2;
-
-  page.drawImage(image, {
-    x: x,
-    y: y,
-    width: imgWidth,
-    height: imgHeight,
-  });
-
-  return Buffer.from(await pdfDoc.save());
-}
-
-// async function performOCR(buffer: Buffer): Promise<string> {
-//   try {
-//     const pdfBuffer = await convertImageToPdf(buffer);
-
-
-//     const form = new FormData();
-
-//     form.append('file', pdfBuffer, {
-//       filename: 'document.pdf',
-//       contentType: 'application/pdf',
-//     });
-
-//     const baseUrl = process.env.NOUGAT_URL;
-//     if (!baseUrl) {
-//         throw new Error('NOUGAT_URL is not defined in .env');
-//     }
-//     const ocr_url = baseUrl.endsWith('/') ? `${baseUrl}predict/` : `${baseUrl}/predict/`;
-//     console.log(ocr_url);
-//     const response = await axios.post(
-//       ocr_url,
-//       form,
-//       {
-//         headers: {
-//           ...form.getHeaders(),
-//         }
-//       }
-//     );
-
-//     console.log("OCR Response");
-//     console.log(response);
-
-//     // TODO check response data
-//     return typeof response.data === 'string' ? response.data : response.data.text ?? JSON.stringify(response.data);
-
-//   } catch (error) {
-//     if (axios.isAxiosError(error)) {
-//       console.error('OCR Request Failed:', error.response?.data || error.message);
-//     } else {
-//       console.error('Conversion Error:', error);
-//     }
-//     throw new Error('Failed to perform OCR');
-//   }
-// }
 
 async function performOCR(buffer: Buffer, mimetype: string): Promise<string> {
   try {
     const form = new FormData();
     form.append('file', buffer, {
       filename: 'equation.png',
-      contentType: mimetype,  // pass through original image type
+      contentType: mimetype, 
     });
 
     const baseUrl = process.env.NOUGAT_URL;
