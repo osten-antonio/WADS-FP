@@ -18,7 +18,7 @@ export default function HeroPage() {
       <header className="bg-primary-main relative z-20 flex justify-between items-center p-4 py-4.5 text-white w-full">
         <Link href="/">
           <h1 className="text-2xl font-bold cursor-pointer hover:opacity-80 transition-opacity">
-            Calculator
+            AIMS
           </h1>
         </Link>
         <Link href="/app">

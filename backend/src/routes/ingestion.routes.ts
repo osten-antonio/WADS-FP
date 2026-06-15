@@ -62,7 +62,7 @@ ingestionRouter.post('/image', apiSecurityHeaders, uploadSingleImage, validateIm
  *   post:
  *     tags: [Ingestion]
  *     summary: Ingest a text input
- *     description: Will also validate against the sent category, if its different, will warn user
+ *     description: Ingests a text question, solves it (deterministic engine with AI fallback), and optionally records the submission for authenticated users.
  *     requestBody:
  *       required: true
  *       content:
@@ -73,16 +73,17 @@ ingestionRouter.post('/image', apiSecurityHeaders, uploadSingleImage, validateIm
  *             category: "Algebra"
  *             question: "Solve for x: 2x + 3 = 11"
  *     responses:
- *       '201':
- *         description: Submission created
+ *       '200':
+ *         description: Solved
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ingestionResponse'
+ *               $ref: '#/components/schemas/solveResponse'
  *             example:
- *               question: "Solve for x: 2x + 3 = 11"
+ *               answer: "x = 4"
+ *               id: "550e8400-e29b-41d4-a716-446655440000"
  *       '400':
- *         description: Validation error
+ *         description: Validation error or not a math question
  *         content:
  *           application/json:
  *             schema:

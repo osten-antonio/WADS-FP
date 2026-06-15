@@ -1,7 +1,7 @@
 import express from "express";
 
 import { globalRateLimit } from "../middleware/rateLimit.middleware";
-import { statisticsOperations } from "../controllers/statistics.controller";
+import * as statsService from "../services/statistics.service";
 
 /**
  * @openapi
@@ -9,8 +9,7 @@ import { statisticsOperations } from "../controllers/statistics.controller";
  *   - name: Statistics
  *     description: >
  *       Server-side statistics calculator. One POST endpoint per operation under
- *       `/statistics`. Every request body is validated with Zod and computed by
- *       the backend engine so calculation logic is never exposed to the client.
+ *       `/statistics`. 
  *       Operations: binomial-range, binomial-normal-approx, poisson-range,
  *       poisson-normal-approx, hypergeometric, combinations, permutations,
  *       one-sample-t-test, paired-t-test, independent-t-test-data,
@@ -60,9 +59,21 @@ import { statisticsOperations } from "../controllers/statistics.controller";
 
 const statisticsRouter = express.Router();
 
-// Register one POST route per operation, e.g. POST /statistics/binomial-range.
-for (const [operation, handler] of Object.entries(statisticsOperations)) {
-  statisticsRouter.post(`/${operation}`, globalRateLimit, handler);
-}
+// Single dispatcher that routes all operations through runOperation,
+// which includes LaTeX wrapping for step descriptions.
+statisticsRouter.post('/:operation', globalRateLimit, (req, res) => {
+  try {
+    const rawOp = req.params.operation;
+    const operation = Array.isArray(rawOp) ? rawOp[0] : rawOp ?? "";
+    if (!operation) {
+      return res.status(400).json({ message: "Missing operation parameter", code: "VALIDATION_ERROR" });
+    }
+    const result = statsService.runOperation(operation, req.body);
+    return res.json({ result });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Calculation error";
+    return res.status(400).json({ message, code: "CALCULATION_ERROR" });
+  }
+});
 
 export default statisticsRouter;
