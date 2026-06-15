@@ -9,8 +9,7 @@ import * as statsService from "../services/statistics.service";
  *   - name: Statistics
  *     description: >
  *       Server-side statistics calculator. One POST endpoint per operation under
- *       `/statistics`. Every request body is validated with Zod and computed by
- *       the backend engine so calculation logic is never exposed to the client.
+ *       `/statistics`. 
  *       Operations: binomial-range, binomial-normal-approx, poisson-range,
  *       poisson-normal-approx, hypergeometric, combinations, permutations,
  *       one-sample-t-test, paired-t-test, independent-t-test-data,

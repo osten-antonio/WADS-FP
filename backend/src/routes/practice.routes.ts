@@ -15,7 +15,7 @@ const practiceRouter = express.Router();
 
 /**
  * @openapi
- * /practice/generate:
+ * /practice/generate/:
  *   post:
  *     tags: [Practice]
  *     summary: Generate practice questions from a source question
@@ -50,7 +50,7 @@ practiceRouter.post('/generate/', ollamaRateLimit, validateStepsRequestSecurity,
 
 /**
  * @openapi
- * /practice/refresh:
+ * /practice/refresh/:
  *   post:
  *     tags: [Practice]
  *     summary: Refresh existing practice questions

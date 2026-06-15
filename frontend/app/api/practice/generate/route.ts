@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.code === "ECONNABORTED") {
-        return NextResponse.json({ message: "Practice generation timed out" }, { status: 504 });
+        return NextResponse.json({ message: "Practice generation timed out, is AI service available?\n Contact project team if issue still persists" }, { status: 504 });
       }
       if (error.response) {
         return NextResponse.json(error.response.data, { status: error.response.status });
