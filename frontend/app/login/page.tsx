@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { toast } from "sonner"
 
 export default function LoginPage() {
@@ -121,12 +122,12 @@ export default function LoginPage() {
                 <div className="grid gap-2">
                     <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
-                    <a
-                        href="#"
+                    <Link
+                        href="/forgot-password"
                         className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                     >
                         Forgot your password?
-                    </a>
+                    </Link>
                     </div>
                     <Input
                       id="password"

@@ -9,6 +9,8 @@ import { CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { auth } from "@/lib/firebase-client"
+import { ChangePasswordDialog } from "@/components/account/change-password-dialog"
 
 type HistoryItem = {
   id: string
@@ -62,6 +64,22 @@ export default function AccountPage() {
   const [isClearingHistory, setIsClearingHistory] = React.useState(false)
   const [deletingIds, setDeletingIds] = React.useState<Set<string>>(new Set())
   const [historyError, setHistoryError] = React.useState<string | null>(null)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = React.useState(false)
+  const [hasPasswordProvider, setHasPasswordProvider] = React.useState(true)
+
+  React.useEffect(() => {
+    let alive = true
+    void auth.authStateReady().then(() => {
+      if (!alive) return
+      const providers = auth.currentUser?.providerData ?? []
+      setHasPasswordProvider(
+        providers.some((provider) => provider.providerId === "password")
+      )
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const redirectToLogin = React.useCallback(() => {
     router.push("/login")
@@ -300,6 +318,10 @@ export default function AccountPage() {
 
   return (
     <div className="w-full h-full">
+      <ChangePasswordDialog
+        open={isPasswordDialogOpen}
+        onOpenChange={setIsPasswordDialogOpen}
+      />
       <section className="md:hidden">
         <div className="h-screen border border-slate-900/70 bg-primary-main p-5 text-white shadow-sm">
           <div className="flex flex-col items-center text-center">
@@ -351,9 +373,16 @@ export default function AccountPage() {
                 </>
               )}
             </div>
-            <Button className="mt-2 rounded-lg bg-primary-dark/50 px-4 text-white hover:bg-primary-dark/80">
-              Change Password
-            </Button>
+            {hasPasswordProvider ? (
+              <Button
+                onClick={() => setIsPasswordDialogOpen(true)}
+                className="mt-2 rounded-lg bg-primary-dark/50 px-4 text-white hover:bg-primary-dark/80"
+              >
+                Change Password
+              </Button>
+            ) : (
+              <p className="mt-2 text-xs text-white/80">You sign in with Google.</p>
+            )}
           </div>
 
           <div className="mt-4 text-center text-sm font-semibold">History</div>
@@ -464,9 +493,17 @@ export default function AccountPage() {
                   </>
                 )}
               </div>
-              <Button size="xs" className="mt-3 rounded-full bg-[#5fa2b3] px-4 text-white hover:bg-[#5597a8]">
-                Change Password
-              </Button>
+              {hasPasswordProvider ? (
+                <Button
+                  size="xs"
+                  onClick={() => setIsPasswordDialogOpen(true)}
+                  className="mt-3 rounded-full bg-[#5fa2b3] px-4 text-white hover:bg-[#5597a8]"
+                >
+                  Change Password
+                </Button>
+              ) : (
+                <p className="mt-3 text-xs text-slate-500">You sign in with Google.</p>
+              )}
             </div>
 
             <div className="flex-3 min-w-80 m-auto">
