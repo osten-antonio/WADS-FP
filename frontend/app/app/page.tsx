@@ -1,91 +1,174 @@
 'use client'
 
-import { Field, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import { Textarea } from "@/components/ui/textarea"
-import { Camera } from "lucide-react"
-import { SendHorizontal as Send } from 'lucide-react';
+import { useRef, useState, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Camera, SendHorizontal, Loader2 } from "lucide-react"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { solveImage } from "@/lib/api"
 
-export default function InputFile() {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [textValue, setTextValue] = useState('');
+function ImageScanContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const topic = searchParams.get("topic") || "general"
+
+  const [preview, setPreview] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isScanning, setIsScanning] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      const url = URL.createObjectURL(file);
-      setPreview(url);
-    } else {
-      setPreview(null);
+      setSelectedFile(file)
+      const url = URL.createObjectURL(file)
+      setPreview(url)
     }
-  };
+  }
 
-  const handleImageClick = () => {
-    const fileInput = document.getElementById('picture') as HTMLInputElement;
-    fileInput?.click();
-  };
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
 
-  const handleSend = () => {
-    setTextValue('');
-  };
+  const handleRemoveImage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setPreview(null)
+    setSelectedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleScan = async () => {
+    if (!selectedFile) return
+    setIsScanning(true)
+
+    try {
+      const formData = new FormData()
+      formData.append("image", selectedFile)
+      const result = await solveImage(formData)
+
+      if (result.question) {
+        localStorage.setItem("scannedQuestion", result.question)
+      }
+
+      if (topic === "general") {
+        router.push("/app/calculator")
+      } else {
+        router.push(`/app/calculator/${topic}`)
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to scan image"
+      alert(message)
+      setIsScanning(false)
+    }
+  }
 
   return (
-    <div className="flex items-center justify-center h-full bg-scan-background">
-      <Field className="flex text-center relative p-4">
-        <FieldLabel className="
-          w-full justify-center text-center
-          text-3xl">Image Scan</FieldLabel>
-        <FieldLabel className="
-          w-full justify-center text-center
-          text-lg">Solve your math question, step by step, by uploading an image</FieldLabel>
-        <div className="
-            max-w-167.5 min-h-50
-            mx-auto border-2
-            border-dashed border-gray-400 rounded-md 
-            zIndex-1 bg-text-input/60 flex 
-            items-center justify-center">
-          <Input
-            id="picture"
-            type="file"
-            onChange={handleFileChange}
-            className={preview ? "hidden" : "w-full h-50 text-transparent"}
-            data-testid="picture"
-          />
-          {!preview && <Camera size={48} className="absolute
-          bottom-30 pointer-events-none text-black"/>}
-          {preview && (
-            // eslint-disable-next-line @next/next/no-img-element -- preview is a blob: URL with unknown dimensions; next/image requires explicit width/height
-            <img
-              src={preview}
-              alt="preview"
-              onClick={handleImageClick}
-              className="mt-4 mx-auto max-w-full
-            h-auto rounded-md  zIndex-0 cursor-pointer
-            hover:opacity-90 transition-opacity"
-            />
-          )}
+    <div className="flex items-center justify-center min-h-full bg-scan-background px-4">
+      <div className="flex flex-col items-center gap-6 w-full max-w-lg">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-primary-dark/85">Image Scan</h1>
+          <p className="text-base text-primary-dark/60">
+            Solve your math question, step by step, by uploading an image
+          </p>
         </div>
-        {!preview && (
-          <div className="relative w-175 max-w-175 mx-auto">
-            <Textarea
-              value={textValue}
-              onChange={(e) => setTextValue(e.target.value)}
-              placeholder="Enter text"
-              className="
-              h-25 w-full 
-              absolute bottom-0 left-1/2 
-              transform -translate-x-1/2 
-              bg-text-input border-2 border-dashed 
-              border-black/50 rounded-md pr-12"/>
-            <button
-              onClick={handleSend}
-              className="absolute bottom-2 right-3 pointer-events-auto z-10">
-              <Send size={30} className="text-black hover:text-gray-700" />
-            </button>
+
+        <div className="w-full">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          <div
+            onClick={handleUploadClick}
+            className={`
+              relative w-full rounded-2xl border-2 border-dashed transition-all duration-200
+              cursor-pointer overflow-hidden
+              ${preview
+                ? "border-slate-200 bg-white shadow-sm hover:shadow-md"
+                : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/50 shadow-sm"
+              }
+            `}
+          >
+            {preview ? (
+              <div className="relative group">
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  width={800}
+                  height={600}
+                  unoptimized
+                  className="w-full max-h-80 object-contain rounded-2xl p-2"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-2xl" />
+                <button
+                  onClick={handleRemoveImage}
+                  className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-600 
+                    hover:text-red-500 hover:bg-white rounded-full p-1.5 shadow-md 
+                    opacity-0 group-hover:opacity-100 transition-all duration-200"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="p-4 rounded-full bg-slate-100">
+                  <Camera size={36} className="text-slate-400" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-slate-600">
+                    Click to upload an image
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    PNG, JPG up to 10MB
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+
+        {preview && (
+          <Button
+            onClick={handleScan}
+            disabled={isScanning}
+            className="w-full h-12 rounded-xl text-base font-semibold shadow-md 
+              hover:shadow-lg transition-all duration-200 bg-primary-dark"
+          >
+            {isScanning ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <SendHorizontal className="h-5 w-5" />
+                Scan
+              </>
+            )}
+          </Button>
         )}
-      </Field>
+      </div>
     </div>
+  )
+}
+
+export default function ImageScanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-full bg-scan-background">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        </div>
+      }
+    >
+      <ImageScanContent />
+    </Suspense>
   )
 }

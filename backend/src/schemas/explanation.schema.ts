@@ -10,8 +10,8 @@ export const stepsRequest = z.object({
 
 const stepsBase = z.object({
     step: z.number(),
-    explanation: z.string()
-    // equation?
+    explanation: z.string(),
+    equation: z.string().optional()
 })
 
 export const stepsResponse = z.object({

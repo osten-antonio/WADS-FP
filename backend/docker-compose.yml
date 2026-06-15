@@ -19,6 +19,8 @@ services:
       - BACKEND_PROTOCOL=${BACKEND_PROTOCOL:-http}
     depends_on:
       - redis
+    networks:
+      - WADS-FP-shared-network
 
   redis:
     image: redis:7-alpine
@@ -27,6 +29,8 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    networks:
+      - WADS-FP-shared-network
 
   db-schema-sync:
     profiles:
@@ -42,3 +46,7 @@ services:
 
 volumes:
   redis-data:
+  
+networks:
+  WADS-FP-shared-network:
+    external: true

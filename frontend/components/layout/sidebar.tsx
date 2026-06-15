@@ -10,7 +10,7 @@ import { SidebarButton } from "@/components/widget/SidebarButton"
 export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
     const { toggleSidebar } = useSidebar()
     return (
-        <SidebarCN className="bg-primary-dark" {...props}>
+        <SidebarCN className="bg-primary-dark z-30" {...props}>
             <SidebarHeader className="bg-primary-main text-white flex flex-row items-center justify-between p-4">
                 <div>
                     <h1 className="font-bold block md:hidden">
@@ -20,7 +20,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                         <Title />
                     </span>
                 </div>
-                <Button className="md:hidden" variant="ghost" size="icon" onClick={toggleSidebar}>
+                <Button className="md:hidden hover:bg-primary-dark/20 rounded-md p-2 transition-colors" variant="ghost" size="icon" onClick={toggleSidebar}>
                     <X className="h-4 w-4" />
                 </Button>
             </SidebarHeader>
@@ -37,6 +37,9 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <div className="ml-3 pl-2 border-l-2 border-primary-light/30 border-borderl flex flex-col gap-1 py-1 mt-2">
+                            <SidebarButton route="/app/calculator/statistics/" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
+                                General Stats
+                            </SidebarButton>
                             <SidebarButton route="/app/calculator/statistics/probability" additionalClasses="text-sm bg-button-main/70 hover:!bg-button-main/50 transition-opacity">
                                 Probability
                             </SidebarButton>
@@ -58,22 +61,22 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof SidebarCN>) {
                 <SidebarButton route="/app/calculator/general">
                     General
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/algebra">
                     Algebra
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/proofs">
                     Proofs and theorem
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/linalg">
                     Linear algebra
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/trigonometry">
                     Trigonometry
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/calculus">
                     Calculus
                 </SidebarButton>
-                <SidebarButton route="/app/calculator">
+                <SidebarButton route="/app/calculator/precalc">
                     Pre-calculus
                 </SidebarButton>
             </SidebarContent>

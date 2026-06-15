@@ -49,7 +49,7 @@ export function AppShell({
         onSignup={() => router.push('/signup')} 
         onLogin={() => router.push('/login')}
         />
-        <main className={`flex-1 ${additionalClassName || ''}`}>{children}</main>
+        <main className={`mt-20 flex-1 ${additionalClassName || ''}`}>{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )

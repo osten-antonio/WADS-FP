@@ -5,4 +5,5 @@ module.exports = {
     "^.+\\.(t|j)sx?$": ["ts-jest", { useESM: true, tsconfig: "tsconfig.json" }],
   },
   extensionsToTreatAsEsm: [".ts", ".tsx"],
+  setupFiles: ["./jest.setup.ts"],
 };
