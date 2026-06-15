@@ -8,6 +8,7 @@ import { StepBox } from "../widget/StepBox"
 import { Separator } from "../ui/separator"
 import { HintBox } from "../widget/HintBox"
 import { PracticeBox } from "../widget/PracticeBox"
+import { Katex } from "../widget/Katex"
 import { useCalculator } from "@/lib/calculator-context"
 import {
   getExplanationSteps,
@@ -17,6 +18,7 @@ import {
   type ExplanationHintResult,
   type PracticeGenerateResult,
 } from "@/lib/api"
+import { Markdown } from "../widget/Markdown"
 
 export function Result() {
   const ctx = useCalculator()
@@ -92,7 +94,9 @@ export function Result() {
     <div className="w-full flex flex-col gap-4 min-h-[400px]">
       <h1 className="text-xl text-left font-bold">Solution</h1>
       <InputGroup className="w-full">
-        <InputGroupInput value={hidden ? maskedValue : resultValue} readOnly />
+        <div className="flex-1 px-3 py-2 text-lg rounded-lg border border-slate-200 focus:ring-slate-300 w-full resize-none bg-scan-background flex items-center min-h-[50px]">
+          {hidden ? <span className="text-slate-400">{maskedValue}</span> : <Katex expression={resultValue} className="font-mono" />}
+        </div>
         <InputGroupAddon align="inline-end">
           <div className="flex items-center gap-1">
             <InputGroupButton aria-label="Copy" onClick={handleCopy} size="icon-xs">
@@ -142,7 +146,7 @@ export function Result() {
               <div className="bg-primary-light/30 rounded-xl p-2">
                 <h1 className="text-left font-bold">Hints</h1>
                 <Separator />
-                <p className="text-justify">{hintsData.hintGeneral}</p>
+                <Markdown className="text-justify" content={hintsData.hintGeneral}/>
               </div>
               <div className="bg-primary-light/30 rounded-xl mt-2 p-2 text-left">
                 {hintsData.hints.map((h, i) => (
@@ -160,7 +164,7 @@ export function Result() {
           ) : practiceData ? (
             <div className="flex gap-2 flex-col">
               {practiceData.questions.map((q, i) => (
-                <PracticeBox key={i} number={i + 1} question={q} />
+                <PracticeBox key={i} number={i + 1} question={q} topicSlug={state.topicSlug} />
               ))}
             </div>
           ) : (

@@ -9,12 +9,15 @@ export function textToLatex(input: string): string {
   // If it already contains LaTeX commands, leave it alone
   if (/\\[a-zA-Z]+/.test(trimmed)) return trimmed;
 
-  const isWordProblem = detectWordProblem(trimmed);
-  const hasMath = containsMath(trimmed);
+  // Convert ** exponentiation to ^ before detection
+  const normalized = trimmed.replace(/\*\*(\d+)/g, "^$1");
+
+  const isWordProblem = detectWordProblem(normalized);
+  const hasMath = containsMath(normalized);
 
   if (isWordProblem || !hasMath) {
     // Escape LaTeX special characters for text mode, strip $ signs
-    const text = trimmed
+    const text = normalized
       .replace(/\$/g, "")
       .replace(/\\/g, "\\textbackslash{}")
       .replace(/[&%#_{}]/g, (m) => `\\${m}`)
@@ -24,9 +27,11 @@ export function textToLatex(input: string): string {
   }
 
   // Otherwise treat as a math expression
-  let result = trimmed;
+  let result = normalized;
 
-  // Square root: sqrt(...) or sqrt x
+  // Powers: x**2 → x^{2}, x^2 → x^{2}
+  result = result.replace(/\*\*(\d+)/g, "^{$1}");
+  result = result.replace(/\^(\d+)/g, "^{$1}");
   result = result.replace(/\bsqrt\(([^)]+)\)/g, "\\sqrt{$1}");
   result = result.replace(/\bsqrt\s+(\w+)/g, "\\sqrt{$1}");
 
@@ -89,6 +94,9 @@ function containsMath(text: string): boolean {
   // Contains equation-like patterns: =, +, -, *, /, ^, parentheses with numbers
   if (/[=+\-*/^]/.test(text) && /\d/.test(text)) return true;
 
+  // Contains ** exponentiation
+  if (/\*\*\d/.test(text)) return true;
+
   // Contains math function calls: sin(...), cos(...), sqrt(...)
   if (/\b(sin|cos|tan|log|ln|sqrt|exp|abs)\s*\(/.test(text)) return true;
 
@@ -117,7 +125,21 @@ function containsMath(text: string): boolean {
  */
 function detectWordProblem(text: string): boolean {
   // Has dollar signs → word problem (e.g. "$80")
-  if (/\$/.test(text)) return true;
+  // But NOT if the $ signs look like LaTeX math delimiters (balanced, surrounding math)
+  const dollarCount = (text.match(/\$/g) || []).length;
+  if (dollarCount > 0) {
+    // If even number of $ and content between them has math operators, treat as math
+    if (dollarCount % 2 === 0) {
+      const stripped = text.replace(/\$/g, "");
+      if (/[=+\-*/^]/.test(stripped) && /\d/.test(stripped)) {
+        // Balanced $ with math content — likely LaTeX delimiters, not dollar amounts
+      } else {
+        return true;
+      }
+    } else {
+      return true;
+    }
+  }
 
   // Has sentence-ending punctuation → word problem
   if (/[.!?]\s*[A-Z]/.test(text)) return true;

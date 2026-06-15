@@ -125,7 +125,7 @@ export async function getExplanationSteps(
   answer: string,
   category: string,
 ): Promise<ExplanationStepsResult> {
-  return apiPost<ExplanationStepsResult>("/api/explanation/steps", { question, answer, category, forced: false });
+  return apiPost<ExplanationStepsResult>("/api/explanation/steps", { question, answer, category, forced: true });
 }
 
 export async function getExplanationHint(
@@ -133,7 +133,7 @@ export async function getExplanationHint(
   answer: string,
   category: string,
 ): Promise<ExplanationHintResult> {
-  return apiPost<ExplanationHintResult>("/api/explanation/hint", { question, answer, category, forced: false });
+  return apiPost<ExplanationHintResult>("/api/explanation/hint", { question, answer, category, forced: true });
 }
 
 export async function generateExplanation(
@@ -162,7 +162,7 @@ export async function generatePractice(
   question: string,
   category: string,
 ): Promise<PracticeGenerateResult> {
-  return apiPost<PracticeGenerateResult>("/api/practice/generate", { question, category, forced: false });
+  return apiPost<PracticeGenerateResult>("/api/practice/generate", { question, category, forced: true });
 }
 
 export async function refreshPractice(

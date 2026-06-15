@@ -51,11 +51,29 @@ function uniqueQuestions(questions: string[]): string[] {
   return result;
 }
 
+function cleanQuestionText(text: string): string {
+  let s = text.trim();
+  // Strip JSON wrapper artifacts: {"questions": [...], ...}
+  s = s.replace(/^\s*\{[\s\S]*?"questions"\s*:\s*\[/, "").replace(/\]\s*\}\s*$/, "");
+  // Strip leading/trailing JSON punctuation from individual items
+  s = s.replace(/^[\s,]+/, "").replace(/[\s,]+$/, "");
+  // Strip markdown code fences
+  s = s.replace(/^```[\s\S]*?\n/, "").replace(/\n```\s*$/, "");
+  // Strip leading JSON array bracket / quotes
+  s = s.replace(/^\s*\[\s*"?/, "").replace(/"?\s*\]\s*$/, "");
+  // Strip trailing comma + quote artifacts
+  s = s.replace(/",?\s*$/, "").replace(/^",?\s*/, "");
+  // Strip escaped quotes
+  s = s.replace(/\\"/g, '"');
+  return s.trim();
+}
+
 function splitCandidateString(value: string): string[] {
   return value
     .split("\n")
     .map((item) => item.replace(/^\s*[-*•\d.)]+\s*/, "").trim())
-    .filter((item) => item.length > 0);
+    .map(cleanQuestionText)
+    .filter((item) => item.length >= 6 && !item.startsWith("{") && !item.startsWith("["));
 }
 
 function collectQuestionCandidates(payload: unknown, bucket: string[], depth = 0): void {
@@ -96,7 +114,9 @@ function normalizeOllamaQuestions(payload: unknown): string[] {
   collectQuestionCandidates(payload, candidates);
 
   return uniqueQuestions(
-    candidates.filter((item) => item.length >= 6 && item.length <= 300),
+    candidates
+      .map(cleanQuestionText)
+      .filter((item) => item.length >= 6 && item.length <= 300 && !item.startsWith("{") && !item.startsWith("[")),
   );
 }
 

@@ -138,29 +138,34 @@ export function GenericCalcPage({
       localStorage.removeItem("scannedQuestion")
       const latex = textToLatex(scannedQuestion)
       setExpression(latex)
-      if (mf.current) {
-        mf.current.value = latex
+      const setValueWhenReady = (attempts = 0) => {
+        if (!mf.current || attempts > 30) return
+        if (typeof mf.current.executeCommand === "function") {
+          mf.current.executeCommand(["selectAll"])
+          mf.current.executeCommand(["insert", latex])
+        } else {
+          setTimeout(() => setValueWhenReady(attempts + 1), 100)
+        }
       }
-      setIsSolving(true)
-      solveText(scannedQuestion, category)
-        .then((result) => {
-          setSolved(scannedQuestion, result.answer, category, topicSlug ?? "general")
-          setHasResult(true)
-        })
-        .catch((error) => {
-          if (error instanceof CategoryMismatchError) {
-            pendingExpression.current = scannedQuestion
-            pendingCategory.current = category
-            setSuggestedCategory(error.suggested)
-            setCategoryDialogOpen(true)
-          } else {
-            const message = error instanceof Error ? error.message : "Failed to solve scanned question"
-            alert(message)
-          }
-        })
-        .finally(() => {
-          setIsSolving(false)
-        })
+      setValueWhenReady()
+    }
+
+    const practiceQuestion = localStorage.getItem("practiceQuestion")
+    if (practiceQuestion) {
+      localStorage.removeItem("practiceQuestion")
+      const clean = practiceQuestion.replace(/\$/g, "").trim()
+      setExpression(clean)
+      // MathLive loads async via dynamic import — poll until it's ready
+      const setValueWhenReady = (attempts = 0) => {
+        if (!mf.current || attempts > 30) return
+        if (typeof mf.current.executeCommand === "function") {
+          mf.current.executeCommand(["selectAll"])
+          mf.current.executeCommand(["insert", clean])
+        } else {
+          setTimeout(() => setValueWhenReady(attempts + 1), 100)
+        }
+      }
+      setValueWhenReady()
     }
   }, [category, topicSlug, setSolved])
 
@@ -615,7 +620,7 @@ export function GenericCalcPage({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleForceSolve}>
+            <AlertDialogAction className="bg-primary-dark" onClick={handleForceSolve}>
               Solve anyway
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -133,9 +133,14 @@ export async function handleTextUpload(req: Request, res: Response) {
 			}
 			
 			const prompt = `
-			Solve the following math question and 
+			Solve the following math question. The user's chosen category is "${parsed.category}".
+			You MUST attempt to solve the problem using your full mathematical knowledge, 
+			regardless of the category. Use the category only as context for formatting the 
+			style of your solution steps, but always solve the problem correctly. You must ONLY respond
+			with the answer, no filler text, e.g. "The answer of ___ is ___". 
+			You must ONLY respond with the final answer, no steps.
+
 			return ONLY valid JSON matching the schema {\n  "answer": "<string>",\n  "id": "<string>"\n}
-			If it is a math question but unsolvable, respond with exactly "None"
 			If it is not a math question, respond with "Not a math question" 
 			Question: ${result.question}`;
 			const aiResp = await call_ollama(prompt, solveResponse);

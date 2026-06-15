@@ -31,20 +31,23 @@ export async function generateSteps(data: z.infer<typeof stepsRequest>) {
 
     const prompt = `${ANTI_INJECTION_PREFIX}
 
-You are a helpful mathematical assistant specializing in ${data.category}. 
+You are a helpful mathematical assistant. 
 Given the question: "${data.question}" and the final answer: "${data.answer}", 
 generate a clear, step-by-step breakdown of how to reach that answer.
+The user's chosen category is "${data.category}" — use it as context for the style 
+of explanation, but always explain the math correctly regardless of category.
 
 CRITICAL RULES:
-1. ONLY use knowledge and techniques relevant to the category: ${data.category}.
-2. If the question is not a valid math problem in ${data.category}, return {"steps": []}.
-3. For each step, if there is a key equation, formula, or mathematical expression that represents this step, include it in the "equation" field as a valid LaTeX string (without $ delimiters). If the step is purely conceptual with no key equation, omit the equation field.
-4. **Format the "explanation" field using markdown**: Use **bold** for key terms, bullet points for lists, and inline LaTeX math notation (e.g., $x^2 + y^2 = z^2$) for equations within the explanation. Wrap code or math blocks in triple backticks if needed.
+1. ALWAYS generate steps. Never return empty steps.
+2. For each step, if there is a key equation, formula, or mathematical expression that represents this step, include it in the "equation" field as a valid LaTeX string (without $ delimiters). If the step is purely conceptual with no key equation, omit the equation field.
+3. **Format the "explanation" field using markdown**: Use **bold** for key terms, bullet points for lists, and inline LaTeX math notation (e.g., $x^2 + y^2 = z^2$) for equations within the explanation. Wrap code or math blocks in triple backticks if needed.
 
 Each step should include a step number, a clear explanation, and optionally an equation.`;
     const aiResp = await call_ollama(prompt, stepsResponse);
+
+    // If AI returned empty steps, return gracefully instead of throwing
     if(!aiResp.steps || aiResp.steps.length === 0){
-        throw Error('Invalid input');
+        return { steps: [] };
     }
 
     // Store steps in cache (only steps per requirement)
@@ -58,21 +61,36 @@ Each step should include a step number, a clear explanation, and optionally an e
 }
 
 export async function generateHints(data: z.infer<typeof stepsRequest>) {
+    // Check cache for hints first
+    const cached = await cacheService.getHintsForQuestion(data.question);
+    if (cached) {
+        return cached;
+    }
+
     const prompt = `${ANTI_INJECTION_PREFIX}
 
-You are a helpful mathematical assistant specializing in ${data.category}.
+You are a helpful mathematical assistant.
 Given the question: "${data.question}" and the final answer: "${data.answer}",
 provide a general hint and a list of specific hints to help the user solve the problem themselves.
+The user's chosen category is "${data.category}" — use it as context, but always provide 
+mathematically correct hints regardless of category.
 
 CRITICAL RULES:
-1. ONLY provide hints based on ${data.category} principles.
-2. Do not give away the full solution immediately.
-3. Format hints using **markdown**: use **bold** for key terms, bullet points for lists, and inline LaTeX math notation (e.g., $x^2 + y^2 = z^2$) for equations.
-4. If the question is not a valid math problem, return {"hintGeneral": "This does not appear to be a valid math question.", "hints": []}.`;
+1. Do not give away the full solution immediately.
+2. Format hints using **markdown**: use **bold** for key terms, bullet points for lists, and inline LaTeX math notation (e.g., $x^2 + y^2 = z^2$) for equations.
+3. Always provide hints. Never return empty hints.`;
     if (!data.question || !data.answer) {
         throw Error("Invalid input");
     }
     const aiResp = await call_ollama(prompt, hintResponse);
+
+    // Cache the hints
+    try {
+        await cacheService.setHintsForQuestion(data.question, aiResp);
+    } catch (e) {
+        console.error('Failed to cache hints', e);
+    }
+
     return aiResp;
 }
 

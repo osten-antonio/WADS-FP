@@ -5,7 +5,7 @@ import * as z from "zod";
 import { sendErrorResponse } from "../lib/error-response";
 
 export async function validateCategory(req: Request, res: Response, next: NextFunction) {
-    const { category, question, force } = req.body;
+    const { category, question, forced } = req.body;
 
     if(!category) {
         next();
@@ -16,7 +16,12 @@ export async function validateCategory(req: Request, res: Response, next: NextFu
         return sendErrorResponse(res, 400, "Invalid category", "INVALID_CATEGORY");
     }
 
-    if(force === true || force === "true") {
+    if(category==="General") {
+        next();
+        return;
+    }
+
+    if(forced === true || forced === "true") {
         next();
         return;
     }
