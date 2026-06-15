@@ -145,7 +145,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
         run: |
           cd frontend
           docker compose pull frontend
-          docker compose up -d --no-deps --force-recreate --build frontend 
+          docker compose up -d --no-deps --force-recreate frontend 
 
       - name: Cleanup dangling images
         run: docker image prune -f

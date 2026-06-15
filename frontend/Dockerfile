@@ -28,10 +28,12 @@ ENV NODE_ENV=production
 ENV FRONTEND_PORT=${FRONTEND_PORT}
 ENV PORT=${FRONTEND_PORT}
 
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+
+RUN npm ci --omit=dev
 
 EXPOSE ${FRONTEND_PORT}
 CMD ["npm", "run", "start"]
