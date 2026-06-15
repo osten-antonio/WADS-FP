@@ -32,9 +32,13 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.log(error)
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error("[session] Error:", error)
+    if (axios.isAxiosError(error)) {
+      console.error("[session] Backend response:", error.response?.status, error.response?.data)
+      if (error.response?.status === 401) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.json({ error: error.message }, { status: 502 });
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

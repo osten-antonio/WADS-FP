@@ -3,6 +3,7 @@ import express from "express";
 import { ollamaRateLimit } from "../middleware/rateLimit.middleware";
 import { generate as generatePractice, refresh } from "../controllers/practice.controller";
 import { validateCategory } from "../middleware/validate.middleware";
+import { validateStepsRequestSecurity } from "../middleware/security.middleware";
 
 /**
  * @openapi
@@ -45,7 +46,7 @@ const practiceRouter = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-practiceRouter.post('/generate/', ollamaRateLimit, validateCategory, generatePractice);
+practiceRouter.post('/generate/', ollamaRateLimit, validateStepsRequestSecurity, validateCategory, generatePractice);
 
 /**
  * @openapi
@@ -82,7 +83,7 @@ practiceRouter.post('/generate/', ollamaRateLimit, validateCategory, generatePra
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-practiceRouter.post('/refresh/', ollamaRateLimit, validateCategory, refresh);
+practiceRouter.post('/refresh/', ollamaRateLimit, validateStepsRequestSecurity, validateCategory, refresh);
 
 
 export default practiceRouter;

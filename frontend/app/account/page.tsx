@@ -9,6 +9,8 @@ import { CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Katex } from "@/components/widget/Katex"
+import { textToLatex } from "@/lib/text-to-latex"
 
 type HistoryItem = {
   id: string
@@ -46,6 +48,13 @@ function formatHistoryDate(value: string): string {
 function matchesTopic(item: HistoryItem, topic: string): boolean {
   const normalizedTopic = topic.trim().toLowerCase()
   return item.category.toLowerCase() === normalizedTopic || item.type.toLowerCase() === normalizedTopic
+}
+
+function getSlugForCategory(category: string): string {
+  const match = CALCULATOR_TOPIC_OPTIONS.find(
+    (t) => t.category.toLowerCase() === category.toLowerCase()
+  )
+  return match?.slug ?? "general"
 }
 
 export default function AccountPage() {
@@ -291,6 +300,16 @@ export default function AccountPage() {
     }
   }
 
+  const handleHistoryClick = (item: HistoryItem) => {
+    const slug = getSlugForCategory(item.category)
+    localStorage.setItem("practiceQuestion", item.text)
+    if (slug === "general") {
+      router.push("/app/calculator")
+    } else {
+      router.push(`/app/calculator/${slug}`)
+    }
+  }
+
   const shownName = loadingProfile ? "Loading..." : (name || "User")
 
   const visibleHistoryItems = React.useMemo(() => {
@@ -366,9 +385,17 @@ export default function AccountPage() {
             {!loadingProfile && !historyError
               ? visibleHistoryItems.map((item) => (
                   <article key={item.id} className="mb-2 flex items-start gap-2 rounded-lg bg-white p-2 last:mb-0">
-                    <div className="min-w-0 flex-1">
+                    <div
+                      className="min-w-0 flex-1 cursor-pointer hover:bg-slate-50 rounded-md -m-1 p-1 transition-colors"
+                      onClick={() => handleHistoryClick(item)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleHistoryClick(item) }}
+                    >
                       <p className="text-xs font-semibold text-slate-800">{item.category}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-slate-700">{item.text || "(no text input saved)"}</p>
+                      <div className="mt-1 line-clamp-2 text-xs text-slate-700">
+                        {item.text ? <Katex expression={textToLatex(item.text)} /> : <span>(no text input saved)</span>}
+                      </div>
                       <p className="mt-1 text-[11px] text-slate-500">{formatHistoryDate(item.createdAt)}</p>
                     </div>
                     <button
@@ -480,11 +507,17 @@ export default function AccountPage() {
                 {!loadingProfile && !historyError
                   ? visibleHistoryItems.map((item) => (
                       <article key={item.id} className="mb-2 flex items-start gap-2 rounded-lg bg-white p-3 last:mb-0">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-slate-800">
-                            {item.category} · {item.inputMode}
-                          </p>
-                          <p className="mt-1 line-clamp-2 text-sm text-slate-700">{item.text || "(no text input saved)"}</p>
+                        <div
+                          className="min-w-0 flex-1 cursor-pointer hover:bg-slate-50 rounded-md -m-1 p-1 transition-colors"
+                          onClick={() => handleHistoryClick(item)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleHistoryClick(item) }}
+                        >
+                          <p className="text-xs font-semibold text-slate-800">{item.category}</p>
+                          <div className="mt-1 line-clamp-2 text-sm text-slate-700">
+                            {item.text ? <Katex expression={textToLatex(item.text)} /> : <span>(no text input saved)</span>}
+                          </div>
                           <p className="mt-1 text-xs text-slate-500">{formatHistoryDate(item.createdAt)}</p>
                         </div>
                         <button

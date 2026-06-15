@@ -179,7 +179,7 @@ export function ShortcutBar({ shortcuts, onInsert, mathFieldRef, onOpenFunctions
             type="button"
             variant="outline"
             size="sm"
-            className={`h-8 px-3 py-0 text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${isKeyboard ? "bg-[#4C9DB3] text-white border-none hover:bg-[#3d8a9e]" : "hover:bg-slate-100"}`}
+            className={`h-8 px-3 py-0 text-xs font-medium whitespace-nowrap shrink-0 transition-colors bg-[#4C9DB3] text-white border-none hover:bg-[#3d8a9e]"}`}
             onPointerDown={(e) => { e.preventDefault() }}
             onClick={onOpenFunctions}
           >
@@ -192,7 +192,7 @@ export function ShortcutBar({ shortcuts, onInsert, mathFieldRef, onOpenFunctions
             type="button"
             variant="outline"
             size="sm"
-            className={`h-8 px-3 py-0 text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${isKeyboard ? "bg-[#4C9DB3] text-white border-none hover:bg-[#3d8a9e]" : "hover:bg-slate-100"} ${item.className || ""}`}
+            className={`h-8 px-3 py-0 text-xs font-medium whitespace-nowrap shrink-0 transition-colors bg-[#4C9DB3] text-white border-none hover:bg-[#3d8a9e] ${item.className || ""}`}
             onPointerDown={(e) => { e.preventDefault() }}
             onClick={() => handleInsert(item.latex)}
           >

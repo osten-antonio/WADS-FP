@@ -2,6 +2,8 @@ export type MathFieldElement = HTMLElement & {
     mathVirtualKeyboardPolicy: "manual" | "auto" | "sandboxed"
     value: string
     executeCommand: (command: string | [string, ...unknown[]]) => boolean
+    setOptions: (options: Record<string, unknown>) => void
+    focused: boolean
 }
 
 export type MathVirtualKeyboard = {

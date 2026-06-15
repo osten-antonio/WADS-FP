@@ -58,7 +58,7 @@ const userRouter = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-userRouter.post('/login', globalRateLimit, authenticateUser, login);
+userRouter.post('/login', globalRateLimit, login);
 
 /**
  * @openapi

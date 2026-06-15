@@ -3,6 +3,11 @@ import { HintBox } from "@/components/widget/HintBox"
 import { StepBox } from "@/components/widget/StepBox"
 import { PracticeBox } from "@/components/widget/PracticeBox"
 
+jest.mock("@/lib/api", () => ({
+  generateExplanation: jest.fn().mockResolvedValue({ explanation: "Generated explanation" }),
+  followUpExplanation: jest.fn().mockResolvedValue({ explanation: "Follow up explanation" }),
+}))
+
 // HintBox
 describe("HintBox", () => {
   it("renders hint number", () => {
@@ -12,17 +17,20 @@ describe("HintBox", () => {
 
   it("shows hint text by default (not hidden)", () => {
     render(<HintBox number={2} hint="Factor out x" />)
+    fireEvent.click(screen.getByLabelText("Unhide hint"))
     expect(screen.getByText(/Factor out x/)).toBeInTheDocument()
   })
 
   it("hides hint text when toggle clicked", () => {
     render(<HintBox number={1} hint="Use the power rule" />)
+    fireEvent.click(screen.getByLabelText("Unhide hint"))
     fireEvent.click(screen.getByLabelText("Hide hint"))
     expect(screen.getByLabelText("Unhide hint")).toBeInTheDocument()
   })
 
   it("reveals hint text again when toggled back", () => {
     render(<HintBox number={1} hint="Use the power rule" />)
+    fireEvent.click(screen.getByLabelText("Unhide hint"))
     fireEvent.click(screen.getByLabelText("Hide hint"))
     fireEvent.click(screen.getByLabelText("Unhide hint"))
     expect(screen.getByText(/Use the power rule/)).toBeInTheDocument()
@@ -48,8 +56,7 @@ describe("StepBox", () => {
     expect(screen.getByRole("button", { name: /explain/i })).toBeInTheDocument()
   })
 
-  it("Explain transitions to Explaining then Explained", () => {
-    jest.useFakeTimers()
+  it("Explain transitions to Explaining then Explained", async () => {
     render(<StepBox step={1} summary="Some step" defaultOpen />)
 
     const btn = screen.getByRole("button", { name: /explain/i })
@@ -57,10 +64,10 @@ describe("StepBox", () => {
     expect(screen.getByText(/Explaining/i)).toBeInTheDocument()
     expect(btn).toBeDisabled()
 
-    act(() => jest.runAllTimers())
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
     expect(screen.getByText(/Explained/i)).toBeInTheDocument()
-
-    jest.useRealTimers()
   })
 
   it("collapsible opens when trigger is clicked", () => {

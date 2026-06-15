@@ -1,17 +1,31 @@
 "use client"
 
 import type { CSSProperties } from "react"
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react"
 import { Camera, Send, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useIsMobile, useIsBelowXl } from "@/hooks/use-mobile"
 import { FunctionSelector } from "@/components/calculator/FunctionSelector"
 import { ShortcutBar, getShortcutsForTopic } from "@/components/calculator/ShortcutBar"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { MathKeyboardStyles } from "@/components/calculator/MathKeyboardStyles"
 import { KEYBOARD_OPTIONS } from "@/lib/keyboard-config"
 import type { MathFieldElement, MathVirtualKeyboard } from "@/lib/mathlive-types"
 import { useRouter } from "next/navigation"
+import { solveText, CategoryMismatchError } from "@/lib/api"
+import { useCalculator } from "@/lib/calculator-context"
+import { CALCULATOR_TOPIC_OPTIONS } from "@/lib/calculator-topics"
+import { textToLatex } from "@/lib/text-to-latex"
 
 export function GenericCalcPage({
   SolutionScreen,
@@ -23,6 +37,9 @@ export function GenericCalcPage({
   topicSlug?: string
 }) {
   const router = useRouter();
+  const ctx = useCalculator();
+  const NOOP = () => {};
+  const setSolved = ctx?.setSolved ?? NOOP;
   const mf = useRef<MathFieldElement | null>(null)
   const inlineKeyboardHostRef = useRef<HTMLDivElement | null>(null)
   const functionSelectorRef = useRef<HTMLDivElement | null>(null)
@@ -35,11 +52,20 @@ export function GenericCalcPage({
   const [isSolving, setIsSolving] = useState(false)
   const [hasResult, setHasResult] = useState(false)
   const [isFunctionsOpen, setIsFunctionsOpen] = useState(false)
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [suggestedCategory, setSuggestedCategory] = useState("")
+  const pendingExpression = useRef<string>("")
+  const pendingCategory = useRef<string>("")
 
   const isMobile = useIsMobile()
   const isBelowXl = useIsBelowXl()
 
   const shortcuts = useMemo(() => getShortcutsForTopic(topic), [topic])
+
+  const category = useMemo(() => {
+    const match = CALCULATOR_TOPIC_OPTIONS.find((t) => t.slug === topicSlug)
+    return match?.category ?? "General"
+  }, [topicSlug])
 
   const handleShortcutInsert = useCallback((latex: string) => {
     if (mf.current) {
@@ -52,16 +78,97 @@ export function GenericCalcPage({
     setIsFunctionsOpen(true)
   }, [])
 
-  const handleSolve = useCallback(async () => {
+  const handleSolve = useCallback(async (forced = false) => {
     if (!expression.trim()) return
     setIsSolving(true)
     setHasResult(false)
 
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const result = await solveText(expression, category, forced)
+      setSolved(expression, result.answer, category, topicSlug ?? "general")
+      setHasResult(true)
+    } catch (error) {
+      if (error instanceof CategoryMismatchError && !forced) {
+        pendingExpression.current = expression
+        pendingCategory.current = category
+        setSuggestedCategory(error.suggested)
+        setCategoryDialogOpen(true)
+      } else {
+        const message = error instanceof Error ? error.message : "Failed to solve"
+        alert(message)
+      }
+    } finally {
+      setIsSolving(false)
+    }
+  }, [expression, category, topicSlug, setSolved])
 
-    setIsSolving(false)
-    setHasResult(true)
-  }, [expression])
+  // Stable ref so the mathlive effect never re-runs when expression changes
+  // handleSolve changes every time `expression` changes (it's in its dep array).
+  // Previously handleSolve was also in the mathlive effect's dep array, which caused the
+  // entire effect to tear down and re-run after every single keystroke — re-adding listeners
+  // each time without removing the old ones (accumulation), and calling
+  // mathVirtualKeyboard.hide() in cleanup (hiding the keyboard after every tap).
+  const handleSolveRef = useRef(handleSolve)
+  useLayoutEffect(() => {
+    handleSolveRef.current = handleSolve
+  }) // no dep array — runs every render to keep ref current
+
+  const handleForceSolve = useCallback(async () => {
+    setCategoryDialogOpen(false)
+    if (!pendingExpression.current) return
+    setIsSolving(true)
+    setHasResult(false)
+
+    try {
+      const result = await solveText(pendingExpression.current, pendingCategory.current, true)
+      setSolved(pendingExpression.current, result.answer, pendingCategory.current, topicSlug ?? "general")
+      setHasResult(true)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to solve"
+      alert(message)
+    } finally {
+      setIsSolving(false)
+      pendingExpression.current = ""
+      pendingCategory.current = ""
+    }
+  }, [topicSlug, setSolved])
+
+  useEffect(() => {
+    const scannedQuestion = localStorage.getItem("scannedQuestion")
+    if (scannedQuestion) {
+      localStorage.removeItem("scannedQuestion")
+      const latex = textToLatex(scannedQuestion)
+      setExpression(latex)
+      const setValueWhenReady = (attempts = 0) => {
+        if (!mf.current || attempts > 30) return
+        if (typeof mf.current.executeCommand === "function") {
+          mf.current.executeCommand(["selectAll"])
+          mf.current.executeCommand(["insert", latex])
+        } else {
+          setTimeout(() => setValueWhenReady(attempts + 1), 100)
+        }
+      }
+      setValueWhenReady()
+    }
+
+    const practiceQuestion = localStorage.getItem("practiceQuestion")
+    if (practiceQuestion) {
+      localStorage.removeItem("practiceQuestion")
+      const clean = practiceQuestion.replace(/\$/g, "").trim()
+      setExpression(clean)
+      // MathLive loads async via dynamic import — poll until it's ready
+      const setValueWhenReady = (attempts = 0) => {
+        if (!mf.current || attempts > 30) return
+        if (typeof mf.current.executeCommand === "function") {
+          mf.current.executeCommand(["selectAll"])
+          mf.current.executeCommand(["insert", clean])
+        } else {
+          setTimeout(() => setValueWhenReady(attempts + 1), 100)
+        }
+      }
+      setValueWhenReady()
+    }
+  }, [category, topicSlug, setSolved])
 
   useEffect(() => {
     if (isMobile || !functionSelectorRef.current) return
@@ -138,16 +245,23 @@ export function GenericCalcPage({
       // @ts-expect-error mathModeSpace is not in MathFieldElement type but exists at runtime
       mf.current.mathModeSpace = "\\ "
 
-      mf.current.addEventListener("input", (ev) => {
-        setExpression((ev.target as MathFieldElement).value)
-      })
+      // Wipe all inline shortcuts
+      mf.current.setOptions({ inlineShortcuts: {} })
 
-      mf.current.addEventListener("keydown", (ev: KeyboardEvent) => {
+
+      const handleInput = (ev: Event) => {
+        setExpression((ev.target as MathFieldElement).value)
+      }
+      mf.current.addEventListener("input", handleInput)
+
+      const handleKeyDown = (ev: KeyboardEvent) => {
         if (ev.key === "Enter" && !ev.shiftKey) {
           ev.preventDefault()
-          handleSolve()
+          handleSolveRef.current()
         }
-      })
+      }
+      // Bubble phase is fine now that we're only catching Enter
+      mf.current.addEventListener("keydown", handleKeyDown)
 
       const handleFocusIn = () => {
         setIsFocused(true)
@@ -158,17 +272,52 @@ export function GenericCalcPage({
         syncInlineKeyboardHeight()
       }
 
-      const handleFocusOut = () => {
+      
+      // Virtual keyboard tap detection
+      //   a) geometry check - is the tap inside the keyboard's bounding rect?
+      //   b) class fallback - check several known MathLive VK class patterns
+      const handleDocumentPointerDown = (ev: PointerEvent) => {
+        const target = ev.target as HTMLElement
+
+        // Always allow taps that land on the math field itself
+        if (mf.current?.contains(target) || target === mf.current) return
+
+        // (a) Position-based check — most reliable across MathLive versions / shadow DOM
+        const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
+        if (keyboard?.boundingRect) {
+          const rect = keyboard.boundingRect
+          if (
+            rect.height > 0 &&
+            ev.clientX >= rect.left &&
+            ev.clientX <= rect.right &&
+            ev.clientY >= rect.top
+          ) {
+            return // tap is geometrically inside the virtual keyboard panel
+          }
+        }
+
+        // (b) Class-based fallback — covers cases where boundingRect isn't available yet
+        const vkSelectors = [
+          '.ML__virtual-keyboard',
+          '.ML__keyboard',
+          '[class*="ML__k"]',
+          '[id*="keyboard"]',
+        ]
+        for (const sel of vkSelectors) {
+          if (target.closest(sel)) return
+        }
+
+        if (target.closest('[data-shortcut-bar]')) return
+
         setIsFocused(false)
         if (effectivePlacement !== "inline") {
-          const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
           keyboard?.hide()
           setMobileKeyboardHeight(0)
         }
       }
 
+      document.addEventListener("pointerdown", handleDocumentPointerDown)
       mf.current.addEventListener("focusin", handleFocusIn)
-      mf.current.addEventListener("focusout", handleFocusOut)
 
       const keyboard = window.mathVirtualKeyboard as MathVirtualKeyboard | undefined
       if (!keyboard) {
@@ -261,12 +410,16 @@ export function GenericCalcPage({
       window.addEventListener("resize", handleGeometryChange)
       window.addEventListener("orientationchange", handleGeometryChange)
 
+      // ─── FIX 5: All listeners registered in this effect are cleaned up together ──
       cleanupListeners = () => {
         keyboard.removeEventListener("geometrychange", handleGeometryChange)
         window.removeEventListener("resize", handleGeometryChange)
         window.removeEventListener("orientationchange", handleGeometryChange)
+        document.removeEventListener("pointerdown", handleDocumentPointerDown)
         mf.current?.removeEventListener("focusin", handleFocusIn)
-        mf.current?.removeEventListener("focusout", handleFocusOut)
+        // These two were missing from the original — the primary cause of accumulation
+        mf.current?.removeEventListener("input", handleInput)
+        mf.current?.removeEventListener("keydown", handleKeyDown)  // bubble phase, no flag
       }
 
       if (effectivePlacement === "inline") {
@@ -281,11 +434,20 @@ export function GenericCalcPage({
 
     return () => {
       isCancelled = true
+      // mathVirtualKeyboard.hide() is intentionally kept here: now that the dep array
+      // is [effectivePlacement] only (not handleSolve), this cleanup only runs when the
+      // placement actually changes or on unmount — not after every keystroke.
       window.mathVirtualKeyboard?.hide()
       cleanupListeners?.()
       setInlineKeyboardHeight(null)
     }
-  }, [effectivePlacement, handleSolve])
+  // ─── FIX 6: Remove handleSolve from deps — it changed on every expression update ──
+  // Old: [effectivePlacement, handleSolve]
+  // handleSolve has `expression` in its useCallback deps, so it was recreated after every
+  // keystroke, which triggered this entire effect to teardown+rerun, accumulating listeners
+  // and hiding the keyboard each time. handleSolveRef gives us the latest version without
+  // making it a dependency here.
+  }, [effectivePlacement])
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.mathVirtualKeyboard) {
@@ -319,7 +481,7 @@ export function GenericCalcPage({
                   variant="ghost"
                   disabled={!expression.trim() || isSolving}
                   className="hover:bg-slate-100 aspect-square border h-12 w-12 text-slate-500 transition-colors shrink-0 p-0"
-                  onClick={handleSolve}
+                  onClick={() => handleSolve(false)}
                 >
                   {isSolving ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -413,7 +575,8 @@ export function GenericCalcPage({
 
       {isBelowXl && isFocused && mobileKeyboardHeight > 0 && (
         <div
-          className="fixed left-0 right-0 z-[130] pointer-events-auto"
+          data-shortcut-bar
+          className="fixed left-0 right-0 z-[130] pointer-events-auto flex items-center gap-1 px-2"
           style={{ bottom: `${mobileKeyboardHeight}px` }}
         >
           <ShortcutBar
@@ -446,6 +609,24 @@ export function GenericCalcPage({
           </div>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <AlertDialogContent className="z-[200]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Different category detected</AlertDialogTitle>
+            <AlertDialogDescription>
+              This problem looks like it belongs to <strong>{suggestedCategory}</strong>.
+              Are you sure you want to solve it under <strong>{category}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-primary-dark" onClick={handleForceSolve}>
+              Solve anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
