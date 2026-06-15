@@ -103,7 +103,7 @@ export default function RegisterPage() {
     };
     
     return (
-        <div className="flex items-center justify-center min-h-screen bg-scan-background p-4">
+        <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-sm bg-white border-primary-main/20 shadow-lg">
             <CardHeader className="text-primary-dark/80 rounded-t-lg m-0">
             <CardTitle className="text-2xl">Create Account</CardTitle>

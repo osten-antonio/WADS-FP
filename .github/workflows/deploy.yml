@@ -68,7 +68,8 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          push: true
+          push: false # push taking 10000 years
+          load: true 
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-backend:latest
 
       - name: Build DB migration image (local target)
@@ -84,7 +85,6 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
       - name: Deploy to server
         run: |
           cd backend
-          docker compose pull backend
           docker compose up -d --no-deps --force-recreate backend
 
       - name: Cleanup dangling images
@@ -128,7 +128,8 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
-          push: true
+          push: false
+          load: true 
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-frontend:latest
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -142,7 +143,6 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
       - name: Deploy to server
         run: |
           cd frontend
-          docker compose pull frontend
           docker compose up -d --no-deps --force-recreate frontend 
 
       - name: Cleanup dangling images

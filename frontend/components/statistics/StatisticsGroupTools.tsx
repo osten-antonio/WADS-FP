@@ -216,7 +216,17 @@ function ResultBanner({
   );
 }
 
-function StatisticsSteps({ steps }: { steps: SolutionStep[] }) {
+function StatisticsSteps({
+  steps,
+  question,
+  answer,
+  category = "General",
+}: {
+  steps: SolutionStep[];
+  question?: string;
+  answer?: string;
+  category?: string;
+}) {
   if (!steps.length) return null;
   return (
     <div className="mt-4 space-y-2">
@@ -227,6 +237,9 @@ function StatisticsSteps({ steps }: { steps: SolutionStep[] }) {
           step={s.step}
           summary={s.summary}
           expressionNode={s.expression ? <Katex expression={s.expression} /> : undefined}
+          question={question}
+          answer={answer}
+          category={category}
         />
       ))}
     </div>
@@ -838,7 +851,11 @@ function TTestsTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="T-Test Result" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question={`T-Test (${mode}): alpha=${alpha}, tails=${tails}${mode === "one-sample" ? `, mu0=${mu0}` : ""}`}
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }
@@ -960,7 +977,11 @@ function ChiSquareTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Chi-Square Result" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question={`Chi-Square (${mode === "goodness" ? "Goodness-of-Fit" : "Independence"}): alpha=${alpha}`}
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }
@@ -1052,7 +1073,11 @@ function AnovaTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="ANOVA Result" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question={`ANOVA (${mode === "one-way" ? "One-Way" : "Two-Way"})`}
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }
@@ -1104,7 +1129,11 @@ function DescriptiveTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Descriptive Statistics" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question="Descriptive Statistics"
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }
@@ -1170,7 +1199,11 @@ function RegressionTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Regression Result" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question={`Linear Regression: alpha=${alpha}`}
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }
@@ -1224,7 +1257,11 @@ function BoxPlotTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Box Plot Summary" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question="Box Plot Summary"
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }
@@ -1293,7 +1330,11 @@ function SpecialMeansTool() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <CalculateButton loading={loading} onClick={calculate} />
       {result ? <ResultBanner title="Special Means" lines={result} /> : null}
-      <StatisticsSteps steps={steps} />
+      <StatisticsSteps
+        steps={steps}
+        question={`Special Means: trimPercent=${trimPercent}, trimCount=${trimCount}`}
+        answer={result ? result.map((r) => `${r.label} = ${r.value}`).join(", ") : ""}
+      />
     </div>
   );
 }

@@ -15,7 +15,7 @@ export function StatisticsGroupPage({
   const group = STATISTICS_GROUPS[groupSlug];
 
   return (
-    <div className="min-h-screen bg-scan-background px-4 py-8">
+    <div className="min-h-screen px-4 py-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

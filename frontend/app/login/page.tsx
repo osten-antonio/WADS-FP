@@ -94,7 +94,7 @@ export default function LoginPage() {
     };
     
     return (
-        <div className="flex items-center justify-center min-h-screen bg-scan-background p-4">
+        <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-sm bg-white border-primary-main/20 shadow-lg">
             <CardHeader className="text-primary-dark/80 rounded-t-lg m-0">
             <CardTitle className="text-2xl">Login</CardTitle>
@@ -158,7 +158,7 @@ export default function LoginPage() {
                   Login with Google
               </Button>
               <p className="text-center text-sm text-muted-foreground">
-                  Don&apos;t have an account? <Link href="/register" className="underline hover:text-button-main text-button-main">Create one</Link>
+                  Don&apos;t have an account? <Link href="/signup" className="underline hover:text-button-main text-button-main">Create one</Link>
               </p>
             </CardFooter>
         </Card>

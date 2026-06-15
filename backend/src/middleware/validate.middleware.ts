@@ -12,16 +12,16 @@ export async function validateCategory(req: Request, res: Response, next: NextFu
         return;
     }
 
+    if(forced === true || forced === "true") {
+        next();
+        return;
+    }
+
     if(category && !categories.includes(category as string)) {
         return sendErrorResponse(res, 400, "Invalid category", "INVALID_CATEGORY");
     }
 
     if(category==="General") {
-        next();
-        return;
-    }
-
-    if(forced === true || forced === "true") {
         next();
         return;
     }

@@ -19,6 +19,9 @@ export type StepBoxProps = {
   explainBody?: string
   explainPlaceholder?: string
   className?: string
+  question?: string
+  answer?: string
+  category?: string
 }
 
 export function StepBox({
@@ -30,9 +33,18 @@ export function StepBox({
   explainBody,
   explainPlaceholder = "Ask a follow up question",
   className,
+  question: questionProp,
+  answer: answerProp,
+  category: categoryProp,
 }: StepBoxProps) {
   const ctx = useCalculator()
-  const state = ctx?.state ?? { question: "", answer: "", category: "", topicSlug: "" }
+  const ctxState = ctx?.state ?? { question: "", answer: "", category: "", topicSlug: "" }
+  const state = {
+    question: questionProp ?? ctxState.question,
+    answer: answerProp ?? ctxState.answer,
+    category: categoryProp ?? ctxState.category,
+    topicSlug: ctxState.topicSlug,
+  }
   const [explainStatus, setExplainStatus] = React.useState<
     "idle" | "loading" | "done"
   >("idle")
@@ -44,8 +56,9 @@ export function StepBox({
     setExplainStatus("loading")
 
     try {
+      const stepNum = typeof step === "number" ? step : String(step).split("").reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 0);
       const result = await generateExplanation(state.question, state.answer, {
-        step: Number(step),
+        step: stepNum,
         explanation: summary,
       })
       setExplanationText(result.explanation)
