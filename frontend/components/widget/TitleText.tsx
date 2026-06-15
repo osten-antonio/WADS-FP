@@ -1,5 +1,9 @@
-export function Title(){
+import Link from "next/link"
+
+export function Title() {
     return (
-        <h1 className="text-2xl font-bold">AIMS</h1>
+        <Link href="/">
+            <h1 className="text-2xl font-bold cursor-pointer hover:opacity-80 transition-opacity">Calculator</h1>
+        </Link>
     )
 }
