@@ -31,7 +31,7 @@ export async function proxy(request: NextRequest) {
       method: request.method,
       headers: Object.fromEntries(
         [...request.headers.entries()].filter(
-          ([key]) => !["host", "connection"].includes(key.toLowerCase())
+          ([key]) => !["host", "connection", "accept-encoding"].includes(key.toLowerCase())
         )
       ),
       redirect: "manual",
