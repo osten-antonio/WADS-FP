@@ -213,6 +213,10 @@ function validateBodyObject(req: Request, res: Response): req is Request & { bod
 }
 
 export function apiSecurityHeaders(req: Request, res: Response, next: NextFunction): void {
+  if (req.originalUrl.startsWith("/api/docs")) {
+    next();
+    return;
+  }
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "no-referrer");
