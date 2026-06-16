@@ -54,7 +54,7 @@ Our project strives to provide a quick math problem solver with step by step exp
 
 **5\. System Architecture**  
 **Architecture Diagram**  
-![Architecture Diagram](docs/Architecture_diagram.png)  
+![image88.png][image1]  
 **Explanation**  
 As our main functionality is to provide step-by-step answers from text/image input for mathematical problems, the flow of the app starts at the submission of a problem. The frontend validates this input, such as differentiating between image and text, field population, and allowed characters of file types, size limits, and mode selections (e.g, full explanation, hints, final answers, etc). Then, when the user has finished with matching the task to their preference, the input is sent to the RESTful API layer. Here, the backend will ensure users are authenticated, rate-limit rules are followed, and injection attacks or AI misuse are rejected. As the validation is completed, the AI takes over on solving the problem given, which will be approached with the addition of OCR if an image is detected as the input. All input regarding the math equations including the image, will go through ingestion service, which is where the  
 majority of the security and input sanitation is enforced. When finished, the result is stored, and the finished answer is sent back to the frontend as a JSON response and to the database to store the history/cache. Finally, the frontend renders the answers, the step-by-step explanation (if requested via AI), hints (if requested via AI) and then follow-up practice questions (if requested via AI). On top of these, the app also provides concept-based remediation suggestions, where the AI identifies the underlying math concept/category of the submitted problem and recommends the specific topics the user should review, tailoring the follow-up practice questions to that concept so the remediation targets the exact area the user struggled with (if requested via AI).  
@@ -62,11 +62,11 @@ To sum up, the frontend is UI only with input access and no DB or API key access
 ensure security, the auth process will be implemented using a JWT-based (provided by Firebase) login with different authorization roles. As for the input validation, we will use Zod/Joi schema validation or similar. Lastly, the app would be protected from different types of attacks as such: SQL injection: Prisma parameterized queries; XSS: sanitized outputs; CSRF: CSRF tokens; rate limiting: express rate limiter; and virus scanners.
 
 **User Persona**  
-![User Persona 1](docs/image25.png)  
-![User Persona 2](docs/image23.png)
+![image151.png][image2]  
+![image137.png][image3]
 
 **User Journey**  
-![User Journey](docs/image4.png)
+![image156.png][image4]
 
 **Functional \- Nonfunctional Requirements**
 
@@ -75,25 +75,25 @@ ensure security, the auth process will be implemented using a JWT-based (provide
 | Web application solves advanced mathematic equations Web application receives input in the form of text or images Users are able to change the form of output that the application gives Expected functions: Image and text input, step-by-step output option, suggestion output option, hint generation output option, remediation suggestions output option, secure history access | Login/Signup is optional and only required for viewing user history Design of for input and output options are clear Users expect to have responsive UI elements Security for user data Responsiveness of each action Users expect quality output from their specifications UI design is appealing and clear |
 
 **Use Case Diagram**  
-![Use Case Diagram](docs/image7.png)  
+![][image5]  
 **Notes**
 
 * Authenticated user can perform all actions that a guest can do, except, solve problem now extends saving their history  
 * Security and Validation: Contains input sanitation, rate limiting, secure image uploads, and model abuse prevention, included in all actions involving AI provider
 
 **Activity Diagram (Entire application)**  
-![Activity Diagram - Entire Application](docs/image9.png)
+![image71.png][image6]
 
 **Activity Diagram (Login/register)**  
-![Activity Diagram - Login/Register](docs/image8.png)
+![][image7]
 
 **Activity Diagram (Solve (Image))**  
-![Activity Diagram - Solve Image](docs/image11.png)  
+![][image8]  
 **Activity Diagram (Solve (text) \+ Steps/Hints/Practice)**  
-![Activity Diagram - Solve Text](docs/image1.png)
+![][image9]
 
 **Class Diagram**  
-![Class Diagram](docs/image10.png)  
+![image77.png][image10]  
 **Notes:** rawText is used when inputType \= TEXT, while imageUrl is used when inputTpye \= IMAGE. TopicSelected is optional.
 
 ---
@@ -127,7 +127,7 @@ The following are the API endpoint for the express backend, frontend contains th
 
 **API Documentation**  
 Interactive API documentation is provided through Swagger UI. The full endpoint catalogue, grouped by service, is shown below. The link can be accessed at: [https://e2526-wads-b4cc-02.csbihub.id/api/docs](https://e2526-wads-b4cc-02.csbihub.id/api/docs).  
-![API Documentation](docs/image29.png)
+![imageX001.png][image11]
 
 ---
 
@@ -170,7 +170,7 @@ Relationships
 
 **Entity Relation Diagram (ERD)**
 
-![Entity Relation Diagram](docs/image30.png)  
+![image1.png][image12]  
 **Tools and Technologies**
 
 | Service | Purpose |
@@ -238,9 +238,9 @@ Hints
 
 **8.2 AI Integration Flow**
 
-For text based input, the frontend sends the user input as text string to the backend API endpoint. Before any processing occurs, the input passes through a security middleware that sanitizes and normalizes the text, and it also scans for prompt injection patterns, then it passes on to the actual backend. The backend then generates a SHA-256 hash of the question, and checks if the Redis cache holds a previously computed answer, if it exists, it is returned immediately, if not, the system will try to attempt to do the problem deterministically. If the system does not provide an answer, it is then passed on to the LLM. The prompt and question is then sent to the LLM, with the output schema enforced by Zod. From this, after the response is fixed, the response is cached, and the final answer is returned to the frontend, to be displayed via markdown and LaTeX parsing. The same process is done for steps/hints/problem generation, except without attempting to do the problem deterministically.
+	For text based input, the frontend sends the user input as text string to the backend API endpoint. Before any processing occurs, the input passes through a security middleware that sanitizes and normalizes the text, and it also scans for prompt injection patterns, then it passes on to the actual backend. The backend then generates a SHA-256 hash of the question, and checks if the Redis cache holds a previously computed answer, if it exists, it is returned immediately, if not, the system will try to attempt to do the problem deterministically. If the system does not provide an answer, it is then passed on to the LLM. The prompt and question is then sent to the LLM, with the output schema enforced by Zod. From this, after the response is fixed, the response is cached, and the final answer is returned to the frontend, to be displayed via markdown and LaTeX parsing. The same process is done for steps/hints/problem generation, except without attempting to do the problem deterministically.
 
-For OCR, the frontend first validates the file on the client side, checking if its the correct file type and is under 10 mb. The image is then sent as a multipart form, and the middleware validates the image. This is then sent to the OCR service, which then returns back the LaTeX string of the image. The output is processed the same way the output from the LLM is.
+	For OCR, the frontend first validates the file on the client side, checking if its the correct file type and is under 10 mb. The image is then sent as a multipart form, and the middleware validates the image. This is then sent to the OCR service, which then returns back the LaTeX string of the image. The output is processed the same way the output from the LLM is.
 
 ---
 
@@ -250,52 +250,52 @@ For authentication, we use Firebase, which is also linked to the Postgresql data
 Beyond authentication, we have also implemented numerous anti injection measures, for the LLMs, we blocked any prompt that includes the 9 known injection patterns (backend/src/middleware/security.middleware.ts), e.g. ignore all previous instructions, following oWASP’s guide. Additionally, we also scan for those patterns in base64 encoded strings, as attackers sometimes encode injection payload to bypass regex. Similarly, if the attacks were to intentionally misspell the prompt injection, we would catch it as we have a scramble word detector, same length, same first/last char, sorted middle characters match.   
 In terms of XSS injection, we apply the same regex detection method to the inputs, if we detect things like \<script\>, \<iframe\>,etc we will block it, and this is applied to ALL string inputs, as XSS injection is the most dangerous since it has the chance to attack all service.   
 For requests integrity and objects integrity, we apply the following headers:  
-![Security Headers](docs/image24.png)  
+![][image13]  
 This is done to make sure that the security blocks all resource loading, framing, base tag injection, and form submission targets, similarly, we also check for any disallowed keys, e.g. \_\_proto\_\_ in a request body, following oWASP’s software integrity.  Regarding input validation, we normalize every unicode character, e.g. using NFKC normalization, which converts fullwidth characters to ASCII equivalent, and also strips control characters, e.g. \\u0008. Additionally, in the Github repository, we enabled CodeQL CI pipeline, which detects vulnerabilities. All of the security steps can be found in    (backend/src/middleware/security.middleware.ts).  
 	For API key and secret handling, the .env file is never copied into the container, as it is excluded through .dockerignore. Instead, all secrets are stored as GitHub environment secrets, and the .env is reconstructed during the build from those secrets and deleted afterwards, so no credentials are ever baked into the image or pushed to the repository, following oWASP's guide on secrets management.
 
 **Frontend Code:**   
 Firebase Client SDK  
-![Firebase Client SDK](docs/image21.png)  
+![Frontend Session Verification][image14]  
 Frontend Session Verification  
-![Frontend Session Verification](docs/image15.png)  
-![Signup Page Create Session](docs/image35.png)  
+![image78.png][image15]  
+![Signup page create session][image16]  
 Signup Page Create Session  
-![Signup Page Signing In Handling](docs/image19.png)
+![Signup page signing in handling][image17]
 
 **Input Validation and Core Security Functions**  
 Core Functionalities:  
-![Core Functionalities](docs/image22.png)  
+![image93.png][image18]  
 The unicode input is normalized to NKFC, removes control characters, and trims input.  
-![Unicode Input Normalization](docs/image5.png)
+![image113.png][image19]  
 This function is used to detect prompt-injection attempts using: keyword/pattern checks, base64-decoded hidden payload checks, and typoglycemia-style obfuscation checks.  
-![Prompt Injection Detection](docs/image33.png)  
+![image42.png][image20]  
 This function will flag DOM-XSS style payload markets.  
-![DOM-XSS Detection](docs/image3.png)  
+![image49.png][image21]  
 Shared validator for string fields: type check, length limits, optional prompt-injection block, optional dangerous-markup block.  
-![String Field Validator](docs/image14.png)  
+![image98.png][image22]  
 Rejects invalid request body shapes and blocks unsafe keys, such as \_\_proto\_\_, constructor, prototype.  
-![Request Body Validation](docs/image13.png)  
+![image74.png][image23]  
 Adds security headers along the lines of X-Content-Type-Options, X-Frame-Options, Referrer-Policy, and CSP to protect API routes.  
-![Security Headers Implementation](docs/image26.png)  
+![image115.png][image24]  
 **Middleware \- ingestion/text**  
 Validates and sanitizes questions and categories.  
-![Ingestion Text Middleware](docs/image27.png)
+![image50.png][image25]
 
 **Middleware \- explanation/generate**  
 Used to validate question, answer, step.step, and step.explanation.  
-![Explanation Generate Middleware](docs/image17.png)
+![image32.png][image26]
 
 **Middleware \- explanation/follow-up**  
 Validates explanation, question, ogQuestion, and answer.  
-![Explanation Follow-up Middleware](docs/image2.png)  
+![image118.png][image27]  
 Allowlist checks for username characters.  
-![Username Allowlist Checks](docs/image12.png)  
+![image130.png][image28]  
 **Middleware \- user/update-username**  
 Sanitizes and enforces safe display-name rules.  
-![Update Username Middleware](docs/image18.png)  
+![image144.png][image29]  
 Detects real life type from magic bytes (jpeg, png, webp) instead of purely trusting extensions/MIME only.  
-![File Type Detection](docs/image31.png)  
+![image68.png][image30]  
 **Middleware \- ingestion/image**   
 Takes in the uploaded file and checks for filename sanity and verifies whether the signature matches MIME.
 
@@ -414,24 +414,24 @@ The frontend API proxy for image ingestion sets a 30-second timeout via axios. I
 The dockerfiles we used follow a multi-stage build pattern, with a builder, and a runner. This is done to minimize the image size (not installing dev dependencies on the final environment), and to increase security (no dev tools on prod). Additionally, docker compose is used to build the docker files with the .env arguments. The docker and docker-compose files can be found below:
 
 **Backend docker compose:**  
-**![Backend compose](docs/image6.png)**
+**![][image31]**
 
 **Backend dockerfile:**  
-**![Bakcend dockerfile](docs/image36.png)**
+**![][image32]**
 
 **Frontend docker compose:**  
-**![Frontend compose](docs/image28.png)**
+**![][image33]**
 
 **Frontend Dockerfile:**  
-**![Frontend dockerfile](docs/image34.png)**
+**![][image34]**
 
 **Production Environment**  
 The github actions used will test the code’s security (through CodeQL) and run the CI for both the frontend and backend, with linting, TS type-checks, unit and integration tests, migration checks, and production build steps. Once all of the checks are complete, the code can now be deployed using github actions runner, which rebuilds the .env file, bake it into the docker build to be deployed.   
 GitHub Actions (Backend):  
-![Github actions backedn](docs/image16.png)
+![imageX005.png][image35]
 
 Deployment Log Testing:  
-![Deployment lgo testing](docs/image20.png)
+![imageX006.png][image36]
 
 **Live Application URL**  
 [https://e2526-wads-b4cc-02.csbihub.id/](https://e2526-wads-b4cc-02.csbihub.id/)
@@ -548,7 +548,7 @@ AI tools such as ChatGPT/Codex, Claude Code, and AI-supported IDEs are used for 
 ---
 
 **14\. Known Limitations & Future Improvements**  
-Some of the current limitations are coming from an LLM standpoint. Because we rely on an LLM to give us the answers to the math questions, we cannot guarantee for sure that the LLM will return perfect LaTeX or markdown formats, which might hurt the parsing process, and at the end show the users a jumbled mess of LaTeX code instead of proper mathematical notations. As the possible future enhancements other than the LaTeX parsing issue, we see that this AI-assisted calculator can also be used as a community media, where users from all over the world can share their thoughts, problems, hints, or more, making the app be more collaborative than it is currently, but keeping it optional for those who prefer a more individual experience.  
+	Some of the current limitations are coming from an LLM standpoint. Because we rely on an LLM to give us the answers to the math questions, we cannot guarantee for sure that the LLM will return perfect LaTeX or markdown formats, which might hurt the parsing process, and at the end show the users a jumbled mess of LaTeX code instead of proper mathematical notations. As the possible future enhancements other than the LaTeX parsing issue, we see that this AI-assisted calculator can also be used as a community media, where users from all over the world can share their thoughts, problems, hints, or more, making the app be more collaborative than it is currently, but keeping it optional for those who prefer a more individual experience.  
 
 ---
 
