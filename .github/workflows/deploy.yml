@@ -55,6 +55,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           FRONTEND_PORT=${{ secrets.FRONTEND_PORT }}
           BACKEND_HOSTNAME=${{ secrets.BACKEND_HOSTNAME }}
           BACKEND_PROTOCOL=${{ secrets.BACKEND_PROTOCOL }}
+          OLLAMA_MODEL_NAME=${{ secrets.OLLAMA_MODEL_NAME }}
           EOF
 
       - name: Log in to Docker registry
@@ -70,6 +71,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           file: ./backend/Dockerfile
           push: false # push taking 10000 years
           load: true 
+          no-cache: true
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-backend:latest
 
       - name: Build DB migration image (local target)
@@ -130,6 +132,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
           file: ./frontend/Dockerfile
           push: false
           load: true 
+          no-cache: true
           tags: ${{ secrets.DOCKER_USERNAME }}/wads-fp-frontend:latest
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -143,7 +146,7 @@ jobs: # not doing quality (tests, lint, etc) since require manual trigger, also 
       - name: Deploy to server
         run: |
           cd frontend
-          docker compose up -d --no-deps --force-recreate frontend 
+          docker compose up --build -d --no-deps --force-recreate frontend
 
       - name: Cleanup dangling images
         run: docker image prune -f

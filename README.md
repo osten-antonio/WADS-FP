@@ -45,7 +45,7 @@ Our project strives to provide a quick math problem solver with step by step exp
 | Backend | Node.js (Express) |
 | API | RESTful API |
 | Database | PostgreSQL \+ Redis |
-| AI | Qwen 2.5:7b-instruct |
+| AI | llama3.1:8b using Ollama|
 | Containerization | Docker |
 | Deployment / Cloud Hosting | Cloudflare |
 | Version Control | GitHub |
@@ -302,7 +302,12 @@ Takes in the uploaded file and checks for filename sanity and verifies whether t
 ---
 
 **10\. Testing Documentation**  
+
+Testing logs can be found in /docs/README.md
+
 **10.1 Frontend Testing**
+
+The frontend unit tests (/frontend/__tests__) covers rendering, conditional rendering as well as utility functions, such as text to LaTeX conversion. 
 
 | Test Case | Scenario | Expected Result | Status |
 | :---- | :---- | :---- | :---- |
@@ -325,17 +330,20 @@ Takes in the uploaded file and checks for filename sanity and verifies whether t
 
 **10.2 Backend & API Testing**
 
+The backend unit tests (/backend/__tests__) covers security, deterministic mathematical solving, statistics, utility functions, and AI integration.
+
+
 | Test Case | Endpoint | Input | Expected Output | Status |
 | ----- | ----- | ----- | ----- | ----- |
 | API-01 | POST /ingestion/image | multipart/form-data with field image containing a valid .jpg file (e.g., photo of "2x+3=11") | {  “question”:”...” } | Pass |
-| API-02 | POST /ingestion/image | multipart/form-data with field image an invalid file type | 400 { message: "Image signature does not match declared MIME type", code: "SECURITY\_INVALID\_FILE\_SIGNATURE" } | Error |
+| API-02 | POST /ingestion/image | multipart/form-data with field image an invalid file type | 400 { message: "Image signature does not match declared MIME type", code: "SECURITY\_INVALID\_FILE\_SIGNATURE" } | Pass |
 | API-03 | POST /ingestion/text | { "question": "Solve for x: 2x \+ 3 \= 11" } | { answer: "x \= 4", id: "550e8400-e29b-41d4-a716-446655440000" } | Pass |
 | API-04 | POST /ingestion/text | { "question": "Derivative of x^2", "category": "Calculus" } | { answer: "Derivative: 2 \* x", id: "7c9e6679-7425-40de-944b-e07fc1f90ae7" } | Pass |
 | API-05 | POST /solver/solve | { "question": "matrix \[\[1,2\],\[3,4\]\] determinant" } | { answer: "determinant \= \-2", id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890" } | Pass |
-| API-06 | POST /solver/solve | { "question": "What is the capital of France?" } | 400 { message: "Not a math question", code: "NOT\_A\_MATH\_QUESTION" } | Fail |
+| API-06 | POST /solver/solve | { "question": "What is the capital of France?" } | 400 { message: "Not a math question", code: "NOT\_A\_MATH\_QUESTION" } | Pass |
 | API-07 | POST /solver/solve/ai | { "question": "Solve: integral of x^2 dx" } | { answer: "x^3/3 \+ C", id: "f47ac10b-58cc-4372-a567-0e02b2c3d479" } | Pass |
 | API-08 | POST /statistics/descriptive-stats | { "values": \[1, 2, 3, 4, 5\] } | { result: { value: { n: 5, mean: 3, median: 3, mode: \[\], min: 1, max: 5, range: 4, sampleVariance: 2.5, populationVariance: 2, sampleStdDev: 1.5811, populationStdDev: 1.4142 } } } | PASS |
-| API-09 | POST /solver/solve/ai | { "question": "Tell me a joke" } | 400 { message: "Not a math question", code: "NOT\_A\_MATH\_QUESTION" } | Fail |
+| API-09 | POST /solver/solve/ai | { "question": "Tell me a joke" } | 400 { message: "Not a math question", code: "NOT\_A\_MATH\_QUESTION" } | Pass |
 | API-10 | POST /practice/generate | { "question": "Solve for x: 2x \+ 3 \= 11", "category": "Algebra" } | { questions: \["Solve for y: 3y \- 5 \= 10", "Find z: z/2 \+ 7 \= 12", "If 4a \+ 2 \= 14, find a", "Solve: 5b \- 8 \= 17", "Determine x: x/3 \+ 4 \= 9"\] } | Pass |
 | API-11 | POST /practice/generate | { "question": "", "category": "Algebra" } | 400 { message: "question must be between 1 and 2000 characters", code: "SECURITY\_INVALID\_QUESTION" } | Pass |
 | API-12 | POST /practice/refresh | { "question": "Solve for x: 2x \+ 3 \= 11", "category": "Algebra", "generatedQuestions": \["Solve for y: 3y \- 5 \= 10"\] } | { questions: \["Find z: z/2 \+ 7 \= 12", "If 4a \+ 2 \= 14, find a", "Solve: 5b \- 8 \= 17", "Determine x: x/3 \+ 4 \= 9", "Solve for y: 2y \+ 1 \= 9"\] } | Pass |
@@ -358,8 +366,8 @@ Takes in the uploaded file and checks for filename sanity and verifies whether t
 | SEC-03 | XSS injection | Input sanitized, request rejected | Pass |
 | SEC-04 | Prompt injection \- "ignore previous instructions" | Input blocked, request rejected | Pass |
 | SEC-05 | Display name \> 40 characters | Request rejected with 400 | Pass |
-| SEC-07 | Typoglycemia — "igrneo previus instructinos" | Obfuscated injection detected, rejected | Pass |
-| SEC-08 | Base64-encoded injection payload | Decoded and blocked, request rejected | Pass |
+| SEC-06 | Typoglycemia — "igrneo previus instructinos" | Obfuscated injection detected, rejected | Pass |
+| SEC-07 | Base64-encoded injection payload | Decoded and blocked, request rejected | Pass |
 
 **10.4 AI Functionality Testing**  
 AI Feature: Math Problem Solving (LLM)
@@ -566,7 +574,7 @@ Signed by Group Members:
 **Prerequisites**
 
 - [Node.js](http://Node.js) installed  
-- Ollama with Qwen2.5:7b-instruct installed  
+- Ollama with llama3.1:8b installed  
 - Nougat repository running ([https://github.com/facebookresearch/nougat](https://github.com/facebookresearch/nougat))  
 - Redis installed (If running non-docker)
 - Firebase setted up

@@ -103,8 +103,17 @@ function collectQuestionCandidates(payload: unknown, bucket: string[], depth = 0
   }
 
   if (!usedKeyMatch) {
-    for (const value of Object.values(record)) {
-      collectQuestionCandidates(value, bucket, depth + 1);
+    for (const [key, value] of Object.entries(record)) {
+      // If the value is empty/null, the key itself may be the question text
+      // (e.g. model returns {"\\frac{d}{dx} (x^3) = ?": ""})
+      if (typeof value === "string" && value.trim().length === 0) {
+        const cleanedKey = cleanQuestionText(key);
+        if (cleanedKey.length >= 6 && cleanedKey.length <= 300) {
+          bucket.push(cleanedKey);
+        }
+      } else {
+        collectQuestionCandidates(value, bucket, depth + 1);
+      }
     }
   }
 }
