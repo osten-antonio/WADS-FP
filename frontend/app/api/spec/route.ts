@@ -17,14 +17,14 @@ export async function GET() {
     "/ingestion/image": "/api/ingestion/image",
 
     // Explanation
-    "/explanation/steps": "/api/explanation/steps",
-    "/explanation/hint": "/api/explanation/hint",
-    "/explanation/generate": "/api/explanation/generate",
-    "/explanation/follow-up": "/api/explanation/follow-up",
+    "/explanation/steps/": "/api/explanation/steps",
+    "/explanation/hint/": "/api/explanation/hint",
+    "/explanation/generate/": "/api/explanation/generate",
+    "/explanation/follow-up/": "/api/explanation/follow-up",
 
     // Practice
-    "/practice/generate": "/api/practice/generate",
-    "/practice/refresh": "/api/practice/refresh",
+    "/practice/generate/": "/api/practice/generate",
+    "/practice/refresh/": "/api/practice/refresh",
 
     // Statistics
     "/statistics/{operation}": "/api/statistics/{operation}",
