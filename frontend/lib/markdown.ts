@@ -15,8 +15,21 @@ const processor = unified()
   .use(rehypeKatex)
   .use(rehypeStringify)
 
+// remark-math only recognizes $...$ and $$...$$ delimiters, but the AI emits
+// display math as \[ ... \] and inline math as \( ... \), which would otherwise
+// render as raw text. Rewrite those to dollar delimiters before parsing.
+// The (?<!\\) guard skips a backslash that is itself preceded by a backslash,
+// so LaTeX line breaks like "\\[0.8ex]" inside math are left untouched.
+function normalizeMathDelimiters(source: string): string {
+  return source
+    .replace(/(?<!\\)\\\[/g, () => "$$")
+    .replace(/(?<!\\)\\\]/g, () => "$$")
+    .replace(/(?<!\\)\\\(/g, () => "$")
+    .replace(/(?<!\\)\\\)/g, () => "$")
+}
+
 export function markdownToHtml(markdown: string, inline = false): string {
-  const source = markdown ?? ""
+  const source = normalizeMathDelimiters(markdown ?? "")
   if (!source) return ""
 
   const html = String(processor.processSync(source))

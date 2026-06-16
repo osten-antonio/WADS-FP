@@ -24,6 +24,29 @@ describe("markdownToHtml", () => {
     expect(html).not.toContain("$")
   })
 
+  it("renders display math written with \\[ \\] delimiters", () => {
+    // Before normalization the \[ \] block rendered as raw text (no katex);
+    // KaTeX keeps the TeX source in a MathML <annotation>, so assert on the
+    // rendered markup and the consumed delimiter, not the absence of \frac.
+    const html = markdownToHtml("in the form \\[\\frac{A}{x+3} + \\frac{B}{x-3}\\] where")
+    expect(html).toContain("katex")
+    expect(html).toContain("mfrac")
+    expect(html).not.toContain("\\[")
+  })
+
+  it("renders inline math written with \\( \\) delimiters", () => {
+    const html = markdownToHtml("value \\(x^2\\) here")
+    expect(html).toContain("katex")
+    expect(html).not.toContain("\\(")
+  })
+
+  it("does not split a LaTeX line break like \\\\[0.8ex] as a math delimiter", () => {
+    // The doubled backslash is a LaTeX line break inside math, not a \[ delimiter;
+    // it must stay inside the rendered math rather than starting a new $$ block.
+    const html = markdownToHtml("$$a \\\\[0.8ex] b$$")
+    expect(html).toContain("katex")
+  })
+
   it("renders fenced code blocks", () => {
     const html = markdownToHtml("```\ncode line\n```")
     expect(html).toContain("<code>")
