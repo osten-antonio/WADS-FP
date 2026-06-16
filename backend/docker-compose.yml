@@ -17,6 +17,7 @@ services:
       - BACKEND_PORT=${BACKEND_PORT:-8000}
       - BACKEND_HOSTNAME=${BACKEND_HOSTNAME:-localhost}
       - BACKEND_PROTOCOL=${BACKEND_PROTOCOL:-http}
+      - OLLAMA_MODEL_NAME=${OLLAMA_MODEL_NAME:-llama3.1:8b}
     depends_on:
       - redis
     networks:
@@ -25,6 +26,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: redis-server --save "" --appendonly no
     ports:
       - "6379:6379"
     volumes:

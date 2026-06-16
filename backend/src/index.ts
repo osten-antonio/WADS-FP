@@ -58,7 +58,8 @@ const options = {
       version: '1.0.0',
     },
     servers: [
-      { url: `${backendProtocol}://${backendHostname}:${backendPort}` }
+      {url:'/api'} // proxy to frontend
+      // { url: `${backendProtocol}://${backendHostname}:${backendPort}` }
     ],
     components: {
       schemas: {
@@ -132,7 +133,11 @@ const options = {
 const openapiSpecification = swaggerJsdoc(options);
 
 app.use('/', swaggerUi.serve);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(null,{
+  swaggerOptions: {
+    url: '/api/spec'
+  }
+}));
 
 // Register API routes
 app.use('/ingestion', ingestionRouter);
@@ -145,6 +150,10 @@ app.use('/statistics', statisticsRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Express & TypeScript Server');
+});
+
+app.get('/openapi.json', (req: Request, res: Response) => {
+  res.json(openapiSpecification);
 });
 
 app.listen(port, () => {
