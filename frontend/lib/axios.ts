@@ -7,5 +7,5 @@ const backendPort = process.env.BACKEND_PORT ?? "8000";
 const backendUrl = `${backendProtocol}://${backendHostname}:${backendPort}`;
 export const backendApi = axios.create({
   baseURL: backendUrl,
-  timeout: 10000,
+  timeout: 60000,
 });
