@@ -1,54 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { backendApi } from "@/lib/axios";
 
-export async function GET() {
-  const { data: spec } = await axios.get(
-    `http://${process.env.BACKEND_HOSTNAME}:${process.env.BACKEND_PORT}/openapi.json`
-  );
-
-  const pathMap: Record<string, string> = {
-    "/user/login": "/api/session",
-
-    "/solver/solve": "/api/solver",
-
-    "/ingestion/text": "/api/ingestion/text",
-    "/ingestion/image": "/api/ingestion/image",
-
-    "/explanation/steps/": "/api/explanation/steps",
-    "/explanation/hint/": "/api/explanation/hint",
-    "/explanation/generate/": "/api/explanation/generate",
-    "/explanation/follow-up/": "/api/explanation/follow-up",
-
-    "/practice/generate/": "/api/practice/generate",
-    "/practice/refresh/": "/api/practice/refresh",
-
-    "/statistics/{operation}": "/api/statistics/{operation}",
-
-    "/user/profile": "/api/user/profile",
-    "/user/update-username": "/api/user/update-username",
-    "/user/delete-history": "/api/user/delete-history",
-  };
-
-  const remappedPaths: Record<string, any> = {};
-  for (const [backendPath, frontendPath] of Object.entries(pathMap)) {
-    if (spec.paths?.[backendPath]) {
-      remappedPaths[frontendPath] = spec.paths[backendPath];
-    } else {
-      console.warn(`Missing backend path: ${backendPath}`);
-    }
+export async function POST(req: NextRequest) {
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON request body" }, { status: 400 });
   }
 
-  remappedPaths["/api/logout"] = {
-    post: {
-      summary: "Logout user",
-      description: "Clears session cookie locally. No backend call.",
-      responses: { "200": { description: "Logged out" } },
-    },
-  };
-
-  return NextResponse.json({
-    ...spec,
-    servers: [{ url: "" }],
-    paths: remappedPaths,
-  });
+  try {
+    const backendResponse = await backendApi.post(`/practice/generate/`, body);
+    return NextResponse.json(backendResponse.data, { status: backendResponse.status });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.code === "ECONNABORTED") {
+        return NextResponse.json({ message: "Practice generation timed out, is AI service available?\n Contact project team if issue still persists" }, { status: 504 });
+      }
+      if (error.response) {
+        return NextResponse.json(error.response.data, { status: error.response.status });
+      }
+    }
+    return NextResponse.json({ message: "Failed to connect to backend" }, { status: 502 });
+  }
 }
